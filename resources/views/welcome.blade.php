@@ -141,5 +141,17 @@
                 </div>
             </section>
         </main>
+
+        <footer class="border-t border-app-outline/70 bg-app-surface py-8">
+            <div class="app-container flex flex-col items-center justify-between gap-4 sm:flex-row">
+                <p class="text-sm text-app-copy-muted">
+                    &copy; {{ date('Y') }} {{ config('app.name', 'Malaysia Holiday API') }}. {{ __('All rights reserved.') }}
+                </p>
+                <div class="flex gap-6 text-sm font-semibold text-app-copy-muted">
+                    <a href="https://dydxsoft.my" target="_blank" rel="noopener noreferrer" class="hover:text-brand-red">{{ __('DyDxSoft') }}</a>
+                    <a href="https://github.com/DyDxdYdX" target="_blank" rel="noopener noreferrer" class="hover:text-brand-red">{{ __('GitHub') }}</a>
+                </div>
+            </div>
+        </footer>
     </body>
 </html>
