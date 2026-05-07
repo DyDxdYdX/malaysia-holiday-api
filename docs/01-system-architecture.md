@@ -18,8 +18,7 @@ graph TB
 
     subgraph WebLayer["Web / HTTP Layer"]
         PUB[Public API Routes<br/>/api/v1/holidays<br/>/api/v1/states]
-        ADM[Admin API Routes<br/>/api/v1/admin/*]
-        WEB[Admin Web UI<br/>Livewire / Blade]
+        WEB[Admin Web Routes<br/>/admin/*<br/>Livewire / Blade]
     end
 
     subgraph ServiceLayer["Service Layer (PHP)"]
@@ -39,7 +38,7 @@ graph TB
     end
 
     subgraph CrossCutting["Cross-Cutting"]
-        AUTH[Auth & RBAC<br/>Sanctum]
+        AUTH[Web Auth & RBAC<br/>Session + Role Gate]
         AUD[Audit Log]
         RL[Rate Limiter]
     end
@@ -47,11 +46,9 @@ graph TB
     PU --> PUB
     AC --> PUB
     AD --> WEB
-    AD --> ADM
 
     PUB --> RL
-    ADM --> AUTH
-    ADM --> AUTH
+    WEB --> AUTH
 
     RL --> API
     AUTH --> HSS
@@ -60,11 +57,6 @@ graph TB
     AUTH --> REV
     AUTH --> OVR
     AUTH --> ACS
-
-    WEB --> HSS
-    WEB --> IMP
-    WEB --> REV
-    WEB --> OVR
 
     HSS --> DB
     HSS --> FS
@@ -134,12 +126,13 @@ graph TB
 | Layer | Components | Responsibility |
 |---|---|---|
 | **HTTP / Route** | `api.php`, `web.php` | Route binding, middleware groups |
-| **Controller** | `HolidayController`, `HolidaySourceController`, `HolidayImportController`, `HolidayOverrideController`, `StateController` | Request validation, delegate to service |
+| **Web Controller** | `Admin\HolidaySourceController`, `Admin\HolidayImportController`, `Admin\HolidayImportBatchController`, `Admin\HolidayController`, `Admin\HolidayOverrideController` | Admin dashboard requests, validation, upload/import/review/publish/override workflow |
+| **API Controller** | `Api\HolidayController`, `Api\StateController` | Public JSON holiday and state responses |
 | **Form Request** | `StoreHolidaySourceRequest`, `ImportCsvRequest`, etc. | Input validation & authorization |
 | **Service** | `HolidaySourceService`, `HolidayCsvImportService`, `HolidayReviewService`, `HolidayOverrideService`, `HolidayApiService` | Business logic |
 | **Model / Eloquent** | `HolidaySource`, `HolidayImportBatch`, `Holiday`, `HolidayOverride`, `ApiClient` | ORM & query scopes |
 | **API Resource** | `HolidayResource`, `HolidayCollection`, `StateResource` | Response shaping |
-| **Middleware** | `auth:sanctum`, `throttle`, `can:manage-holidays` | Auth, rate limit, permission gate |
+| **Middleware** | `auth`, `verified`, `role:super_admin,data_admin`, `throttle` | Web session auth, admin role gate, public API rate limit |
 | **Observers / Events** | `HolidayObserver`, `AuditLogger` | Side-effects, audit log |
 
 ---
@@ -169,15 +162,16 @@ flowchart TB
         PE[GET /api/v1/holidays<br/>GET /api/v1/states<br/>GET /api/v1/holidays/check]
     end
 
-    subgraph Private["Admin Endpoints"]
-        AE[POST /api/v1/admin/*]
+    subgraph Admin["Admin Dashboard"]
+        AE[GET/POST /admin/*]
     end
 
     RL[Rate Limiter<br/>throttle middleware] --> PE
     PE --> PF[Published Filter<br/>Only status=published]
 
-    AE --> SA[Sanctum Auth<br/>Bearer Token]
-    SA --> RB[Role Check<br/>super_admin / data_admin]
+    AE --> SA[Web Session Auth<br/>auth middleware]
+    SA --> VE[Verified Email<br/>verified middleware]
+    VE --> RB[Role Gate<br/>super_admin / data_admin]
     RB --> BL[Business Logic]
     BL --> AL[Audit Log Entry]
 ```

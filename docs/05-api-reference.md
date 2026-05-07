@@ -11,12 +11,8 @@
 ### Public Endpoints
 No authentication required. Optional `X-Api-Key` header for higher rate limits.
 
-### Admin Endpoints
-All routes under `/admin/*` require a Bearer token via Laravel Sanctum.
-
-```http
-Authorization: Bearer {sanctum_token}
-```
+### Admin Operations
+Admin operations are available only through the server-rendered Livewire/Blade dashboard under `/admin/*`. They use web session authentication, email verification, and the `super_admin` / `data_admin` role gate; they are not API endpoints and do not accept Sanctum bearer tokens.
 
 ### API Client Key (optional)
 ```http
@@ -31,7 +27,6 @@ X-Api-Key: {raw_api_key}
 |---|---|
 | Unauthenticated | 30 req/min |
 | Authenticated API client | Per-client setting (default 60 req/min) |
-| Admin | 120 req/min |
 
 Rate limit headers returned on every response:
 ```
@@ -216,188 +211,6 @@ GET /api/v1/holidays/check?date=2026-05-30&state=SBH
   "state_code": "SBH",
   "is_holiday": false,
   "holidays": []
-}
-```
-
----
-
-## Admin Endpoints
-
-> All admin endpoints require `Authorization: Bearer {token}` and the caller must have the `super_admin` or `data_admin` role.
-
----
-
-### POST `/admin/holiday-sources`
-
-Upload a new holiday source document (PDF or CSV).
-
-**Request:** `multipart/form-data`
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `year` | integer | **Yes** | Year this source covers |
-| `source_name` | string | **Yes** | Human-readable label |
-| `source_type` | string | **Yes** | One of: `federal_pdf`, `state_page`, `gazette`, `admin_csv`, `manual_entry`, `third_party_reference` |
-| `source_url` | string (URL) | No | Official URL |
-| `file` | file | No | PDF or CSV, max 10MB |
-| `notes` | string | No | Admin notes |
-
-**Response `201 Created`:**
-```json
-{
-  "id": 1,
-  "status": "draft",
-  "message": "Holiday source uploaded successfully."
-}
-```
-
----
-
-### POST `/admin/holiday-imports/csv`
-
-Import holidays from a validated CSV file linked to a source.
-
-**Request:** `multipart/form-data`
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `source_id` | integer | **Yes** | ID of an existing `holiday_sources` record |
-| `year` | integer | **Yes** | Year to import |
-| `file` | file | **Yes** | CSV file with required columns |
-
-**CSV Required Columns:** `year`, `state_code`, `name`, `date`, `scope`, `type`
-
-**Response `200 OK`:**
-```json
-{
-  "batch_id": 1,
-  "status": "review_required",
-  "total_rows": 120,
-  "valid_rows": 118,
-  "invalid_rows": 2,
-  "warning_rows": 5
-}
-```
-
----
-
-### GET `/admin/holiday-import-batches/{batch_id}`
-
-Retrieve a batch summary with its draft holiday records for review.
-
-**Response `200 OK`:**
-```json
-{
-  "id": 1,
-  "year": 2026,
-  "status": "review_required",
-  "total_rows": 120,
-  "valid_rows": 118,
-  "invalid_rows": 2,
-  "warning_rows": 5,
-  "holidays": [
-    {
-      "id": 10,
-      "name": "Hari Pekerja",
-      "date": "2026-05-01",
-      "state_code": "SBH",
-      "status": "draft"
-    }
-  ]
-}
-```
-
----
-
-### PATCH `/admin/holidays/{holiday_id}`
-
-Edit a draft holiday record before publishing.
-
-**Request Body (JSON):**
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `name` | string | No | |
-| `date` | string (YYYY-MM-DD) | No | |
-| `state_code` | string | No | |
-| `scope` | string | No | `federal`, `state`, `custom` |
-| `type` | string | No | |
-| `is_subject_to_change` | boolean | No | |
-
-**Response `200 OK`:**
-```json
-{
-  "id": 10,
-  "status": "draft",
-  "message": "Holiday updated."
-}
-```
-
----
-
-### POST `/admin/holidays/{holiday_id}/reject`
-
-Reject a draft holiday record.
-
-**Response `200 OK`:**
-```json
-{
-  "id": 10,
-  "status": "rejected",
-  "message": "Holiday rejected."
-}
-```
-
----
-
-### POST `/admin/holiday-import-batches/{batch_id}/publish`
-
-Publish all approved/confirmed holidays in a batch.
-
-**Response `200 OK`:**
-```json
-{
-  "batch_id": 1,
-  "status": "published",
-  "published_rows": 118
-}
-```
-
-**Error `422`:**
-```json
-{
-  "error": {
-    "code": "IMPORT_BATCH_NOT_READY",
-    "message": "Batch still has unresolved invalid rows."
-  }
-}
-```
-
----
-
-### POST `/admin/holiday-overrides`
-
-Create a manual override on an existing or new holiday.
-
-**Request Body (JSON):**
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `holiday_id` | integer | No | Required for `remove`, `replace`, `rename` actions |
-| `year` | integer | **Yes** | |
-| `state_code` | string | **Yes** | |
-| `name` | string | **Yes** | New or existing holiday name |
-| `date` | string (YYYY-MM-DD) | **Yes** | |
-| `action` | string | **Yes** | `add`, `remove`, `replace`, `rename`, `mark_subject_to_change` |
-| `reason` | string | **Yes** | Must explain why |
-| `source_url` | string | No | Supporting source URL |
-
-**Response `201 Created`:**
-```json
-{
-  "id": 5,
-  "action": "rename",
-  "message": "Override applied successfully."
 }
 ```
 
