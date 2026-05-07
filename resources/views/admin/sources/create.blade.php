@@ -13,9 +13,22 @@
 
             <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" required />
             <flux:input name="source_name" :label="__('Source name')" required />
+            @php
+                $sourceTypes = [
+                    'federal_pdf' => 'Federal PDF',
+                    'state_page' => 'State Page',
+                    'gazette' => 'Gazette',
+                    'admin_csv' => 'Admin CSV',
+                    'manual_entry' => 'Manual Entry',
+                    'third_party_reference' => 'Third Party Reference',
+                ];
+            @endphp
+
             <flux:select name="source_type" :label="__('Source type')" required>
-                @foreach (['federal_pdf', 'state_page', 'gazette', 'admin_csv', 'manual_entry', 'third_party_reference'] as $type)
-                    <flux:select.option value="{{ $type }}">{{ $type }}</flux:select.option>
+                @foreach ($sourceTypes as $value => $label)
+                    <flux:select.option value="{{ $value }}">
+                        {{ $label }}
+                    </flux:select.option>
                 @endforeach
             </flux:select>
             <flux:input name="source_url" type="url" :label="__('Source URL')" />
