@@ -1,30 +1,34 @@
 <x-layouts::app :title="__('Holiday Overrides')">
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h1 class="text-xl font-semibold">{{ __('Holiday Overrides') }}</h1>
-            <flux:button :href="route('admin.overrides.create')" variant="primary">{{ __('Create') }}</flux:button>
+    <div class="admin-page">
+        <div class="admin-header">
+            <div>
+                <p class="app-label text-brand-red">{{ __('Published Corrections') }}</p>
+                <h1 class="app-page-title mt-2">{{ __('Holiday Overrides') }}</h1>
+                <p class="app-page-copy mt-2">{{ __('Apply traceable add, remove, replace, rename, and subject-to-change corrections.') }}</p>
+            </div>
+            <flux:button :href="route('admin.overrides.create')" variant="primary" icon="pencil-square" wire:navigate>{{ __('Create Override') }}</flux:button>
         </div>
 
-        <div class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-neutral-50 dark:bg-neutral-900">
+        <div class="app-card overflow-hidden">
+            <table class="app-table">
+                <thead>
                     <tr>
-                        <th class="p-3">{{ __('Date') }}</th>
-                        <th class="p-3">{{ __('State') }}</th>
-                        <th class="p-3">{{ __('Name') }}</th>
-                        <th class="p-3">{{ __('Action') }}</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('State') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Action') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($overrides as $override)
-                        <tr class="border-t border-neutral-200 dark:border-neutral-700">
-                            <td class="p-3">{{ $override->date->toDateString() }}</td>
-                            <td class="p-3">{{ $override->state_code }}</td>
-                            <td class="p-3">{{ $override->name }}</td>
-                            <td class="p-3">{{ $override->action }}</td>
+                        <tr>
+                            <td class="font-mono">{{ $override->date->toDateString() }}</td>
+                            <td><span class="app-badge app-badge-navy">{{ $override->state_code }}</span></td>
+                            <td>{{ $override->name }}</td>
+                            <td><span class="app-badge app-badge-red">{{ $override->action }}</span></td>
                         </tr>
                     @empty
-                        <tr><td class="p-3" colspan="4">{{ __('No overrides yet.') }}</td></tr>
+                        <tr><td colspan="4">{{ __('No overrides yet.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -5,12 +5,25 @@ use App\Http\Controllers\Admin\HolidayImportBatchController;
 use App\Http\Controllers\Admin\HolidayImportController;
 use App\Http\Controllers\Admin\HolidayOverrideController;
 use App\Http\Controllers\Admin\HolidaySourceController;
+use App\Models\Holiday;
+use App\Models\HolidayImportBatch;
+use App\Models\HolidayOverride;
+use App\Models\HolidaySource;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', function () {
+        return view('dashboard', [
+            'holidayCount' => Holiday::query()->count(),
+            'publishedHolidayCount' => Holiday::query()->where('status', 'published')->count(),
+            'pendingBatchCount' => HolidayImportBatch::query()->whereIn('status', ['draft', 'parsed', 'review_required', 'approved'])->count(),
+            'sourceCount' => HolidaySource::query()->count(),
+            'overrideCount' => HolidayOverride::query()->count(),
+            'recentBatches' => HolidayImportBatch::query()->with('source')->latest()->limit(5)->get(),
+        ]);
+    })->name('dashboard');
 });
 
 Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])

@@ -9,7 +9,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: Inter, 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    --color-brand-navy: #0f172a;
+    --color-brand-navy-muted: #131b2e;
+    --color-brand-red: #bc0001;
+    --color-brand-red-bright: #e41f13;
+    --color-brand-gold: #cea700;
+    --color-brand-gold-soft: #ffe083;
+    --color-app-surface: #fcf8fa;
+    --color-app-surface-low: #f6f3f5;
+    --color-app-surface-card: #ffffff;
+    --color-app-surface-muted: #f0edef;
+    --color-app-outline: #c6c6cd;
+    --color-app-copy: #1b1b1d;
+    --color-app-copy-muted: #45464d;
+    --color-app-code: #1e293b;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -23,16 +39,25 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: var(--color-brand-red);
+    --color-accent-content: var(--color-brand-red);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-brand-red-bright);
+        --color-accent-content: var(--color-brand-red-bright);
+        --color-accent-foreground: var(--color-white);
+
+        --color-app-surface: var(--color-zinc-950);
+        --color-app-surface-low: var(--color-zinc-900);
+        --color-app-surface-card: var(--color-zinc-900);
+        --color-app-surface-muted: var(--color-zinc-800);
+        --color-app-outline: var(--color-zinc-800);
+        --color-app-copy: var(--color-zinc-50);
+        --color-app-copy-muted: var(--color-zinc-400);
+        --color-app-code: var(--color-zinc-950);
     }
 }
 
@@ -58,9 +83,91 @@
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-brand-red/20 ring-offset-2 ring-offset-white;
 }
 
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@layer components {
+    .app-shell {
+        @apply min-h-screen bg-app-surface text-app-copy;
+    }
+
+    .app-container {
+        @apply mx-auto w-full max-w-7xl px-6;
+    }
+
+    .app-card {
+        @apply rounded-lg border border-app-outline/80 bg-app-surface-card shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+    }
+
+    .app-section {
+        @apply rounded-xl border border-app-outline/70 bg-app-surface-card p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+    }
+
+    .app-label {
+        @apply text-xs font-semibold tracking-wider text-app-copy-muted uppercase;
+    }
+
+    .app-page-title {
+        @apply text-2xl font-bold tracking-normal text-brand-navy dark:text-zinc-50 sm:text-3xl;
+    }
+
+    .app-page-copy {
+        @apply text-sm leading-6 text-app-copy-muted;
+    }
+
+    .app-table {
+        @apply w-full text-left text-sm;
+    }
+
+    .app-table thead {
+        @apply bg-app-surface-low text-xs font-semibold tracking-wider text-app-copy-muted uppercase;
+    }
+
+    .app-table th {
+        @apply px-4 py-3;
+    }
+
+    .app-table td {
+        @apply border-t border-app-outline/70 px-4 py-3 align-middle;
+    }
+
+    .app-badge {
+        @apply inline-flex items-center rounded-sm px-2 py-1 text-xs font-semibold tracking-wide;
+    }
+
+    .app-badge-red {
+        @apply bg-brand-red/10 text-brand-red dark:bg-brand-red-bright/20 dark:text-brand-red-bright;
+    }
+
+    .app-badge-navy {
+        @apply bg-brand-navy/10 text-brand-navy dark:bg-zinc-800 dark:text-zinc-300;
+    }
+
+    .app-badge-gold {
+        @apply bg-brand-gold-soft text-brand-navy dark:bg-brand-gold/20 dark:text-brand-gold-soft;
+    }
+
+    .app-code-block {
+        @apply rounded-lg border border-brand-navy/20 bg-app-code p-5 font-mono text-sm leading-6 text-slate-100 shadow-inner;
+    }
+
+    .admin-page {
+        @apply mx-auto flex w-full max-w-7xl flex-col gap-6 p-6 lg:p-8;
+    }
+
+    .admin-header {
+        @apply flex flex-col justify-between gap-4 md:flex-row md:items-end;
+    }
+
+    .admin-stat-card {
+        @apply rounded-lg border border-app-outline/80 bg-app-surface-card p-5 shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+    }
+
+    .admin-action-link {
+        @apply font-semibold text-brand-red dark:text-brand-red-bright underline-offset-4 hover:underline;
+    }
+}

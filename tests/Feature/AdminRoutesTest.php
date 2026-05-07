@@ -19,8 +19,22 @@ test('data admins can access admin source pages', function () {
     $this->actingAs($user)
         ->get('/admin/sources')
         ->assertOk()
-        ->assertSee('Holiday Sources');
+        ->assertSee('Import Sources');
 });
+
+test('data admins can access redesigned admin workflow pages', function (string $path, string $expectedText) {
+    $user = User::factory()->create([
+        'role' => 'data_admin',
+    ]);
+
+    $this->actingAs($user)
+        ->get($path)
+        ->assertOk()
+        ->assertSee($expectedText);
+})->with([
+    ['/admin/batches', 'Import Batches'],
+    ['/admin/overrides', 'Holiday Overrides'],
+]);
 
 test('admin web routes use web auth and role middleware only', function () {
     $adminRoutes = collect(Route::getRoutes())

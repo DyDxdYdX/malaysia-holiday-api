@@ -1,32 +1,51 @@
 <x-layouts::app :title="__('Holiday Sources')">
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h1 class="text-xl font-semibold">{{ __('Holiday Sources') }}</h1>
-            <flux:button :href="route('admin.sources.create')" variant="primary">{{ __('Upload') }}</flux:button>
+    <div class="admin-page">
+        <div class="admin-header">
+            <div>
+                <p class="app-label text-brand-red">{{ __('Data Operations') }}</p>
+                <h1 class="app-page-title mt-2">{{ __('Import Sources') }}</h1>
+                <p class="app-page-copy mt-2">{{ __('Manage official source documents used for holiday imports.') }}</p>
+            </div>
+            <flux:button :href="route('admin.sources.create')" variant="primary" icon="document-arrow-up" wire:navigate>{{ __('Upload Source') }}</flux:button>
         </div>
 
-        <div class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-neutral-50 dark:bg-neutral-900">
+        <div class="grid gap-4 md:grid-cols-3">
+            <div class="admin-stat-card">
+                <p class="app-label">{{ __('Total Sources') }}</p>
+                <p class="mt-4 text-3xl font-bold text-brand-navy dark:text-white">{{ number_format($sources->total()) }}</p>
+            </div>
+            <div class="admin-stat-card">
+                <p class="app-label">{{ __('Visible Page') }}</p>
+                <p class="mt-4 text-3xl font-bold text-brand-navy dark:text-white">{{ number_format($sources->count()) }}</p>
+            </div>
+            <div class="admin-stat-card">
+                <p class="app-label">{{ __('Workflow') }}</p>
+                <p class="mt-4 app-page-copy">{{ __('Upload, import, review, then publish.') }}</p>
+            </div>
+        </div>
+
+        <div class="app-card overflow-hidden">
+            <table class="app-table">
+                <thead>
                     <tr>
-                        <th class="p-3">{{ __('Year') }}</th>
-                        <th class="p-3">{{ __('Source') }}</th>
-                        <th class="p-3">{{ __('Type') }}</th>
-                        <th class="p-3">{{ __('Status') }}</th>
-                        <th class="p-3">{{ __('Batches') }}</th>
+                        <th>{{ __('Year') }}</th>
+                        <th>{{ __('Source') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Batches') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($sources as $source)
-                        <tr class="border-t border-neutral-200 dark:border-neutral-700">
-                            <td class="p-3">{{ $source->year }}</td>
-                            <td class="p-3"><a class="underline" href="{{ route('admin.sources.show', $source) }}">{{ $source->source_name }}</a></td>
-                            <td class="p-3">{{ $source->source_type }}</td>
-                            <td class="p-3">{{ $source->status }}</td>
-                            <td class="p-3">{{ $source->import_batches_count }}</td>
+                        <tr>
+                            <td>{{ $source->year }}</td>
+                            <td><a class="admin-action-link" href="{{ route('admin.sources.show', $source) }}">{{ $source->source_name }}</a></td>
+                            <td><span class="app-badge app-badge-navy">{{ $source->source_type }}</span></td>
+                            <td><span class="app-badge {{ $source->status === 'active' ? 'app-badge-gold' : 'app-badge-red' }}">{{ $source->status }}</span></td>
+                            <td>{{ $source->import_batches_count }}</td>
                         </tr>
                     @empty
-                        <tr><td class="p-3" colspan="5">{{ __('No sources uploaded yet.') }}</td></tr>
+                        <tr><td colspan="5">{{ __('No sources uploaded yet.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

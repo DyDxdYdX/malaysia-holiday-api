@@ -1,27 +1,33 @@
 <x-layouts::app :title="__('Import Batches')">
-    <div class="space-y-6">
-        <h1 class="text-xl font-semibold">{{ __('Import Batches') }}</h1>
+    <div class="admin-page">
+        <div class="admin-header">
+            <div>
+                <p class="app-label text-brand-red">{{ __('Review Workflow') }}</p>
+                <h1 class="app-page-title mt-2">{{ __('Import Batches') }}</h1>
+                <p class="app-page-copy mt-2">{{ __('Review imported draft holidays before publishing them to the public API.') }}</p>
+            </div>
+        </div>
 
-        <div class="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-neutral-50 dark:bg-neutral-900">
+        <div class="app-card overflow-hidden">
+            <table class="app-table">
+                <thead>
                     <tr>
-                        <th class="p-3">{{ __('Batch') }}</th>
-                        <th class="p-3">{{ __('Source') }}</th>
-                        <th class="p-3">{{ __('Status') }}</th>
-                        <th class="p-3">{{ __('Rows') }}</th>
+                        <th>{{ __('Batch') }}</th>
+                        <th>{{ __('Source') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Rows') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($batches as $batch)
-                        <tr class="border-t border-neutral-200 dark:border-neutral-700">
-                            <td class="p-3"><a class="underline" href="{{ route('admin.batches.show', $batch) }}">#{{ $batch->id }}</a></td>
-                            <td class="p-3">{{ $batch->source?->source_name }}</td>
-                            <td class="p-3">{{ $batch->status }}</td>
-                            <td class="p-3">{{ $batch->valid_rows }}/{{ $batch->total_rows }}</td>
+                        <tr>
+                            <td><a class="admin-action-link" href="{{ route('admin.batches.show', $batch) }}">#{{ $batch->id }}</a></td>
+                            <td>{{ $batch->source?->source_name }}</td>
+                            <td><span class="app-badge {{ $batch->status === 'published' ? 'app-badge-gold' : 'app-badge-red' }}">{{ $batch->status }}</span></td>
+                            <td>{{ $batch->valid_rows }}/{{ $batch->total_rows }}</td>
                         </tr>
                     @empty
-                        <tr><td class="p-3" colspan="4">{{ __('No batches yet.') }}</td></tr>
+                        <tr><td colspan="4">{{ __('No batches yet.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
