@@ -156,7 +156,7 @@ select:focus[data-flux-control] {
     }
 
     .admin-page {
-        @apply mx-auto flex w-full max-w-7xl flex-col gap-6 p-6 lg:p-8;
+        @apply mx-auto flex w-full flex-col gap-6 p-6 lg:p-8;
     }
 
     .admin-header {
