@@ -6,7 +6,7 @@
                 <h1 class="app-page-title mt-2">{{ $source->source_name }}</h1>
                 <p class="app-page-copy mt-2">{{ $source->year }} · {{ $source->source_type }} · {{ $source->status }}</p>
             </div>
-            <flux:button :href="route('admin.sources.import.create', $source)" variant="primary" icon="archive-box-arrow-down" wire:navigate>{{ __('Import CSV') }}</flux:button>
+            <flux:button :href="route('admin.sources.import.create', $source)" variant="primary" icon="archive-box-arrow-down" wire:navigate>{{ __('Import') }}</flux:button>
         </div>
 
         <dl class="app-section grid gap-5 text-sm md:grid-cols-2">

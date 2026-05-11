@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'holiday_source_id',
     'year',
     'status',
+    'import_method',
+    'provider',
+    'model',
+    'started_at',
+    'completed_at',
+    'failed_at',
+    'failure_reason',
     'total_rows',
     'valid_rows',
     'invalid_rows',
@@ -26,6 +33,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class HolidayImportBatch extends Model
 {
     use HasFactory;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'failed_at' => 'datetime',
+            'imported_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'published_at' => 'datetime',
+        ];
+    }
 
     /**
      * Get the source document this batch was imported from.
@@ -65,5 +89,13 @@ class HolidayImportBatch extends Model
     public function holidays(): HasMany
     {
         return $this->hasMany(Holiday::class);
+    }
+
+    /**
+     * Get the row-level import audit entries for this batch.
+     */
+    public function importRows(): HasMany
+    {
+        return $this->hasMany(HolidayImportRow::class);
     }
 }

@@ -9,6 +9,7 @@
     "nightwatch": false,
     "sail": false,
     "skills": [
+        "ai-sdk-development",
         "fortify-development",
         "laravel-best-practices",
         "fluxui-development",

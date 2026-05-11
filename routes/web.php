@@ -35,8 +35,12 @@ Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])
 
         Route::get('sources/{source}/import', [HolidayImportController::class, 'create'])
             ->name('sources.import.create');
+        Route::get('sources/{source}/import/template', [HolidayImportController::class, 'template'])
+            ->name('sources.import.template');
         Route::post('sources/{source}/import', [HolidayImportController::class, 'store'])
             ->name('sources.import.store');
+        Route::post('sources/{source}/import/pdf', [HolidayImportController::class, 'extractPdf'])
+            ->name('sources.import.pdf');
 
         Route::get('batches', [HolidayImportBatchController::class, 'index'])
             ->name('batches.index');

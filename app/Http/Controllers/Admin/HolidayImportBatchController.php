@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HolidayImportBatch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class HolidayImportBatchController extends Controller
@@ -20,11 +21,29 @@ class HolidayImportBatchController extends Controller
         ]);
     }
 
-    public function show(HolidayImportBatch $batch): View
+    public function show(HolidayImportBatch $batch): Response
     {
-        return view('admin.batches.show', [
-            'batch' => $batch->load(['source', 'holidays' => fn ($query) => $query->orderBy('date')]),
+        $batch->load([
+            'source',
+            'holidays' => fn ($query) => $query->orderBy('date'),
+            'importRows' => fn ($query) => $query->orderBy('row_number'),
         ]);
+
+        $isPdfExtractionPending = $batch->import_method === 'pdf_ai'
+            && $batch->status === 'draft'
+            && $batch->completed_at === null
+            && $batch->failed_at === null;
+
+        $response = response()->view('admin.batches.show', [
+            'batch' => $batch,
+            'isPdfExtractionPending' => $isPdfExtractionPending,
+        ]);
+
+        if ($isPdfExtractionPending) {
+            $response->headers->set('Refresh', '5');
+        }
+
+        return $response;
     }
 
     public function publish(Request $request, HolidayImportBatch $batch): RedirectResponse

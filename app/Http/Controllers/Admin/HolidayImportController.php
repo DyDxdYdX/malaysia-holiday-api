@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Holiday;
-use App\Models\HolidayImportBatch;
+use App\Jobs\ExtractHolidayPdf;
 use App\Models\HolidaySource;
+use App\Services\Holidays\CsvHolidayImportParser;
+use App\Services\Holidays\HolidayImportService;
+use App\Services\Holidays\HolidayImportTemplate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\File;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class HolidayImportController extends Controller
 {
@@ -21,133 +25,76 @@ class HolidayImportController extends Controller
         ]);
     }
 
-    public function store(Request $request, HolidaySource $source): RedirectResponse
+    public function template(HolidaySource $source, HolidayImportTemplate $template): StreamedResponse
     {
+        $filename = Str::slug($source->source_name).'-holiday-import-template.csv';
+
+        return response()->streamDownload(function () use ($source, $template): void {
+            $handle = fopen('php://output', 'w');
+
+            if ($handle === false) {
+                return;
+            }
+
+            fputcsv($handle, HolidayImportTemplate::HEADERS);
+
+            foreach ($template->sampleRows($source->year) as $row) {
+                fputcsv($handle, array_map(
+                    fn (string $header): string => $row[$header] ?? '',
+                    HolidayImportTemplate::HEADERS
+                ));
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    public function store(
+        Request $request,
+        HolidaySource $source,
+        CsvHolidayImportParser $parser,
+        HolidayImportService $imports,
+    ): RedirectResponse {
         $validated = $request->validate([
             'file' => ['required', File::types(['csv', 'txt'])->max(10 * 1024)],
         ]);
 
-        $rows = $this->readCsvRows($validated['file']->getRealPath());
-
-        $batch = HolidayImportBatch::create([
-            'holiday_source_id' => $source->id,
-            'year' => $source->year,
-            'status' => 'review_required',
-            'total_rows' => count($rows),
-            'valid_rows' => 0,
-            'invalid_rows' => 0,
-            'warning_rows' => 0,
-            'imported_by' => $request->user()->id,
-            'imported_at' => now(),
-        ]);
-
-        $validRows = 0;
-        $warningRows = 0;
-
-        foreach ($rows as $row) {
-            if (! $this->hasRequiredHolidayData($row) || ! $this->hasValidDate($row['date'])) {
-                $batch->increment('invalid_rows');
-
-                continue;
-            }
-
-            $date = Carbon::parse($row['date']);
-
-            Holiday::create([
-                'holiday_source_id' => $source->id,
-                'holiday_import_batch_id' => $batch->id,
-                'year' => (int) $row['year'],
-                'state_code' => strtoupper($row['state_code']),
-                'name' => $row['name'],
-                'date' => $date->toDateString(),
-                'day_name' => $date->format('l'),
-                'scope' => $row['scope'],
-                'type' => $row['type'],
-                'is_subject_to_change' => filter_var($row['is_subject_to_change'] ?? false, FILTER_VALIDATE_BOOL),
-                'status' => 'draft',
-                'source_note' => $row['source_note'] ?? null,
-            ]);
-
-            $validRows++;
-
-            if (filter_var($row['is_subject_to_change'] ?? false, FILTER_VALIDATE_BOOL)) {
-                $warningRows++;
-            }
-        }
-
-        $batch->update([
-            'valid_rows' => $validRows,
-            'warning_rows' => $warningRows,
-        ]);
+        $batch = $imports->importRows(
+            source: $source,
+            rows: $parser->parse($validated['file']->getRealPath()),
+            importedBy: $request->user()->id,
+            importMethod: 'csv',
+        );
 
         return redirect()
             ->route('admin.batches.show', $batch)
             ->with('status', 'CSV import completed.');
     }
 
-    /**
-     * @return list<array<string, string|null>>
-     */
-    private function readCsvRows(string $path): array
+    public function extractPdf(Request $request, HolidaySource $source, HolidayImportService $imports): RedirectResponse
     {
-        $handle = fopen($path, 'r');
+        abort_unless($this->sourceHasPdf($source), Response::HTTP_UNPROCESSABLE_ENTITY, 'The source must have a stored PDF file.');
 
-        if ($handle === false) {
-            return [];
-        }
+        $batch = $imports->createPendingBatch(
+            source: $source,
+            importedBy: $request->user()->id,
+            importMethod: 'pdf_ai',
+            provider: 'gemini',
+            model: config('ai.holiday_pdf_extraction_model', 'gemini-2.5-flash-lite'),
+        );
 
-        $headers = fgetcsv($handle);
-        $rows = [];
+        ExtractHolidayPdf::dispatch($batch->id);
 
-        if ($headers === false) {
-            fclose($handle);
-
-            return [];
-        }
-
-        $headers = array_map(fn (string $header): string => trim($header), $headers);
-
-        while (($values = fgetcsv($handle)) !== false) {
-            $row = [];
-
-            foreach ($headers as $index => $header) {
-                $row[$header] = isset($values[$index]) ? trim($values[$index]) : null;
-            }
-
-            $rows[] = $row;
-        }
-
-        fclose($handle);
-
-        return $rows;
+        return redirect()
+            ->route('admin.batches.show', $batch)
+            ->with('status', 'PDF extraction queued.');
     }
 
-    /**
-     * @param  array<string, string|null>  $row
-     */
-    private function hasRequiredHolidayData(array $row): bool
+    private function sourceHasPdf(HolidaySource $source): bool
     {
-        foreach (['year', 'state_code', 'name', 'date', 'scope', 'type'] as $column) {
-            if (! isset($row[$column]) || $row[$column] === '') {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function hasValidDate(?string $date): bool
-    {
-        if ($date === null) {
-            return false;
-        }
-
-        try {
-            Carbon::parse($date);
-        } catch (\Throwable) {
-            return false;
-        }
-
-        return true;
+        return $source->file_path !== null
+            && strtolower(pathinfo($source->file_path, PATHINFO_EXTENSION)) === 'pdf';
     }
 }
