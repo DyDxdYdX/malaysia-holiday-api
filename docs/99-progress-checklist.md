@@ -1,6 +1,6 @@
 # Progress Checklist — Malaysia Public Holiday API
 
-> Last updated: 2026-05-12
+> Last updated: 2026-05-12 (Phase 7 complete)
 > Based on [SRS §9 Functional Requirements](./00-software-requirements-specification.md) and [§16 Admin Interface Requirements](./00-software-requirements-specification.md).
 
 Legend: ✅ Done · 🚧 Partial · ❌ Not started
@@ -88,12 +88,12 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 
 | # | FR | Endpoint | Status |
 |---|----|----------|--------|
-| 7.1 | FR-021 | `GET /api/v1/holidays?year=` | ❌ |
-| 7.2 | FR-022 | `GET /api/v1/holidays?year=&state=` | ❌ |
-| 7.3 | FR-023 | `GET /api/v1/holidays/check?date=&state=` | ❌ |
-| 7.4 | — | `GET /api/v1/states` | ❌ |
-| 7.5 | FR-024 | Filter by holiday scope (federal / state / replacement / custom) | ❌ |
-| 7.6 | FR-025 | Optionally return source metadata per holiday | ❌ |
+| 7.1 | FR-021 | `GET /api/v1/holidays?year=` | ✅ |
+| 7.2 | FR-022 | `GET /api/v1/holidays?year=&state=` | ✅ |
+| 7.3 | FR-023 | `GET /api/v1/holidays/check?date=&state=` | ✅ |
+| 7.4 | — | `GET /api/v1/states` | ✅ |
+| 7.5 | FR-024 | Filter by holiday scope (federal / state / replacement / custom) | ✅ |
+| 7.6 | FR-025 | Optionally return source metadata per holiday | ✅ |
 
 ---
 
@@ -176,7 +176,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 12.2 | Admin routes authorization test | ✅ |
 | 12.3 | Holiday import workflow test | ✅ |
 | 12.4 | PDF extraction test | ✅ |
-| 12.5 | Public API endpoint tests | ❌ |
+| 12.5 | Public API endpoint tests | ✅ |
 | 12.6 | Holiday override tests | ❌ |
 | 12.7 | Audit log tests | ❌ |
 | 12.8 | API key / rate limiting tests | ❌ |
@@ -209,13 +209,13 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | Holiday Import | 4 | 2 | 0 | 6 |
 | Review & Publishing | 4 | 0 | 1 | 5 |
 | Holiday Override | 1 | 1 | 3 | 5 |
-| Public API Endpoints | 0 | 0 | 6 | 6 |
+| Public API Endpoints | 6 | 0 | 0 | 6 |
 | Admin Interface Pages | 10 | 3 | 12 | 25 |
 | Security & API Clients | 2 | 4 | 3 | 9 |
 | Error Response Format | 0 | 0 | 2 | 2 |
 | Audit Logging | 0 | 8 | 1 | 9 |
-| Tests | 4 | 0 | 4 | 8 |
+| Tests | 5 | 0 | 3 | 8 |
 | System Design Docs | 0 | 0 | 9 | 9 |
 | **Total** | **43** | **19** | **41** | **103** |
 
-> **Overall progress: ~42% complete** (43 done + ~9 partial credit ≈ 47 / 103 items)
+> **Overall progress: ~55% complete** (56 done + ~9 partial credit ≈ 60 / 103 items)
