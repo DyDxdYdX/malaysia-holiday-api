@@ -183,22 +183,6 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 
 ---
 
-## 13. System Design Documents (`docs/system-design/`)
-
-| # | Document | Status |
-|---|----------|--------|
-| 13.1 | `admin_dashboard_overview/` | ❌ Empty |
-| 13.2 | `api_design_system/` | ❌ Empty |
-| 13.3 | `audit_logs_holiday_api_admin/` | ❌ Empty |
-| 13.4 | `draft_review_holiday_api_admin/` | ❌ Empty |
-| 13.5 | `holiday_records_management/` | ❌ Empty |
-| 13.6 | `import_batches_holiday_api_admin/` | ❌ Empty |
-| 13.7 | `import_sources_holiday_api_admin/` | ❌ Empty |
-| 13.8 | `malaysia_public_holiday_api_landing_page/` | ❌ Empty |
-| 13.9 | `manual_overrides_holiday_api_admin/` | ❌ Empty |
-
----
-
 ## MVP Completion Summary
 
 | Module | Done | Partial | Not Started | Total |
@@ -215,7 +199,6 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | Error Response Format | 0 | 0 | 2 | 2 |
 | Audit Logging | 0 | 8 | 1 | 9 |
 | Tests | 5 | 0 | 3 | 8 |
-| System Design Docs | 0 | 0 | 9 | 9 |
 | **Total** | **43** | **19** | **41** | **103** |
 
 > **Overall progress: ~55% complete** (56 done + ~9 partial credit ≈ 60 / 103 items)
