@@ -37,6 +37,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.HOSTINGER_HOST }}
           REMOTE_USER: ${{ secrets.HOSTINGER_USERNAME }}
+          REMOTE_PORT: ${{ secrets.HOSTINGER_PORT }}
           SOURCE: "public/"
           TARGET: "${{ secrets.HOSTINGER_PATH }}/public_html/"
           ARGS: "-avz --delete"
@@ -47,7 +48,7 @@ jobs:
           host: ${{ secrets.HOSTINGER_HOST }}
           username: ${{ secrets.HOSTINGER_USERNAME }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: 65002
+          port: ${{ secrets.HOSTINGER_PORT }}
           script: |
             cd ${{ secrets.HOSTINGER_PATH }}
 
