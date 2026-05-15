@@ -1,6 +1,6 @@
 # Progress Checklist — Malaysia Public Holiday API
 
-> Last updated: 2026-05-12 (Phase 7 complete)
+> Last updated: 2026-05-15 (Phase 8 complete — public API & core admin done)
 > Based on [SRS §9 Functional Requirements](./00-software-requirements-specification.md) and [§16 Admin Interface Requirements](./00-software-requirements-specification.md).
 
 Legend: ✅ Done · 🚧 Partial · ❌ Not started
@@ -42,7 +42,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 |---|----|------|--------|
 | 3.1 | FR-001 | Upload source file (PDF / CSV) | ✅ |
 | 3.2 | FR-002 | Store official source URL | ✅ |
-| 3.3 | FR-003 | Calculate file checksum | 🚧 Needs verification |
+| 3.3 | FR-003 | Calculate file checksum | ✅ `hash_file('sha256')` in `HolidaySourceController::store` |
 | 3.4 | FR-004 | View source history list | ✅ |
 
 ---
@@ -56,7 +56,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 4.3 | FR-007 | Save imported rows as draft | ✅ |
 | 4.4 | FR-008 | Validate year, date, state code, name, type | ✅ |
 | 4.5 | FR-009 | Detect duplicate holidays | ✅ |
-| 4.6 | FR-010 | Mark holidays as subject to change | 🚧 Needs verification |
+| 4.6 | FR-010 | Mark holidays as subject to change | ✅ `is_subject_to_change` stored, surfaced in API & import warnings |
 
 ---
 
@@ -68,7 +68,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 5.2 | FR-012 | Edit draft holiday records | ✅ |
 | 5.3 | FR-013 | Reject imported records | ✅ |
 | 5.4 | FR-014 | Publish approved holiday batch | ✅ |
-| 5.5 | FR-015 | Exclude draft records from API output | ❌ API not built yet |
+| 5.5 | FR-015 | Exclude draft records from API output | ✅ API filters `status = 'published'` |
 
 ---
 
@@ -77,10 +77,10 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | # | FR | Item | Status |
 |---|----|------|--------|
 | 6.1 | FR-016 | Add a new holiday override | ✅ |
-| 6.2 | FR-017 | Cancel / remove a published holiday | ❌ |
-| 6.3 | FR-018 | Replace holiday date via override | ❌ |
-| 6.4 | FR-019 | Rename holiday via override | ❌ |
-| 6.5 | FR-020 | Store override reason, source URL, approver, timestamp | 🚧 Needs verification |
+| 6.2 | FR-017 | Cancel / remove a published holiday | ✅ `action = 'remove'` sets status to `cancelled` |
+| 6.3 | FR-018 | Replace holiday date via override | ✅ `action = 'replace'` updates date & marks `overridden` |
+| 6.4 | FR-019 | Rename holiday via override | ✅ `action = 'rename'` updates name & marks `overridden` |
+| 6.5 | FR-020 | Store override reason, source URL, approver, timestamp | ✅ `reason`, `source_url`, `approved_by`, `approved_at` stored |
 
 ---
 
@@ -103,7 +103,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 |---|------|---------|--------|
 | 8.1 | Holiday Sources | Upload source file | ✅ |
 | 8.2 | Holiday Sources | Enter / view source URL | ✅ |
-| 8.3 | Holiday Sources | View file checksum | 🚧 |
+| 8.3 | Holiday Sources | View file checksum | ✅ stored & displayed in `show` view |
 | 8.4 | Holiday Sources | View source status | ✅ |
 | 8.5 | Holiday Imports | Import from CSV | ✅ |
 | 8.6 | Holiday Imports | Parse PDF | ✅ |
@@ -112,7 +112,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 8.9 | Holiday Review | Preview draft holidays | ✅ |
 | 8.10 | Holiday Review | Edit draft records | ✅ |
 | 8.11 | Holiday Review | Reject records | ✅ |
-| 8.12 | Holiday Review | Approve records | 🚧 Needs verification |
+| 8.12 | Holiday Review | Approve records | ✅ publish action confirms all draft/confirmed rows |
 | 8.13 | Holiday Review | Publish batch | ✅ |
 | 8.14 | Holiday Management | Holiday list with search | ❌ |
 | 8.15 | Holiday Management | Filter by year | ❌ |
@@ -138,8 +138,8 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 9.3 | API key creation & management for `api_clients` | ❌ |
 | 9.4 | API key authentication middleware on private API routes | ❌ |
 | 9.5 | Rate limiting on API endpoints | ❌ |
-| 9.6 | File upload type validation (PDF / CSV only, max 10 MB) | 🚧 Needs verification |
-| 9.7 | Source file checksum enforcement | 🚧 Needs verification |
+| 9.6 | File upload type validation (PDF / CSV only, max 10 MB) | ✅ `File::types(['pdf','csv','txt'])->max(10*1024)` enforced |
+| 9.7 | Source file checksum enforcement | ✅ SHA-256 computed & stored on upload |
 
 ---
 
@@ -156,14 +156,14 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 
 | # | Event | Status |
 |---|-------|--------|
-| 11.1 | `source_uploaded` | 🚧 Needs verification |
-| 11.2 | `source_updated` | 🚧 Needs verification |
-| 11.3 | `source_deleted` | 🚧 Needs verification |
-| 11.4 | `csv_import_started` / `csv_import_completed` | 🚧 Needs verification |
-| 11.5 | `pdf_parse_started` / `pdf_parse_completed` | 🚧 Needs verification |
-| 11.6 | `holiday_created` / `holiday_updated` / `holiday_deleted` | 🚧 Needs verification |
-| 11.7 | `holiday_published` | 🚧 Needs verification |
-| 11.8 | `override_created` / `override_approved` / `override_rejected` | 🚧 Needs verification |
+| 11.1 | `source_uploaded` | ❌ `AuditLog::create` never called anywhere |
+| 11.2 | `source_updated` | ❌ |
+| 11.3 | `source_deleted` | ❌ |
+| 11.4 | `csv_import_started` / `csv_import_completed` | ❌ |
+| 11.5 | `pdf_parse_started` / `pdf_parse_completed` | ❌ |
+| 11.6 | `holiday_created` / `holiday_updated` / `holiday_deleted` | ❌ |
+| 11.7 | `holiday_published` | ❌ |
+| 11.8 | `override_created` / `override_approved` / `override_rejected` | ❌ |
 | 11.9 | `api_client_created` / `api_client_disabled` | ❌ |
 
 ---
@@ -189,16 +189,28 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 |--------|-----:|--------:|------------:|------:|
 | Data Model & Migrations | 8 | 0 | 0 | 8 |
 | Models | 7 | 0 | 0 | 7 |
-| Source Management | 3 | 1 | 0 | 4 |
-| Holiday Import | 4 | 2 | 0 | 6 |
-| Review & Publishing | 4 | 0 | 1 | 5 |
-| Holiday Override | 1 | 1 | 3 | 5 |
+| Source Management | 4 | 0 | 0 | 4 |
+| Holiday Import | 6 | 0 | 0 | 6 |
+| Review & Publishing | 5 | 0 | 0 | 5 |
+| Holiday Override | 5 | 0 | 0 | 5 |
 | Public API Endpoints | 6 | 0 | 0 | 6 |
-| Admin Interface Pages | 10 | 3 | 12 | 25 |
-| Security & API Clients | 2 | 4 | 3 | 9 |
+| Admin Interface Pages | 13 | 0 | 12 | 25 |
+| Security & API Clients | 4 | 0 | 5 | 9 |
 | Error Response Format | 0 | 0 | 2 | 2 |
-| Audit Logging | 0 | 8 | 1 | 9 |
+| Audit Logging | 0 | 0 | 9 | 9 |
 | Tests | 5 | 0 | 3 | 8 |
-| **Total** | **43** | **19** | **41** | **103** |
+| **Total** | **63** | **0** | **31** | **94** |
 
-> **Overall progress: ~55% complete** (56 done + ~9 partial credit ≈ 60 / 103 items)
+> **Overall progress: ~67% complete** (63 / 94 items done — 9 items consolidated after verification)
+
+### What's left (31 items)
+
+| Priority | Area | Items |
+|----------|------|-------|
+| 🔴 High | Admin Interface | Holiday management page (list, filters, add manual, override from list) — items 8.14–8.19 |
+| 🔴 High | Admin Interface | Audit logs admin page — items 8.23–8.25 |
+| 🔴 High | Admin Interface | Edit / delete override — item 8.22 |
+| 🟠 Medium | Audit Logging | Wire `AuditLog::create` to all 9 event types (§19) — items 11.1–11.9 |
+| 🟠 Medium | Tests | Override tests, audit log tests, API key tests — items 12.6–12.8 |
+| 🟡 Low | Security | API key management UI, auth middleware, rate limiting — items 9.3–9.5 |
+| 🟡 Low | Error Format | Standardised JSON error envelope — items 10.1–10.2 |
