@@ -39,8 +39,9 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: 65002
           script: |
-            cd ~/laravel-app
-            git pull origin main
+            cd ${{ secrets.HOSTINGER_PATH }}
+            git pull origin deploy
+            mv public public_html
             composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
             php artisan migrate --force
             php artisan config:cache
