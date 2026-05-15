@@ -31,7 +31,17 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy via SSH
+      - name: Upload built assets to Hostinger
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOSTINGER_HOST }}
+          REMOTE_USER: ${{ secrets.HOSTINGER_USERNAME }}
+          SOURCE: "public/"
+          TARGET: "${{ secrets.HOSTINGER_PATH }}/public_html/"
+          ARGS: "-avz --delete"
+
+      - name: Run Laravel deploy commands
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -40,10 +50,13 @@ jobs:
           port: 65002
           script: |
             cd ${{ secrets.HOSTINGER_PATH }}
+
             git pull origin deploy
-            rsync -av public/ public_html/
+
             composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
             php artisan migrate --force
+
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
