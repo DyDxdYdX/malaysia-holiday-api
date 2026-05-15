@@ -41,7 +41,7 @@ jobs:
           script: |
             cd ${{ secrets.HOSTINGER_PATH }}
             git pull origin deploy
-            mv public/* public_html/
+            rsync -av public/ public_html/
             composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
             php artisan migrate --force
             php artisan config:cache
