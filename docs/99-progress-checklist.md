@@ -1,6 +1,6 @@
 # Progress Checklist — Malaysia Public Holiday API
 
-> Last updated: 2026-05-18 (Holiday Management module complete — items 8.14–8.19)
+> Last updated: 2026-05-18 (API client security + rate limiting + lifecycle audit logging complete)
 > Based on [SRS §9 Functional Requirements](./00-software-requirements-specification.md) and [§16 Admin Interface Requirements](./00-software-requirements-specification.md).
 
 Legend: ✅ Done · 🚧 Partial · ❌ Not started
@@ -122,10 +122,10 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 8.19 | Holiday Management | Create override from list | ✅ |
 | 8.20 | Manual Overrides | Override index list | ✅ |
 | 8.21 | Manual Overrides | Create override form | ✅ |
-| 8.22 | Manual Overrides | Edit / delete override | ❌ |
-| 8.23 | Audit Logs | View create/update/delete history | ❌ |
-| 8.24 | Audit Logs | View publisher / approver | ❌ |
-| 8.25 | Audit Logs | View old and new values | ❌ |
+| 8.22 | Manual Overrides | Edit / delete override | ✅ |
+| 8.23 | Audit Logs | View create/update/delete history | ✅ |
+| 8.24 | Audit Logs | View publisher / approver | ✅ |
+| 8.25 | Audit Logs | View old and new values | ✅ |
 
 ---
 
@@ -135,9 +135,9 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 |---|------|--------|
 | 9.1 | Admin routes require authentication + role middleware | ✅ |
 | 9.2 | Role-based authorization (`super_admin`, `data_admin`) | ✅ |
-| 9.3 | API key creation & management for `api_clients` | ❌ |
-| 9.4 | API key authentication middleware on private API routes | ❌ |
-| 9.5 | Rate limiting on API endpoints | ❌ |
+| 9.3 | API key creation & management for `api_clients` | ✅ |
+| 9.4 | API key authentication middleware on private API routes | ✅ |
+| 9.5 | Rate limiting on API endpoints | ✅ |
 | 9.6 | File upload type validation (PDF / CSV only, max 10 MB) | ✅ `File::types(['pdf','csv','txt'])->max(10*1024)` enforced |
 | 9.7 | Source file checksum enforcement | ✅ SHA-256 computed & stored on upload |
 
@@ -156,15 +156,15 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 
 | # | Event | Status |
 |---|-------|--------|
-| 11.1 | `source_uploaded` | ❌ `AuditLog::create` never called anywhere |
-| 11.2 | `source_updated` | ❌ |
-| 11.3 | `source_deleted` | ❌ |
-| 11.4 | `csv_import_started` / `csv_import_completed` | ❌ |
-| 11.5 | `pdf_parse_started` / `pdf_parse_completed` | ❌ |
-| 11.6 | `holiday_created` / `holiday_updated` / `holiday_deleted` | ❌ |
-| 11.7 | `holiday_published` | ❌ |
-| 11.8 | `override_created` / `override_approved` / `override_rejected` | ❌ |
-| 11.9 | `api_client_created` / `api_client_disabled` | ❌ |
+| 11.1 | `source_uploaded` | ✅ |
+| 11.2 | `source_updated` | ✅ |
+| 11.3 | `source_deleted` | ✅ |
+| 11.4 | `csv_import_started` / `csv_import_completed` | ✅ |
+| 11.5 | `pdf_parse_started` / `pdf_parse_completed` | ✅ |
+| 11.6 | `holiday_created` / `holiday_updated` / `holiday_deleted` | ✅ |
+| 11.7 | `holiday_published` | ✅ |
+| 11.8 | `override_created` / `override_approved` / `override_rejected` | ✅ |
+| 11.9 | `api_client_created` / `api_client_disabled` | ✅ |
 
 ---
 
@@ -177,9 +177,9 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 12.3 | Holiday import workflow test | ✅ |
 | 12.4 | PDF extraction test | ✅ |
 | 12.5 | Public API endpoint tests | ✅ |
-| 12.6 | Holiday override tests | ❌ |
-| 12.7 | Audit log tests | ❌ |
-| 12.8 | API key / rate limiting tests | ❌ |
+| 12.6 | Holiday override tests | ✅ |
+| 12.7 | Audit log tests | ✅ |
+| 12.8 | API key / rate limiting tests | ✅ |
 
 ---
 
@@ -194,22 +194,17 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | Review & Publishing | 5 | 0 | 0 | 5 |
 | Holiday Override | 5 | 0 | 0 | 5 |
 | Public API Endpoints | 6 | 0 | 0 | 6 |
-| Admin Interface Pages | 21 | 0 | 4 | 25 |
-| Security & API Clients | 4 | 0 | 5 | 9 |
+| Admin Interface Pages | 25 | 0 | 0 | 25 |
+| Security & API Clients | 7 | 0 | 0 | 7 |
 | Error Response Format | 0 | 0 | 2 | 2 |
-| Audit Logging | 0 | 0 | 9 | 9 |
-| Tests | 5 | 0 | 3 | 8 |
-| **Total** | **69** | **0** | **25** | **94** |
+| Audit Logging | 9 | 0 | 0 | 9 |
+| Tests | 8 | 0 | 0 | 8 |
+| **Total** | **90** | **0** | **2** | **92** |
 
-> **Overall progress: ~73% complete** (69 / 94 items done)
+> **Overall progress: ~98% complete** (90 / 92 items done)
 
-### What's left (25 items)
+### What's left (2 items)
 
 | Priority | Area | Items |
 |----------|------|-------|
-| 🔴 High | Admin Interface | Audit logs admin page — items 8.23–8.25 |
-| 🔴 High | Admin Interface | Edit / delete override — item 8.22 |
-| 🟠 Medium | Audit Logging | Wire `AuditLog::create` to all 9 event types (§19) — items 11.1–11.9 |
-| 🟠 Medium | Tests | Override tests, audit log tests, API key tests — items 12.6–12.8 |
-| 🟡 Low | Security | API key management UI, auth middleware, rate limiting — items 9.3–9.5 |
 | 🟡 Low | Error Format | Standardised JSON error envelope — items 10.1–10.2 |

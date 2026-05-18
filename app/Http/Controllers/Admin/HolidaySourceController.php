@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HolidaySource;
+use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,7 @@ class HolidaySourceController extends Controller
         return view('admin.sources.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
@@ -51,6 +52,13 @@ class HolidaySourceController extends Controller
         $validated['status'] = 'draft';
 
         $source = HolidaySource::create($validated);
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'source_uploaded',
+            entityType: 'holiday_source',
+            entityId: $source->id,
+            newValues: $auditLogger->modelSnapshot($source),
+        );
 
         return redirect()
             ->route('admin.sources.show', $source)
@@ -64,15 +72,23 @@ class HolidaySourceController extends Controller
         ]);
     }
 
-    public function destroy(HolidaySource $source): RedirectResponse
+    public function destroy(Request $request, HolidaySource $source, AuditLogger $auditLogger): RedirectResponse
     {
         abort_if($source->status !== 'draft', 422, 'Only draft sources may be removed.');
+        $oldValues = $source->toArray();
 
         if ($source->file_path !== null) {
             Storage::delete($source->file_path);
         }
 
         $source->delete();
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'source_deleted',
+            entityType: 'holiday_source',
+            entityId: $source->id,
+            oldValues: $oldValues,
+        );
 
         return redirect()
             ->route('admin.sources.index')

@@ -8,6 +8,7 @@ use App\Models\HolidaySource;
 use App\Services\Holidays\CsvHolidayImportParser;
 use App\Services\Holidays\HolidayImportService;
 use App\Services\Holidays\HolidayImportTemplate;
+use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -56,10 +57,19 @@ class HolidayImportController extends Controller
         HolidaySource $source,
         CsvHolidayImportParser $parser,
         HolidayImportService $imports,
+        AuditLogger $auditLogger,
     ): RedirectResponse {
         $validated = $request->validate([
             'file' => ['required', File::types(['csv', 'txt'])->max(10 * 1024)],
         ]);
+
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'csv_import_started',
+            entityType: 'holiday_source',
+            entityId: $source->id,
+            newValues: ['source_id' => $source->id, 'import_method' => 'csv'],
+        );
 
         $batch = $imports->importRows(
             source: $source,
@@ -68,12 +78,25 @@ class HolidayImportController extends Controller
             importMethod: 'csv',
         );
 
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'csv_import_completed',
+            entityType: 'holiday_import_batch',
+            entityId: $batch->id,
+            newValues: [
+                'status' => $batch->status,
+                'total_rows' => $batch->total_rows,
+                'valid_rows' => $batch->valid_rows,
+                'invalid_rows' => $batch->invalid_rows,
+            ],
+        );
+
         return redirect()
             ->route('admin.batches.show', $batch)
             ->with('status', 'CSV import completed.');
     }
 
-    public function extractPdf(Request $request, HolidaySource $source, HolidayImportService $imports): RedirectResponse
+    public function extractPdf(Request $request, HolidaySource $source, HolidayImportService $imports, AuditLogger $auditLogger): RedirectResponse
     {
         abort_unless($this->sourceHasPdf($source), Response::HTTP_UNPROCESSABLE_ENTITY, 'The source must have a stored PDF file.');
 
@@ -83,6 +106,18 @@ class HolidayImportController extends Controller
             importMethod: 'pdf_ai',
             provider: 'gemini',
             model: config('ai.holiday_pdf_extraction_model', 'gemini-2.5-flash-lite'),
+        );
+
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'pdf_parse_started',
+            entityType: 'holiday_import_batch',
+            entityId: $batch->id,
+            newValues: [
+                'source_id' => $source->id,
+                'provider' => $batch->provider,
+                'model' => $batch->model,
+            ],
         );
 
         ExtractHolidayPdf::dispatch($batch->id);

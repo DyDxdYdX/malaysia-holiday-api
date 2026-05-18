@@ -30,6 +30,12 @@
                     <flux:sidebar.item icon="pencil-square" :href="route('admin.overrides.index')" :current="request()->routeIs('admin.overrides.*')" wire:navigate>
                         {{ __('Overrides') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-text" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate>
+                        {{ __('Audit Logs') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="key" :href="route('admin.api-clients.index')" :current="request()->routeIs('admin.api-clients.*')" wire:navigate>
+                        {{ __('API Clients') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

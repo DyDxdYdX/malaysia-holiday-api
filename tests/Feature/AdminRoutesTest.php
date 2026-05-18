@@ -35,6 +35,8 @@ test('data admins can access redesigned admin workflow pages', function (string 
     ['/admin/batches', 'Import Batches'],
     ['/admin/holidays', 'Holiday Management'],
     ['/admin/overrides', 'Holiday Overrides'],
+    ['/admin/audit-logs', 'Audit Logs'],
+    ['/admin/api-clients', 'API Clients'],
 ]);
 
 test('admin web routes use web auth and role middleware only', function () {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Holiday;
+use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -56,7 +57,7 @@ class HolidayController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
@@ -71,7 +72,7 @@ class HolidayController extends Controller
 
         $date = Carbon::parse($validated['date']);
 
-        Holiday::query()->create([
+        $holiday = Holiday::query()->create([
             ...$validated,
             'state_code' => strtoupper($validated['state_code']),
             'date' => $date->toDateString(),
@@ -79,14 +80,22 @@ class HolidayController extends Controller
             'is_subject_to_change' => $request->boolean('is_subject_to_change'),
             'status' => 'published',
         ]);
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'holiday_created',
+            entityType: 'holiday',
+            entityId: $holiday->id,
+            newValues: $auditLogger->modelSnapshot($holiday),
+        );
 
         return redirect()
             ->route('admin.holidays.index')
             ->with('status', 'Manual holiday added.');
     }
 
-    public function update(Request $request, Holiday $holiday): RedirectResponse
+    public function update(Request $request, Holiday $holiday, AuditLogger $auditLogger): RedirectResponse
     {
+        $oldValues = $holiday->toArray();
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
             'state_code' => ['required', 'string', 'max:10'],
@@ -108,15 +117,32 @@ class HolidayController extends Controller
             'is_subject_to_change' => $request->boolean('is_subject_to_change'),
             'status' => 'confirmed',
         ]);
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'holiday_updated',
+            entityType: 'holiday',
+            entityId: $holiday->id,
+            oldValues: $oldValues,
+            newValues: $holiday->fresh()?->toArray(),
+        );
 
         return redirect()
             ->route('admin.batches.show', $holiday->holiday_import_batch_id)
             ->with('status', 'Holiday updated.');
     }
 
-    public function reject(Holiday $holiday): RedirectResponse
+    public function reject(Request $request, Holiday $holiday, AuditLogger $auditLogger): RedirectResponse
     {
+        $oldValues = $holiday->toArray();
         $holiday->update(['status' => 'cancelled']);
+        $auditLogger->logFromRequest(
+            request: $request,
+            action: 'holiday_deleted',
+            entityType: 'holiday',
+            entityId: $holiday->id,
+            oldValues: $oldValues,
+            newValues: $holiday->fresh()?->toArray(),
+        );
 
         return redirect()
             ->route('admin.batches.show', $holiday->holiday_import_batch_id)

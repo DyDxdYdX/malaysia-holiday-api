@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ApiClientController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\HolidayImportBatchController;
 use App\Http\Controllers\Admin\HolidayImportController;
@@ -68,6 +70,22 @@ Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])
             ->name('overrides.create');
         Route::post('overrides', [HolidayOverrideController::class, 'store'])
             ->name('overrides.store');
+        Route::get('overrides/{override}/edit', [HolidayOverrideController::class, 'edit'])
+            ->name('overrides.edit');
+        Route::put('overrides/{override}', [HolidayOverrideController::class, 'update'])
+            ->name('overrides.update');
+        Route::delete('overrides/{override}', [HolidayOverrideController::class, 'destroy'])
+            ->name('overrides.destroy');
+
+        Route::get('audit-logs', [AuditLogController::class, 'index'])
+            ->name('audit-logs.index');
+
+        Route::get('api-clients', [ApiClientController::class, 'index'])
+            ->name('api-clients.index');
+        Route::post('api-clients', [ApiClientController::class, 'store'])
+            ->name('api-clients.store');
+        Route::patch('api-clients/{apiClient}/disable', [ApiClientController::class, 'disable'])
+            ->name('api-clients.disable');
     });
 
 require __DIR__.'/settings.php';

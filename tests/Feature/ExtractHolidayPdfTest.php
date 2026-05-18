@@ -2,6 +2,7 @@
 
 use App\Ai\Agents\HolidayPdfExtractionAgent;
 use App\Jobs\ExtractHolidayPdf;
+use App\Models\AuditLog;
 use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Models\HolidayImportRow;
@@ -191,7 +192,8 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
         ->warning_rows->toBe(1)
         ->invalid_rows->toBe(0)
         ->and(HolidayImportRow::query()->count())->toBe(2)
-        ->and(Holiday::query()->where('status', 'draft')->count())->toBe(2);
+        ->and(Holiday::query()->where('status', 'draft')->count())->toBe(2)
+        ->and(AuditLog::query()->where('action', 'pdf_parse_completed')->exists())->toBeTrue();
 
     HolidayPdfExtractionAgent::assertPrompted(fn ($prompt): bool => $prompt->attachments->isNotEmpty());
 });

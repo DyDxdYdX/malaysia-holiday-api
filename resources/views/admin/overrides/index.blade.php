@@ -17,6 +17,7 @@
                         <th>{{ __('State') }}</th>
                         <th>{{ __('Name') }}</th>
                         <th>{{ __('Action') }}</th>
+                        <th>{{ __('Manage') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,9 +27,23 @@
                             <td><span class="app-badge app-badge-navy">{{ $override->state_code }}</span></td>
                             <td>{{ $override->name }}</td>
                             <td><span class="app-badge app-badge-red">{{ $override->action }}</span></td>
+                            <td class="whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <a class="admin-action-link" href="{{ route('admin.overrides.edit', $override) }}" wire:navigate>
+                                        {{ __('Edit') }}
+                                    </a>
+                                    <form method="POST" action="{{ route('admin.overrides.destroy', $override) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="admin-action-link text-brand-red">
+                                            {{ __('Delete') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4">{{ __('No overrides yet.') }}</td></tr>
+                        <tr><td colspan="5">{{ __('No overrides yet.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Ai\Agents\HolidayPdfExtractionAgent;
 use App\Models\HolidayImportBatch;
 use App\Services\Holidays\HolidayImportService;
+use App\Support\AuditLogger;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Laravel\Ai\Enums\Lab;
@@ -27,14 +28,21 @@ class ExtractHolidayPdf implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(HolidayImportService $imports): void
+    public function handle(HolidayImportService $imports, ?AuditLogger $auditLogger = null): void
     {
+        $auditLogger ??= app(AuditLogger::class);
         $batch = HolidayImportBatch::query()
             ->with('source')
             ->findOrFail($this->batchId);
 
         if ($batch->source->file_path === null) {
             $imports->markFailed($batch, 'The source does not have a stored PDF file.');
+            $auditLogger->logSystem(
+                action: 'pdf_parse_completed',
+                entityType: 'holiday_import_batch',
+                entityId: $batch->id,
+                newValues: ['status' => 'rejected', 'failure_reason' => 'The source does not have a stored PDF file.'],
+            );
 
             return;
         }
@@ -51,6 +59,17 @@ class ExtractHolidayPdf implements ShouldQueue
         );
 
         $imports->completePendingBatch($batch, $this->rowsFromResponse($response->toArray()));
+        $auditLogger->logSystem(
+            action: 'pdf_parse_completed',
+            entityType: 'holiday_import_batch',
+            entityId: $batch->id,
+            newValues: [
+                'status' => $batch->fresh()?->status,
+                'total_rows' => $batch->fresh()?->total_rows,
+                'valid_rows' => $batch->fresh()?->valid_rows,
+                'invalid_rows' => $batch->fresh()?->invalid_rows,
+            ],
+        );
     }
 
     public function failed(Throwable $exception): void
@@ -59,6 +78,12 @@ class ExtractHolidayPdf implements ShouldQueue
 
         if ($batch !== null) {
             app(HolidayImportService::class)->markFailed($batch, $exception->getMessage());
+            app(AuditLogger::class)->logSystem(
+                action: 'pdf_parse_completed',
+                entityType: 'holiday_import_batch',
+                entityId: $batch->id,
+                newValues: ['status' => 'rejected', 'failure_reason' => $exception->getMessage()],
+            );
         }
     }
 

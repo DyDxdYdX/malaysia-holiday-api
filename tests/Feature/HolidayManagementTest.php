@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AuditLog;
 use App\Models\Holiday;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -98,7 +99,8 @@ test('data admins can create manual holiday entries', function () {
         ->state_code->toBe('KUL')
         ->day_name->toBe('Monday')
         ->status->toBe('published')
-        ->is_subject_to_change->toBeTrue();
+        ->is_subject_to_change->toBeTrue()
+        ->and(AuditLog::query()->where('action', 'holiday_created')->exists())->toBeTrue();
 });
 
 test('manual holiday creation validates required fields', function () {
