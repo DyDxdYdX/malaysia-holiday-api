@@ -1,7 +1,9 @@
 {
     "agents": [
         "cursor",
-        "codex"
+        "codex",
+        "gemini",
+        "copilot"
     ],
     "cloud": false,
     "guidelines": true,
