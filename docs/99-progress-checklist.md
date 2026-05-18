@@ -1,6 +1,6 @@
 # Progress Checklist — Malaysia Public Holiday API
 
-> Last updated: 2026-05-18 (API client security + rate limiting + lifecycle audit logging complete)
+> Last updated: 2026-05-18 (Standard API error envelope complete — checklist fully done)
 > Based on [SRS §9 Functional Requirements](./00-software-requirements-specification.md) and [§16 Admin Interface Requirements](./00-software-requirements-specification.md).
 
 Legend: ✅ Done · 🚧 Partial · ❌ Not started
@@ -147,8 +147,8 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 
 | # | Item | Status |
 |---|------|--------|
-| 10.1 | Standardised `error.code / message / details` envelope | ❌ |
-| 10.2 | All defined error codes handled (`VALIDATION_ERROR`, `UNAUTHORIZED`, etc.) | ❌ |
+| 10.1 | Standardised `error.code / message / details` envelope | ✅ |
+| 10.2 | All defined error codes handled (`VALIDATION_ERROR`, `UNAUTHORIZED`, etc.) | ✅ |
 
 ---
 
@@ -196,15 +196,13 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | Public API Endpoints | 6 | 0 | 0 | 6 |
 | Admin Interface Pages | 25 | 0 | 0 | 25 |
 | Security & API Clients | 7 | 0 | 0 | 7 |
-| Error Response Format | 0 | 0 | 2 | 2 |
+| Error Response Format | 2 | 0 | 0 | 2 |
 | Audit Logging | 9 | 0 | 0 | 9 |
 | Tests | 8 | 0 | 0 | 8 |
-| **Total** | **90** | **0** | **2** | **92** |
+| **Total** | **92** | **0** | **0** | **92** |
 
-> **Overall progress: ~98% complete** (90 / 92 items done)
+> **Overall progress: 100% complete** (92 / 92 items done)
 
-### What's left (2 items)
+### What's left
 
-| Priority | Area | Items |
-|----------|------|-------|
-| 🟡 Low | Error Format | Standardised JSON error envelope — items 10.1–10.2 |
+None. All checklist items are complete.

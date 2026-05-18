@@ -21,7 +21,7 @@
                     <flux:sidebar.item icon="document-arrow-up" :href="route('admin.sources.index')" :current="request()->routeIs('admin.sources.*')" wire:navigate>
                         {{ __('Sources') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="archive-box" :href="route('admin.batches.index')" :current="request()->routeIs('admin.batches.*') || request()->routeIs('admin.holidays.*')" wire:navigate>
+                    <flux:sidebar.item icon="archive-box" :href="route('admin.batches.index')" :current="request()->routeIs('admin.batches.*')" wire:navigate>
                         {{ __('Import Batches') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="calendar-days" :href="route('admin.holidays.index')" :current="request()->routeIs('admin.holidays.*')" wire:navigate>
