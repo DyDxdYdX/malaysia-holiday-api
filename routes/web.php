@@ -51,6 +51,12 @@ Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])
 
         Route::get('holidays/{holiday}/edit', [HolidayController::class, 'edit'])
             ->name('holidays.edit');
+        Route::get('holidays', [HolidayController::class, 'index'])
+            ->name('holidays.index');
+        Route::get('holidays/create', [HolidayController::class, 'create'])
+            ->name('holidays.create');
+        Route::post('holidays', [HolidayController::class, 'store'])
+            ->name('holidays.store');
         Route::put('holidays/{holiday}', [HolidayController::class, 'update'])
             ->name('holidays.update');
         Route::post('holidays/{holiday}/reject', [HolidayController::class, 'reject'])

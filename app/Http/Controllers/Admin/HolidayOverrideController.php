@@ -25,12 +25,22 @@ class HolidayOverrideController extends Controller
 
     public function create(): View
     {
+        $selectedHoliday = null;
+        $selectedHolidayId = request()->integer('holiday_id');
+
+        if ($selectedHolidayId > 0) {
+            $selectedHoliday = Holiday::query()
+                ->where('status', 'published')
+                ->find($selectedHolidayId);
+        }
+
         return view('admin.overrides.create', [
             'holidays' => Holiday::query()
                 ->where('status', 'published')
                 ->orderByDesc('date')
                 ->limit(100)
                 ->get(),
+            'selectedHoliday' => $selectedHoliday,
         ]);
     }
 

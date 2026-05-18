@@ -33,6 +33,7 @@ test('data admins can access redesigned admin workflow pages', function (string 
         ->assertSee($expectedText);
 })->with([
     ['/admin/batches', 'Import Batches'],
+    ['/admin/holidays', 'Holiday Management'],
     ['/admin/overrides', 'Holiday Overrides'],
 ]);
 

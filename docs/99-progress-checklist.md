@@ -1,6 +1,6 @@
 # Progress Checklist — Malaysia Public Holiday API
 
-> Last updated: 2026-05-15 (Phase 8 complete — public API & core admin done)
+> Last updated: 2026-05-18 (Holiday Management module complete — items 8.14–8.19)
 > Based on [SRS §9 Functional Requirements](./00-software-requirements-specification.md) and [§16 Admin Interface Requirements](./00-software-requirements-specification.md).
 
 Legend: ✅ Done · 🚧 Partial · ❌ Not started
@@ -114,12 +114,12 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 8.11 | Holiday Review | Reject records | ✅ |
 | 8.12 | Holiday Review | Approve records | ✅ publish action confirms all draft/confirmed rows |
 | 8.13 | Holiday Review | Publish batch | ✅ |
-| 8.14 | Holiday Management | Holiday list with search | ❌ |
-| 8.15 | Holiday Management | Filter by year | ❌ |
-| 8.16 | Holiday Management | Filter by state | ❌ |
-| 8.17 | Holiday Management | Filter by scope | ❌ |
-| 8.18 | Holiday Management | Add manual holiday | ❌ |
-| 8.19 | Holiday Management | Create override from list | ❌ |
+| 8.14 | Holiday Management | Holiday list with search | ✅ |
+| 8.15 | Holiday Management | Filter by year | ✅ |
+| 8.16 | Holiday Management | Filter by state | ✅ |
+| 8.17 | Holiday Management | Filter by scope | ✅ |
+| 8.18 | Holiday Management | Add manual holiday | ✅ |
+| 8.19 | Holiday Management | Create override from list | ✅ |
 | 8.20 | Manual Overrides | Override index list | ✅ |
 | 8.21 | Manual Overrides | Create override form | ✅ |
 | 8.22 | Manual Overrides | Edit / delete override | ❌ |
@@ -194,20 +194,19 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | Review & Publishing | 5 | 0 | 0 | 5 |
 | Holiday Override | 5 | 0 | 0 | 5 |
 | Public API Endpoints | 6 | 0 | 0 | 6 |
-| Admin Interface Pages | 13 | 0 | 12 | 25 |
+| Admin Interface Pages | 21 | 0 | 4 | 25 |
 | Security & API Clients | 4 | 0 | 5 | 9 |
 | Error Response Format | 0 | 0 | 2 | 2 |
 | Audit Logging | 0 | 0 | 9 | 9 |
 | Tests | 5 | 0 | 3 | 8 |
-| **Total** | **63** | **0** | **31** | **94** |
+| **Total** | **69** | **0** | **25** | **94** |
 
-> **Overall progress: ~67% complete** (63 / 94 items done — 9 items consolidated after verification)
+> **Overall progress: ~73% complete** (69 / 94 items done)
 
-### What's left (31 items)
+### What's left (25 items)
 
 | Priority | Area | Items |
 |----------|------|-------|
-| 🔴 High | Admin Interface | Holiday management page (list, filters, add manual, override from list) — items 8.14–8.19 |
 | 🔴 High | Admin Interface | Audit logs admin page — items 8.23–8.25 |
 | 🔴 High | Admin Interface | Edit / delete override — item 8.22 |
 | 🟠 Medium | Audit Logging | Wire `AuditLog::create` to all 9 event types (§19) — items 11.1–11.9 |

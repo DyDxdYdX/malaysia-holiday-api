@@ -24,6 +24,9 @@
                     <flux:sidebar.item icon="archive-box" :href="route('admin.batches.index')" :current="request()->routeIs('admin.batches.*') || request()->routeIs('admin.holidays.*')" wire:navigate>
                         {{ __('Import Batches') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" :href="route('admin.holidays.index')" :current="request()->routeIs('admin.holidays.*')" wire:navigate>
+                        {{ __('Holiday Management') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="pencil-square" :href="route('admin.overrides.index')" :current="request()->routeIs('admin.overrides.*')" wire:navigate>
                         {{ __('Overrides') }}
                     </flux:sidebar.item>
