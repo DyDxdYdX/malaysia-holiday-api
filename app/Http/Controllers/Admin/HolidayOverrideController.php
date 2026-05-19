@@ -32,6 +32,7 @@ class HolidayOverrideController extends Controller
         if ($selectedHolidayId > 0) {
             $selectedHoliday = Holiday::query()
                 ->where('status', 'published')
+                ->with('states')
                 ->find($selectedHolidayId);
         }
 
@@ -39,6 +40,7 @@ class HolidayOverrideController extends Controller
             'holidays' => Holiday::query()
                 ->where('status', 'published')
                 ->orderByDesc('date')
+                ->with('states')
                 ->limit(100)
                 ->get(),
             'selectedHoliday' => $selectedHoliday,
@@ -89,6 +91,7 @@ class HolidayOverrideController extends Controller
                 ->where('status', 'published')
                 ->orWhere('id', $override->holiday_id)
                 ->orderByDesc('date')
+                ->with('states')
                 ->limit(100)
                 ->get(),
         ]);
@@ -165,9 +168,8 @@ class HolidayOverrideController extends Controller
     protected function applyOverrideAction(array $validated, ?Holiday $holiday, Carbon $date): void
     {
         match ($validated['action']) {
-            'add' => Holiday::create([
+            'add' => tap(Holiday::create([
                 'year' => $validated['year'],
-                'state_code' => strtoupper($validated['state_code']),
                 'name' => $validated['name'],
                 'date' => $date->toDateString(),
                 'day_name' => $date->format('l'),
@@ -175,7 +177,9 @@ class HolidayOverrideController extends Controller
                 'type' => 'custom',
                 'status' => 'published',
                 'source_note' => $validated['reason'],
-            ]),
+            ]), function (Holiday $createdHoliday) use ($validated): void {
+                $createdHoliday->syncStateCodes([strtoupper($validated['state_code'])]);
+            }),
             'remove' => $holiday?->update(['status' => 'cancelled']),
             'replace', 'rename' => $holiday?->update([
                 'name' => $validated['name'],

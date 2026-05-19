@@ -467,7 +467,7 @@ CREATE TABLE holidays (
     holiday_source_id BIGINT UNSIGNED NULL,
     holiday_import_batch_id BIGINT UNSIGNED NULL,
     year SMALLINT NOT NULL,
-    state_code VARCHAR(10) NOT NULL,
+    state_codes VARCHAR(10) NOT NULL,
     name VARCHAR(255) NOT NULL,
     date DATE NOT NULL,
     day_name VARCHAR(20) NULL,
@@ -479,9 +479,9 @@ CREATE TABLE holidays (
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
-    INDEX idx_holidays_year_state (year, state_code),
-    INDEX idx_holidays_date_state (date, state_code),
-    UNIQUE KEY unique_holiday_record (year, state_code, date, name)
+    INDEX idx_holidays_year_state (year, state_codes),
+    INDEX idx_holidays_date_state (date, state_codes),
+    UNIQUE KEY unique_holiday_record (year, state_codes, date, name)
 );
 ```
 
@@ -525,7 +525,7 @@ CREATE TABLE holiday_overrides (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     holiday_id BIGINT UNSIGNED NULL,
     year SMALLINT NOT NULL,
-    state_code VARCHAR(10) NOT NULL,
+    state_codes VARCHAR(10) NOT NULL,
     name VARCHAR(255) NOT NULL,
     date DATE NOT NULL,
     action VARCHAR(30) NOT NULL,
@@ -537,8 +537,8 @@ CREATE TABLE holiday_overrides (
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
-    INDEX idx_overrides_year_state (year, state_code),
-    INDEX idx_overrides_date_state (date, state_code)
+    INDEX idx_overrides_year_state (year, state_codes),
+    INDEX idx_overrides_date_state (date, state_codes)
 );
 ```
 
@@ -589,7 +589,7 @@ Response:
       "name": "Hari Pekerja",
       "date": "2026-05-01",
       "day_name": "Friday",
-      "state_code": "SBH",
+      "state_codes": "SBH",
       "scope": "federal",
       "type": "federal",
       "is_subject_to_change": false
@@ -611,7 +611,7 @@ Response:
 ```json
 {
   "year": 2026,
-  "state_code": "SBH",
+  "state_codes": "SBH",
   "data": [
     {
       "name": "Hari Jadi Yang di-Pertua Negeri Sabah",
@@ -638,7 +638,7 @@ Response:
 ```json
 {
   "date": "2026-05-30",
-  "state_code": "SBH",
+  "state_codes": "SBH",
   "is_holiday": true,
   "holidays": [
     {
@@ -759,7 +759,7 @@ Response:
 ## 14. CSV Import Format
 
 ```csv
-year,state_code,name,date,day_name,scope,type,is_subject_to_change,source_note
+year,state_codes,name,date,day_name,scope,type,is_subject_to_change,source_note
 2026,SBH,Hari Jadi Yang di-Pertua Negeri Sabah,2026-03-30,Monday,state,state,false,JPM HKA 2026
 2026,SBH,Good Friday,2026-04-03,Friday,state,state,false,JPM HKA 2026
 2026,SBH,Pesta Kaamatan,2026-05-30,Saturday,state,state,false,JPM HKA 2026
@@ -771,7 +771,7 @@ CSV validation:
 csv_validation:
   required_columns:
     - year
-    - state_code
+    - state_codes
     - name
     - date
     - scope

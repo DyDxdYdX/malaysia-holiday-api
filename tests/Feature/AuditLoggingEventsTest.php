@@ -36,7 +36,7 @@ test('source lifecycle and csv import create audit logs', function () {
     $sourceResponse->assertRedirect(route('admin.sources.show', $source));
 
     $csv = implode("\n", [
-        'year,state_code,name,date,scope,type,is_subject_to_change,source_note',
+        'year,state_codes,name,date,scope,type,is_subject_to_change,source_note',
         '2026,SBH,Pesta Kaamatan,2026-05-30,state,state,false,JPM HKA 2026',
     ]);
 
@@ -90,7 +90,7 @@ test('holiday edits and reject create audit logs', function () {
         'holiday_source_id' => $source->id,
         'holiday_import_batch_id' => $batch->id,
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Pesta Kaamatan',
         'date' => '2026-05-30',
         'day_name' => 'Saturday',
@@ -102,7 +102,7 @@ test('holiday edits and reject create audit logs', function () {
     $this->actingAs($user)
         ->put(route('admin.holidays.update', $holiday), [
             'year' => 2026,
-            'state_code' => 'SBH',
+            'state_codes' => 'SBH',
             'name' => 'Pesta Kaamatan Updated',
             'date' => '2026-05-30',
             'scope' => 'state',
@@ -124,7 +124,7 @@ test('override create and delete create audit logs', function () {
 
     $holiday = Holiday::query()->create([
         'year' => 2026,
-        'state_code' => 'KUL',
+        'state_codes' => 'KUL',
         'name' => 'Holiday Target',
         'date' => '2026-08-31',
         'day_name' => 'Monday',

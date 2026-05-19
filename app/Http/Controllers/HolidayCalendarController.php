@@ -20,10 +20,15 @@ class HolidayCalendarController extends Controller
         $holidays = Holiday::query()
             ->where('status', 'published')
             ->where('year', $resolvedYear)
-            ->when($stateCode !== '', fn ($query) => $query->where('state_code', $stateCode))
+            ->when($stateCode !== '', function ($query) use ($stateCode): void {
+                $query->whereHas('states', function ($stateQuery) use ($stateCode): void {
+                    $stateQuery->where('state_code', $stateCode);
+                });
+            })
             ->when($scope !== '', fn ($query) => $query->where('scope', $scope))
             ->orderBy('date')
             ->orderBy('name')
+            ->with('states')
             ->get();
 
         return view('holidays.calendar', [

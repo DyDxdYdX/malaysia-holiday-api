@@ -62,7 +62,7 @@ test('holidays endpoint returns only published holidays for the given year', fun
     Holiday::create([
         'holiday_source_id' => $source->id,
         'year' => 2026,
-        'state_code' => 'KUL',
+        'state_codes' => 'KUL',
         'name' => 'Hari Kebangsaan',
         'date' => '2026-08-31',
         'day_name' => 'Monday',
@@ -76,7 +76,7 @@ test('holidays endpoint returns only published holidays for the given year', fun
     Holiday::create([
         'holiday_source_id' => $source->id,
         'year' => 2026,
-        'state_code' => 'KUL',
+        'state_codes' => 'KUL',
         'name' => 'Draft Holiday',
         'date' => '2026-09-16',
         'day_name' => 'Wednesday',
@@ -106,7 +106,7 @@ test('holidays endpoint filters by state code', function () {
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'SBH', 'name' => 'Pesta Kaamatan',
+        'year' => 2026, 'state_codes' => 'SBH', 'name' => 'Pesta Kaamatan',
         'date' => '2026-05-30', 'day_name' => 'Saturday',
         'scope' => 'state', 'type' => 'state', 'is_subject_to_change' => false,
         'status' => 'published',
@@ -114,7 +114,7 @@ test('holidays endpoint filters by state code', function () {
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'KUL', 'name' => 'Hari Kebangsaan',
+        'year' => 2026, 'state_codes' => 'KUL', 'name' => 'Hari Kebangsaan',
         'date' => '2026-08-31', 'day_name' => 'Monday',
         'scope' => 'federal', 'type' => 'federal', 'is_subject_to_change' => false,
         'status' => 'published',
@@ -125,6 +125,7 @@ test('holidays endpoint filters by state code', function () {
     $response->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('state_code', 'SBH')
+        ->assertJsonPath('data.0.state_codes.0', 'SBH')
         ->assertJsonPath('data.0.name', 'Pesta Kaamatan');
 });
 
@@ -140,7 +141,7 @@ test('holidays endpoint filters by scope', function () {
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'KUL', 'name' => 'Hari Kebangsaan',
+        'year' => 2026, 'state_codes' => 'KUL', 'name' => 'Hari Kebangsaan',
         'date' => '2026-08-31', 'day_name' => 'Monday',
         'scope' => 'federal', 'type' => 'federal', 'is_subject_to_change' => false,
         'status' => 'published',
@@ -148,7 +149,7 @@ test('holidays endpoint filters by scope', function () {
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'SBH', 'name' => 'Pesta Kaamatan',
+        'year' => 2026, 'state_codes' => 'SBH', 'name' => 'Pesta Kaamatan',
         'date' => '2026-05-30', 'day_name' => 'Saturday',
         'scope' => 'state', 'type' => 'state', 'is_subject_to_change' => false,
         'status' => 'published',
@@ -182,7 +183,7 @@ test('holidays endpoint includes source metadata when include_source is set', fu
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'KUL', 'name' => 'Hari Kebangsaan',
+        'year' => 2026, 'state_codes' => 'KUL', 'name' => 'Hari Kebangsaan',
         'date' => '2026-08-31', 'day_name' => 'Monday',
         'scope' => 'federal', 'type' => 'federal', 'is_subject_to_change' => false,
         'status' => 'published',
@@ -223,7 +224,7 @@ test('check endpoint returns is_holiday true when date matches a published holid
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'SBH', 'name' => 'Pesta Kaamatan',
+        'year' => 2026, 'state_codes' => 'SBH', 'name' => 'Pesta Kaamatan',
         'date' => '2026-05-30', 'day_name' => 'Saturday',
         'scope' => 'state', 'type' => 'state', 'is_subject_to_change' => false,
         'status' => 'published',
@@ -234,6 +235,7 @@ test('check endpoint returns is_holiday true when date matches a published holid
     $response->assertOk()
         ->assertJsonPath('date', '2026-05-30')
         ->assertJsonPath('state_code', 'SBH')
+        ->assertJsonPath('holidays.0.state_codes.0', 'SBH')
         ->assertJsonPath('is_holiday', true)
         ->assertJsonCount(1, 'holidays')
         ->assertJsonPath('holidays.0.name', 'Pesta Kaamatan');
@@ -266,7 +268,7 @@ test('check endpoint does not return draft holidays', function () {
 
     Holiday::create([
         'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_code' => 'KUL', 'name' => 'Draft Day',
+        'year' => 2026, 'state_codes' => 'KUL', 'name' => 'Draft Day',
         'date' => '2026-03-01', 'day_name' => 'Sunday',
         'scope' => 'federal', 'type' => 'federal', 'is_subject_to_change' => false,
         'status' => 'draft',

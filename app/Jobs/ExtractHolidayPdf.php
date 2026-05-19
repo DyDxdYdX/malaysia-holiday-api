@@ -108,7 +108,9 @@ class ExtractHolidayPdf implements ShouldQueue
                 'raw_payload' => $payload,
                 'normalized_payload' => [
                     'year' => $payload['year'] ?? null,
-                    'state_code' => $payload['state_code'] ?? null,
+                    'state_codes' => is_array($payload['state_codes'] ?? null)
+                        ? implode(',', $payload['state_codes'])
+                        : ($payload['state_codes'] ?? ($payload['state_code'] ?? null)),
                     'name' => $payload['name'] ?? null,
                     'date' => $payload['date'] ?? null,
                     'scope' => $payload['scope'] ?? null,

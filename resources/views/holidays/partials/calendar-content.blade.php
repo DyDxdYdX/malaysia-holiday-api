@@ -66,7 +66,7 @@
                                     @foreach ($day['holidays'] as $holiday)
                                         <div class="rounded-md bg-brand-red/10 px-1.5 py-1 text-[10px] leading-tight text-brand-red">
                                             <p class="font-semibold">{{ $holiday->name }}</p>
-                                            <p>{{ $holiday->state_code }} · {{ $holiday->scope }}</p>
+                                            <p>{{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->scope }}</p>
                                             @if ($isAdminView)
                                                 <p class="uppercase tracking-wider">{{ $holiday->status }}</p>
                                             @endif

@@ -51,7 +51,7 @@
                             <td class="font-mono">{{ $holiday->date->toDateString() }}</td>
                             <td>{{ $holiday->day_name }}</td>
                             <td>{{ $holiday->name }}</td>
-                            <td><span class="app-badge app-badge-navy">{{ $holiday->state_code }}</span></td>
+                            <td><span class="app-badge app-badge-navy">{{ implode(', ', $holiday->stateCodes()) }}</span></td>
                             <td>{{ $holiday->scope }}</td>
                             <td>{{ $holiday->type }}</td>
                             <td>{{ $holiday->status }}</td>

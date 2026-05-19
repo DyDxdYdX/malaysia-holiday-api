@@ -12,7 +12,7 @@
             @csrf
 
             <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="old('year')" required />
-            <flux:input name="state_code" :label="__('State code')" :value="old('state_code')" required />
+            <flux:input name="state_codes" :label="__('State codes (comma-separated)')" :value="old('state_codes')" required />
             <flux:input name="name" :label="__('Name')" :value="old('name')" required />
             <flux:input name="date" type="date" :label="__('Date')" :value="old('date')" required />
 

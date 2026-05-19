@@ -32,7 +32,7 @@ sequenceDiagram
 
     loop For each CSV row
         IMP->>IMP: validateRow(row)
-        IMP->>DB: CHECK UNIQUE (year, state_code, date, name)
+        IMP->>DB: CHECK UNIQUE (year, state_codes, date, name)
         alt Duplicate
             IMP->>IMP: Mark row as warning/skip
         else Valid
@@ -137,7 +137,7 @@ sequenceDiagram
         OS->>DB: UPDATE holidays SET date=new_date WHERE id=?
     end
 
-    OS->>CACHE: invalidate(holidays.{year}.{state_code})
+    OS->>CACHE: invalidate(holidays.{year}.{state_codes})
     OS->>AL: log(override_created, override_id)
     OS-->>OC: override record
     OC-->>UI: 201 { id, action, message }
@@ -171,16 +171,16 @@ sequenceDiagram
     alt Cache hit
         CACHE-->>AS: cached holidays
     else Cache miss
-        AS->>DB: SELECT * FROM holidays WHERE year=2026 AND state_code=SBH AND status=published
+        AS->>DB: SELECT * FROM holidays WHERE year=2026 AND state_codes=SBH AND status=published
         DB-->>AS: holiday records
-        AS->>DB: SELECT * FROM holiday_overrides WHERE year=2026 AND state_code=SBH
+        AS->>DB: SELECT * FROM holiday_overrides WHERE year=2026 AND state_codes=SBH
         DB-->>AS: active overrides
         AS->>AS: applyOverrides(holidays, overrides)
         AS->>CACHE: put(holidays.2026.SBH, result, ttl=3600)
     end
 
     AS-->>HC: holiday collection
-    HC-->>Client: 200 { year, state_code, data: [...] }
+    HC-->>Client: 200 { year, state_codes, data: [...] }
 ```
 
 ---
@@ -203,13 +203,13 @@ sequenceDiagram
     alt Cache hit
         CACHE-->>AS: cached result
     else Cache miss
-        AS->>DB: SELECT * FROM holidays WHERE date=2026-05-30 AND state_code IN ('SBH', 'ALL') AND status=published
+        AS->>DB: SELECT * FROM holidays WHERE date=2026-05-30 AND state_codes IN ('SBH', 'ALL') AND status=published
         DB-->>AS: matching holidays
         AS->>CACHE: put(...)
     end
 
     AS-->>HC: { is_holiday: true, holidays: [...] }
-    HC-->>Client: 200 { date, state_code, is_holiday, holidays }
+    HC-->>Client: 200 { date, state_codes, is_holiday, holidays }
 ```
 
 ---

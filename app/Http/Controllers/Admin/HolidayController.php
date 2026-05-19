@@ -9,6 +9,7 @@ use App\Support\HolidayCalendarBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -23,10 +24,15 @@ class HolidayController extends Controller
 
         $holidays = Holiday::query()
             ->where('year', $resolvedYear)
-            ->when($stateCode !== '', fn ($query) => $query->where('state_code', $stateCode))
+            ->when($stateCode !== '', function ($query) use ($stateCode): void {
+                $query->whereHas('states', function ($stateQuery) use ($stateCode): void {
+                    $stateQuery->where('state_code', $stateCode);
+                });
+            })
             ->when($scope !== '', fn ($query) => $query->where('scope', $scope))
             ->orderBy('date')
             ->orderBy('name')
+            ->with('states')
             ->get();
 
         return view('holidays.calendar', [
@@ -56,15 +62,22 @@ class HolidayController extends Controller
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($nested) use ($search) {
                         $nested->where('name', 'like', "%{$search}%")
-                            ->orWhere('state_code', 'like', "%{$search}%")
                             ->orWhere('source_note', 'like', "%{$search}%")
-                            ->orWhere('date', 'like', "%{$search}%");
+                            ->orWhere('date', 'like', "%{$search}%")
+                            ->orWhereHas('states', function ($stateQuery) use ($search): void {
+                                $stateQuery->where('state_code', 'like', "%{$search}%");
+                            });
                     });
                 })
                 ->when($year > 0, fn ($query) => $query->where('year', $year))
-                ->when($stateCode !== '', fn ($query) => $query->where('state_code', $stateCode))
+                ->when($stateCode !== '', function ($query) use ($stateCode): void {
+                    $query->whereHas('states', function ($stateQuery) use ($stateCode): void {
+                        $stateQuery->where('state_code', $stateCode);
+                    });
+                })
                 ->when($scope !== '', fn ($query) => $query->where('scope', $scope))
                 ->latest('date')
+                ->with('states')
                 ->paginate(20)
                 ->withQueryString(),
             'filters' => [
@@ -92,7 +105,7 @@ class HolidayController extends Controller
     {
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
-            'state_code' => ['required', 'string', 'max:10'],
+            'state_codes' => ['required', 'string'],
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'scope' => ['required', Rule::in(['federal', 'state', 'custom'])],
@@ -102,15 +115,24 @@ class HolidayController extends Controller
         ]);
 
         $date = Carbon::parse($validated['date']);
+        $stateCodes = $this->parseStateCodes($validated['state_codes']);
+
+        if ($stateCodes === []) {
+            return back()->withErrors(['state_codes' => 'At least one state code is required.'])->withInput();
+        }
 
         $holiday = Holiday::query()->create([
-            ...$validated,
-            'state_code' => strtoupper($validated['state_code']),
+            'year' => $validated['year'],
+            'name' => $validated['name'],
             'date' => $date->toDateString(),
             'day_name' => $date->format('l'),
+            'scope' => $validated['scope'],
+            'type' => $validated['type'],
             'is_subject_to_change' => $request->boolean('is_subject_to_change'),
+            'source_note' => $validated['source_note'] ?? null,
             'status' => 'published',
         ]);
+        $holiday->syncStateCodes($stateCodes);
         $auditLogger->logFromRequest(
             request: $request,
             action: 'holiday_created',
@@ -129,7 +151,7 @@ class HolidayController extends Controller
         $oldValues = $holiday->toArray();
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
-            'state_code' => ['required', 'string', 'max:10'],
+            'state_codes' => ['required', 'string'],
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'scope' => ['required', Rule::in(['federal', 'state', 'custom'])],
@@ -139,15 +161,24 @@ class HolidayController extends Controller
         ]);
 
         $date = Carbon::parse($validated['date']);
+        $stateCodes = $this->parseStateCodes($validated['state_codes']);
+
+        if ($stateCodes === []) {
+            return back()->withErrors(['state_codes' => 'At least one state code is required.'])->withInput();
+        }
 
         $holiday->update([
-            ...$validated,
-            'state_code' => strtoupper($validated['state_code']),
+            'year' => $validated['year'],
+            'name' => $validated['name'],
             'date' => $date->toDateString(),
             'day_name' => $date->format('l'),
+            'scope' => $validated['scope'],
+            'type' => $validated['type'],
             'is_subject_to_change' => $request->boolean('is_subject_to_change'),
+            'source_note' => $validated['source_note'] ?? null,
             'status' => 'confirmed',
         ]);
+        $holiday->syncStateCodes($stateCodes);
         $auditLogger->logFromRequest(
             request: $request,
             action: 'holiday_updated',
@@ -178,5 +209,18 @@ class HolidayController extends Controller
         return redirect()
             ->route('admin.batches.show', $holiday->holiday_import_batch_id)
             ->with('status', 'Holiday rejected.');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function parseStateCodes(string $stateCodes): array
+    {
+        return collect(preg_split('/[\s,|]+/', Str::upper($stateCodes)) ?: [])
+            ->map(fn (string $stateCode): string => trim($stateCode))
+            ->filter(fn (string $stateCode): bool => $stateCode !== '')
+            ->unique()
+            ->values()
+            ->all();
     }
 }

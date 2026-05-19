@@ -42,10 +42,13 @@ class HolidayController extends Controller
             ->where('status', 'published')
             ->where('year', $validated['year'])
             ->orderBy('date')
-            ->orderBy('state_code');
+            ->orderBy('name')
+            ->with('states');
 
         if (! empty($validated['state'])) {
-            $query->where('state_code', strtoupper($validated['state']));
+            $query->whereHas('states', function ($stateQuery) use ($validated): void {
+                $stateQuery->where('state_code', strtoupper($validated['state']));
+            });
         }
 
         if (! empty($validated['scope'])) {
@@ -81,10 +84,13 @@ class HolidayController extends Controller
 
         $query = Holiday::query()
             ->where('status', 'published')
-            ->whereDate('date', $validated['date']);
+            ->whereDate('date', $validated['date'])
+            ->with('states');
 
         if (! empty($validated['state'])) {
-            $query->where('state_code', strtoupper($validated['state']));
+            $query->whereHas('states', function ($stateQuery) use ($validated): void {
+                $stateQuery->where('state_code', strtoupper($validated['state']));
+            });
         }
 
         $holidays = $query->get();
@@ -95,7 +101,7 @@ class HolidayController extends Controller
             'is_holiday' => $holidays->isNotEmpty(),
             'holidays' => $holidays->map(fn (Holiday $holiday) => [
                 'name' => $holiday->name,
-                'state_code' => $holiday->state_code,
+                'state_codes' => $holiday->stateCodes(),
                 'scope' => $holiday->scope,
                 'type' => $holiday->type,
                 'is_subject_to_change' => $holiday->is_subject_to_change,

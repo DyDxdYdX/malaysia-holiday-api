@@ -231,7 +231,7 @@ flowchart TD
     CACHE1 --> R1
 
     CHOICE -->|GET /api/v1/holidays?year=2026&state=SBH| UC17[Get by Year + State]
-    UC17 --> Q2[Query: + WHERE state_code=SBH]
+    UC17 --> Q2[Query: + WHERE state_codes=SBH]
     Q2 --> AO2[Apply state overrides]
     AO2 --> R2[Return scoped response]
 

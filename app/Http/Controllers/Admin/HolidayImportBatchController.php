@@ -27,7 +27,7 @@ class HolidayImportBatchController extends Controller
     {
         $batch->load([
             'source',
-            'holidays' => fn ($query) => $query->orderBy('date'),
+            'holidays' => fn ($query) => $query->orderBy('date')->with('states'),
             'importRows' => fn ($query) => $query->orderBy('row_number'),
         ]);
 

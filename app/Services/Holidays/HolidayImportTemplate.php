@@ -6,7 +6,7 @@ class HolidayImportTemplate
 {
     public const HEADERS = [
         'year',
-        'state_code',
+        'state_codes',
         'name',
         'date',
         'scope',
@@ -23,7 +23,7 @@ class HolidayImportTemplate
         return [
             [
                 'year' => (string) $year,
-                'state_code' => 'SBH',
+                'state_codes' => 'SBH',
                 'name' => 'Hari Jadi Yang di-Pertua Negeri Sabah',
                 'date' => $year.'-03-30',
                 'scope' => 'state',
@@ -33,7 +33,7 @@ class HolidayImportTemplate
             ],
             [
                 'year' => (string) $year,
-                'state_code' => 'SBH',
+                'state_codes' => 'SBH',
                 'name' => 'Pesta Kaamatan',
                 'date' => $year.'-05-30',
                 'scope' => 'state',
@@ -43,7 +43,7 @@ class HolidayImportTemplate
             ],
             [
                 'year' => (string) $year,
-                'state_code' => 'KUL',
+                'state_codes' => 'JHR,KDH,KTN,MLK,NSN,PHG,PRK,PLS,PNG,SBH,SWK,SGR,TRG,KUL,LBN,PJY',
                 'name' => 'Hari Kebangsaan',
                 'date' => $year.'-08-31',
                 'scope' => 'federal',

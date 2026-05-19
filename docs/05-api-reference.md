@@ -126,13 +126,13 @@ GET /api/v1/holidays?year=2026&state=SBH
 ```json
 {
   "year": 2026,
-  "state_code": "SBH",
+  "state_codes": "SBH",
   "data": [
     {
       "name": "Tahun Baru",
       "date": "2026-01-01",
       "day_name": "Thursday",
-      "state_code": "SBH",
+      "state_codes": "SBH",
       "scope": "federal",
       "type": "federal",
       "is_subject_to_change": false
@@ -141,7 +141,7 @@ GET /api/v1/holidays?year=2026&state=SBH
       "name": "Hari Jadi Yang di-Pertua Negeri Sabah",
       "date": "2026-03-30",
       "day_name": "Monday",
-      "state_code": "SBH",
+      "state_codes": "SBH",
       "scope": "state",
       "type": "state",
       "is_subject_to_change": false
@@ -150,7 +150,7 @@ GET /api/v1/holidays?year=2026&state=SBH
       "name": "Pesta Kaamatan",
       "date": "2026-05-30",
       "day_name": "Saturday",
-      "state_code": "SBH",
+      "state_codes": "SBH",
       "scope": "state",
       "type": "state",
       "is_subject_to_change": false
@@ -192,7 +192,7 @@ GET /api/v1/holidays/check?date=2026-05-30&state=SBH
 ```json
 {
   "date": "2026-05-30",
-  "state_code": "SBH",
+  "state_codes": "SBH",
   "is_holiday": true,
   "holidays": [
     {
@@ -208,7 +208,7 @@ GET /api/v1/holidays/check?date=2026-05-30&state=SBH
 ```json
 {
   "date": "2026-05-04",
-  "state_code": "SBH",
+  "state_codes": "SBH",
   "is_holiday": false,
   "holidays": []
 }
@@ -223,7 +223,7 @@ GET /api/v1/holidays/check?date=2026-05-30&state=SBH
 | `name` | string | Holiday display name (may be BM or English) |
 | `date` | string (YYYY-MM-DD) | Calendar date |
 | `day_name` | string | e.g. `Monday`, `Friday` |
-| `state_code` | string | e.g. `SBH`, `KUL` |
+| `state_codes` | string | e.g. `SBH`, `KUL` |
 | `scope` | string | `federal` · `state` · `custom` |
 | `type` | string | `federal` · `state` · `replacement` · `additional` · `custom` |
 | `is_subject_to_change` | boolean | `true` if date/observance may change |

@@ -87,7 +87,7 @@
                             <div class="p-6">
                                 <pre class="font-mono text-sm leading-relaxed text-slate-300"><code>{
   <span class="text-brand-gold">"year"</span>: 2026,
-  <span class="text-brand-gold">"state_code"</span>: "SBH",
+  <span class="text-brand-gold">"state_codes"</span>: "SBH",
   <span class="text-brand-gold">"data"</span>: [
     {
       <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan",
@@ -259,7 +259,7 @@
 
 {
   <span class="text-brand-red-bright">"date"</span>: "2026-05-30",
-  <span class="text-brand-red-bright">"state_code"</span>: "SBH",
+  <span class="text-brand-red-bright">"state_codes"</span>: "SBH",
   <span class="text-brand-red-bright">"is_holiday"</span>: <span class="text-brand-gold">true</span>,
   <span class="text-brand-red-bright">"holidays"</span>: [
     { <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan", <span class="text-brand-red-bright">"scope"</span>: "state" }

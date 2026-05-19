@@ -60,7 +60,7 @@
                             <td class="font-mono">{{ $row->row_number }}</td>
                             <td><span class="app-badge {{ $row->status === 'invalid' ? 'app-badge-red' : ($row->status === 'warning' ? 'app-badge-gold' : 'app-badge-navy') }}">{{ $row->status }}</span></td>
                             <td class="font-mono">{{ $payload['date'] ?? '—' }}</td>
-                            <td>{{ $payload['state_code'] ?? '—' }}</td>
+                            <td>{{ $payload['state_codes'] ?? '—' }}</td>
                             <td>{{ $payload['name'] ?? '—' }}</td>
                             <td>
                                 @foreach (($row->errors ?? []) as $error)
@@ -110,7 +110,7 @@
                                 @endif
                             </td>
                             <td class="font-mono">{{ $holiday->date->toDateString() }}</td>
-                            <td><span class="app-badge app-badge-navy">{{ $holiday->state_code }}</span></td>
+                            <td><span class="app-badge app-badge-navy">{{ implode(', ', $holiday->stateCodes()) }}</span></td>
                             <td>{{ $holiday->name }}</td>
                             <td><span class="app-badge {{ $holiday->status === 'published' ? 'app-badge-gold' : 'app-badge-red' }}">{{ $holiday->status }}</span></td>
                             <td><a class="admin-action-link" href="{{ route('admin.holidays.edit', $holiday) }}">{{ __('Edit') }}</a></td>

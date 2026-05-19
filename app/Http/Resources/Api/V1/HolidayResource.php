@@ -20,7 +20,7 @@ class HolidayResource extends JsonResource
             'date' => $this->date->toDateString(),
             'day_name' => $this->day_name,
             'year' => $this->year,
-            'state_code' => $this->state_code,
+            'state_codes' => $this->stateCodes(),
             'scope' => $this->scope,
             'type' => $this->type,
             'is_subject_to_change' => $this->is_subject_to_change,

@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('holiday_source_id')->nullable()->constrained('holiday_sources')->nullOnDelete();
             $table->foreignId('holiday_import_batch_id')->nullable()->constrained('holiday_import_batches')->nullOnDelete();
             $table->smallInteger('year')->unsigned();
-            $table->string('state_code', 10);
             $table->string('name');
             $table->date('date');
             $table->string('day_name', 20)->nullable();
@@ -24,9 +23,9 @@ return new class extends Migration
             $table->text('source_note')->nullable();
             $table->timestamps();
 
-            $table->index(['year', 'state_code'], 'idx_holidays_year_state');
-            $table->index(['date', 'state_code'], 'idx_holidays_date_state');
-            $table->unique(['year', 'state_code', 'date', 'name'], 'unique_holiday_record');
+            $table->index(['year'], 'idx_holidays_year');
+            $table->index(['date'], 'idx_holidays_date');
+            $table->unique(['year', 'date', 'name'], 'unique_holiday_record');
         });
     }
 

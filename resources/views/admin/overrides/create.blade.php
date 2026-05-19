@@ -18,12 +18,12 @@
                         value="{{ $holiday->id }}"
                         :selected="(string) old('holiday_id', $selectedHoliday?->id) === (string) $holiday->id"
                     >
-                        {{ $holiday->date->toDateString() }} · {{ $holiday->state_code }} · {{ $holiday->name }}
+                        {{ $holiday->date->toDateString() }} · {{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->name }}
                     </flux:select.option>
                 @endforeach
             </flux:select>
             <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="old('year', $selectedHoliday?->year)" required />
-            <flux:input name="state_code" :label="__('State code')" :value="old('state_code', $selectedHoliday?->state_code)" required />
+            <flux:input name="state_code" :label="__('State code')" :value="old('state_code', $selectedHoliday?->stateCodes()[0] ?? null)" required />
             <flux:input name="name" :label="__('Name')" :value="old('name', $selectedHoliday?->name)" required />
             <flux:input name="date" type="date" :label="__('Date')" :value="old('date', $selectedHoliday?->date?->toDateString())" required />
             <flux:select name="action" :label="__('Action')" required>

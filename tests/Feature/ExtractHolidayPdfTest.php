@@ -156,7 +156,7 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
             [
                 'row_number' => 4,
                 'year' => 2026,
-                'state_code' => 'SBH',
+                'state_codes' => 'SBH',
                 'name' => 'Pesta Kaamatan',
                 'date' => '2026-05-30',
                 'scope' => 'state',
@@ -169,7 +169,7 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
             [
                 'row_number' => 5,
                 'year' => 2026,
-                'state_code' => 'KUL',
+                'state_codes' => 'KUL',
                 'name' => 'Hari Kebangsaan',
                 'date' => '2026-08-31',
                 'scope' => 'federal',

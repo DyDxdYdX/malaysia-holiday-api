@@ -186,7 +186,7 @@ class HolidayImportService
     {
         $errors = [];
 
-        foreach (['year', 'state_code', 'name', 'date', 'scope', 'type'] as $field) {
+        foreach (['year', 'state_codes', 'name', 'date', 'scope', 'type'] as $field) {
             if (! isset($payload[$field]) || trim((string) $payload[$field]) === '') {
                 $errors[] = "Missing required value for {$field}.";
             }
@@ -200,8 +200,14 @@ class HolidayImportService
             $errors[] = 'Holiday year must match the source year.';
         }
 
-        if (! in_array($payload['state_code'], self::STATE_CODES, true)) {
-            $errors[] = 'State code is not supported.';
+        $stateCodes = $this->parseStateCodes((string) $payload['state_codes']);
+
+        if ($stateCodes === []) {
+            $errors[] = 'State codes are required.';
+        }
+
+        if (count(array_diff($stateCodes, self::STATE_CODES)) > 0) {
+            $errors[] = 'One or more state codes are not supported.';
         }
 
         if (! $this->isDateString((string) $payload['date'])) {
@@ -216,8 +222,8 @@ class HolidayImportService
             $errors[] = 'Holiday type is not supported.';
         }
 
-        if ($errors === [] && $this->holidayExists($payload)) {
-            $errors[] = 'Duplicate holiday record for year, state, date, and name.';
+        if ($errors === [] && $this->holidayExists($payload, $stateCodes)) {
+            $errors[] = 'Duplicate holiday record for year, date, name, and states.';
         }
 
         return $errors;
@@ -230,11 +236,10 @@ class HolidayImportService
     {
         $date = Carbon::createFromFormat('Y-m-d', (string) $payload['date']);
 
-        return Holiday::create([
+        $holiday = Holiday::create([
             'holiday_source_id' => $source->id,
             'holiday_import_batch_id' => $batch->id,
             'year' => (int) $payload['year'],
-            'state_code' => $payload['state_code'],
             'name' => $payload['name'],
             'date' => $date->toDateString(),
             'day_name' => $date->format('l'),
@@ -244,6 +249,10 @@ class HolidayImportService
             'status' => 'draft',
             'source_note' => $payload['source_note'] ?? null,
         ]);
+
+        $holiday->syncStateCodes($this->parseStateCodes((string) ($payload['state_codes'] ?? '')));
+
+        return $holiday;
     }
 
     /**
@@ -254,7 +263,7 @@ class HolidayImportService
     {
         return [
             'year' => isset($payload['year']) ? (int) $payload['year'] : null,
-            'state_code' => isset($payload['state_code']) ? strtoupper(trim((string) $payload['state_code'])) : null,
+            'state_codes' => isset($payload['state_codes']) ? trim((string) $payload['state_codes']) : null,
             'name' => isset($payload['name']) ? trim((string) $payload['name']) : null,
             'date' => isset($payload['date']) ? trim((string) $payload['date']) : null,
             'scope' => isset($payload['scope']) ? strtolower(trim((string) $payload['scope'])) : null,
@@ -304,13 +313,36 @@ class HolidayImportService
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function holidayExists(array $payload): bool
+    private function holidayExists(array $payload, array $stateCodes): bool
     {
-        return Holiday::query()
+        $holidays = Holiday::query()
             ->where('year', (int) $payload['year'])
-            ->where('state_code', $payload['state_code'])
             ->whereDate('date', (string) $payload['date'])
             ->where('name', $payload['name'])
-            ->exists();
+            ->with('states')
+            ->get();
+
+        $expectedStateCodes = collect($stateCodes)->sort()->values()->all();
+
+        foreach ($holidays as $holiday) {
+            if ($holiday->stateCodes() === $expectedStateCodes) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function parseStateCodes(string $stateCodes): array
+    {
+        return collect(preg_split('/[\s,|]+/', strtoupper($stateCodes)) ?: [])
+            ->map(fn (string $stateCode): string => trim($stateCode))
+            ->filter(fn (string $stateCode): bool => $stateCode !== '')
+            ->unique()
+            ->values()
+            ->all();
     }
 }

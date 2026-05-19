@@ -14,7 +14,12 @@
                 @method('PUT')
 
                 <flux:input name="year" type="number" :label="__('Year')" :value="$holiday->year" required />
-                <flux:input name="state_code" :label="__('State code')" :value="$holiday->state_code" required />
+                <flux:input
+                    name="state_codes"
+                    :label="__('State codes (comma-separated)')"
+                    :value="old('state_codes', implode(',', $holiday->stateCodes()))"
+                    required
+                />
                 <flux:input name="name" :label="__('Name')" :value="$holiday->name" required />
                 <flux:input name="date" type="date" :label="__('Date')" :value="$holiday->date->toDateString()" required />
                 <flux:input name="scope" :label="__('Scope')" :value="$holiday->scope" required />

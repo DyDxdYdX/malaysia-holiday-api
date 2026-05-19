@@ -25,6 +25,7 @@ Rules:
 - Preserve official holiday names as written, except for trimming whitespace.
 - Normalize every date to YYYY-MM-DD.
 - Use only Malaysian state and federal territory codes: JHR, KDH, KTN, MLK, NSN, PHG, PRK, PLS, PNG, SBH, SWK, SGR, TRG, KUL, LBN, PJY.
+- Return applicable states in `state_codes` as an array of uppercase codes. Use all applicable states if the holiday applies broadly.
 - Use scope values only: federal, state, custom.
 - Use type values only: federal, state, replacement, additional, custom.
 - Do not guess. If a row is uncertain, include the row with a warning and a lower confidence score.
@@ -42,7 +43,7 @@ PROMPT;
                 ->items($schema->object([
                     'row_number' => $schema->integer()->required(),
                     'year' => $schema->integer()->required(),
-                    'state_code' => $schema->string()->required(),
+                    'state_codes' => $schema->array()->items($schema->string())->required(),
                     'name' => $schema->string()->required(),
                     'date' => $schema->string()->required(),
                     'scope' => $schema->string()->required(),

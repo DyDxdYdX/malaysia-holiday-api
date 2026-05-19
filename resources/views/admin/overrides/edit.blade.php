@@ -19,7 +19,7 @@
                         value="{{ $holiday->id }}"
                         :selected="(string) old('holiday_id', $override->holiday_id) === (string) $holiday->id"
                     >
-                        {{ $holiday->date->toDateString() }} · {{ $holiday->state_code }} · {{ $holiday->name }}
+                        {{ $holiday->date->toDateString() }} · {{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->name }}
                     </flux:select.option>
                 @endforeach
             </flux:select>

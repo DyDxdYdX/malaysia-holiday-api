@@ -18,7 +18,7 @@ function createHoliday(array $attributes = []): Holiday
 {
     return Holiday::query()->create([
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Pesta Kaamatan',
         'date' => '2026-05-30',
         'day_name' => 'Saturday',
@@ -44,7 +44,7 @@ test('holiday management pages require authentication', function () {
 test('public holiday calendar is accessible and only shows published holidays', function () {
     createHoliday([
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Published Day',
         'date' => '2026-01-10',
         'status' => 'published',
@@ -52,7 +52,7 @@ test('public holiday calendar is accessible and only shows published holidays', 
 
     createHoliday([
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Draft Day',
         'date' => '2026-01-11',
         'status' => 'pending',
@@ -70,7 +70,7 @@ test('data admins can view holiday management index with filters', function () {
 
     createHoliday([
         'year' => 2027,
-        'state_code' => 'KUL',
+        'state_codes' => 'KUL',
         'name' => 'Hari Kebangsaan',
         'date' => '2027-08-31',
         'day_name' => 'Tuesday',
@@ -80,7 +80,7 @@ test('data admins can view holiday management index with filters', function () {
 
     createHoliday([
         'year' => 2026,
-        'state_code' => 'SRW',
+        'state_codes' => 'SRW',
         'name' => 'Sarawak Day',
         'date' => '2026-07-22',
         'day_name' => 'Wednesday',
@@ -92,7 +92,7 @@ test('data admins can view holiday management index with filters', function () {
         ->get(route('admin.holidays.index', [
             'q' => 'Sarawak',
             'year' => 2026,
-            'state_code' => 'srw',
+            'state_codes' => 'srw',
             'scope' => 'state',
         ]));
 
@@ -107,7 +107,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
 
     createHoliday([
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Sabah Published Day',
         'date' => '2026-02-02',
         'scope' => 'state',
@@ -116,7 +116,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
 
     createHoliday([
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Sabah Confirmed Day',
         'date' => '2026-03-03',
         'scope' => 'state',
@@ -125,7 +125,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
 
     createHoliday([
         'year' => 2026,
-        'state_code' => 'KUL',
+        'state_codes' => 'KUL',
         'name' => 'Federal Day',
         'date' => '2026-04-04',
         'scope' => 'federal',
@@ -135,7 +135,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
     $this->actingAs($user)
         ->get(route('admin.holidays.calendar', [
             'year' => 2026,
-            'state_code' => 'sbh',
+            'state_codes' => 'sbh',
             'scope' => 'state',
         ]))
         ->assertOk()
@@ -147,7 +147,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
 test('holiday calendar shows empty state when no records match filters', function () {
     $this->get(route('holidays.calendar', [
         'year' => 2099,
-        'state_code' => 'AAA',
+        'state_codes' => 'AAA',
         'scope' => 'custom',
     ]))
         ->assertOk()
@@ -161,7 +161,7 @@ test('data admins can create manual holiday entries', function () {
     $response = $this->actingAs($user)
         ->post(route('admin.holidays.store'), [
             'year' => 2028,
-            'state_code' => 'kul',
+            'state_codes' => 'kul',
             'name' => 'Special Closure Day',
             'date' => '2028-09-18',
             'scope' => 'custom',
@@ -176,7 +176,7 @@ test('data admins can create manual holiday entries', function () {
 
     expect($holiday)
         ->year->toBe(2028)
-        ->state_code->toBe('KUL')
+        ->state_codes->toBe('KUL')
         ->day_name->toBe('Monday')
         ->status->toBe('published')
         ->is_subject_to_change->toBeTrue()
@@ -189,7 +189,7 @@ test('manual holiday creation validates required fields', function () {
     $this->actingAs($user)
         ->post(route('admin.holidays.store'), [
             'year' => '',
-            'state_code' => '',
+            'state_codes' => '',
             'name' => '',
             'date' => '',
             'scope' => '',
@@ -197,7 +197,7 @@ test('manual holiday creation validates required fields', function () {
         ])
         ->assertSessionHasErrors([
             'year',
-            'state_code',
+            'state_codes',
             'name',
             'date',
             'scope',
@@ -222,5 +222,5 @@ test('holiday list provides create override action with selected holiday context
         ->assertOk()
         ->assertSee('Holiday For Override')
         ->assertSee('value="'.$holiday->year.'"', false)
-        ->assertSee('value="'.$holiday->state_code.'"', false);
+        ->assertSee('value="'.$holiday->state_codes.'"', false);
 });

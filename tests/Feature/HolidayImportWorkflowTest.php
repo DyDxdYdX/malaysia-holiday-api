@@ -39,7 +39,7 @@ test('data admins can download the csv import template', function () {
     $response->assertDownload('jpm-hka-2026-holiday-import-template.csv');
 
     expect($response->streamedContent())
-        ->toContain('year,state_code,name,date,scope,type,is_subject_to_change,source_note')
+        ->toContain('year,state_codes,name,date,scope,type,is_subject_to_change,source_note')
         ->toContain('2026,SBH')
         ->toContain('Hari Kebangsaan');
 });
@@ -50,7 +50,7 @@ test('valid csv import creates a batch row audit entries and draft holidays', fu
         'uploaded_by' => $user->id,
     ]);
     $csv = implode("\n", [
-        'year,state_code,name,date,scope,type,is_subject_to_change,source_note',
+        'year,state_codes,name,date,scope,type,is_subject_to_change,source_note',
         '2026,SBH,Pesta Kaamatan,2026-05-30,state,state,false,JPM HKA 2026',
         '2026,KUL,Hari Kebangsaan,2026-08-31,federal,federal,true,JPM HKA 2026',
     ]);
@@ -81,7 +81,7 @@ test('csv import stores invalid header errors without creating holidays', functi
         'uploaded_by' => $user->id,
     ]);
     $csv = implode("\n", [
-        'year,state_code,name,date',
+        'year,state_codes,name,date',
         '2026,SBH,Pesta Kaamatan,2026-05-30',
     ]);
 
@@ -108,7 +108,7 @@ test('csv import stores duplicate rows as invalid without aborting the import', 
         'uploaded_by' => $user->id,
     ]);
     $csv = implode("\n", [
-        'year,state_code,name,date,scope,type,is_subject_to_change,source_note',
+        'year,state_codes,name,date,scope,type,is_subject_to_change,source_note',
         '2026,KUL,Tahun Baharu Cina,2026-02-17,federal,federal,false,(P)',
         '2026,KUL,Tahun Baharu Cina,2026-02-17,federal,federal,false,(P)',
     ]);
@@ -130,7 +130,7 @@ test('csv import stores duplicate rows as invalid without aborting the import', 
         ->valid_rows->toBe(1)
         ->invalid_rows->toBe(1)
         ->and(Holiday::query()->count())->toBe(1)
-        ->and($duplicateRow->errors[0])->toBe('Duplicate holiday record for year, state, date, and name.');
+        ->and($duplicateRow->errors[0])->toBe('Duplicate holiday record for year, date, name, and states.');
 });
 
 test('batch publish is blocked while invalid rows exist', function () {
@@ -139,7 +139,7 @@ test('batch publish is blocked while invalid rows exist', function () {
         'uploaded_by' => $user->id,
     ]);
     $csv = implode("\n", [
-        'year,state_code,name,date,scope,type,is_subject_to_change,source_note',
+        'year,state_codes,name,date,scope,type,is_subject_to_change,source_note',
         '2026,XXX,Pesta Kaamatan,2026-05-30,state,state,false,JPM HKA 2026',
     ]);
 
@@ -189,7 +189,7 @@ test('data admin can approve selected draft holidays in a batch', function () {
         'holiday_source_id' => $source->id,
         'holiday_import_batch_id' => $batch->id,
         'year' => 2026,
-        'state_code' => 'SBH',
+        'state_codes' => 'SBH',
         'name' => 'Pesta Kaamatan',
         'date' => '2026-05-30',
         'day_name' => 'Saturday',
@@ -203,7 +203,7 @@ test('data admin can approve selected draft holidays in a batch', function () {
         'holiday_source_id' => $source->id,
         'holiday_import_batch_id' => $batch->id,
         'year' => 2026,
-        'state_code' => 'KUL',
+        'state_codes' => 'KUL',
         'name' => 'Hari Kebangsaan',
         'date' => '2026-08-31',
         'day_name' => 'Monday',
@@ -217,7 +217,7 @@ test('data admin can approve selected draft holidays in a batch', function () {
         'holiday_source_id' => $source->id,
         'holiday_import_batch_id' => $otherBatch->id,
         'year' => 2026,
-        'state_code' => 'SRW',
+        'state_codes' => 'SRW',
         'name' => 'Sarawak Day',
         'date' => '2026-07-22',
         'day_name' => 'Wednesday',

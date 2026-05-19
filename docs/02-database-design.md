@@ -54,7 +54,7 @@ erDiagram
         bigint holiday_source_id FK
         bigint holiday_import_batch_id FK
         smallint year
-        string state_code
+        string state_codes
         string name
         date date
         string day_name
@@ -71,7 +71,7 @@ erDiagram
         bigint id PK
         bigint holiday_id FK
         smallint year
-        string state_code
+        string state_codes
         string name
         date date
         string action
@@ -197,7 +197,7 @@ The central table. Each row is one holiday entry for a specific state and date.
 | `holiday_source_id` | BIGINT FK → `holiday_sources.id` | Yes | |
 | `holiday_import_batch_id` | BIGINT FK → `holiday_import_batches.id` | Yes | |
 | `year` | SMALLINT | No | |
-| `state_code` | VARCHAR(10) | No | ISO-like code e.g. `SBH` |
+| `state_codes` | VARCHAR(10) | No | ISO-like code e.g. `SBH` |
 | `name` | VARCHAR(255) | No | |
 | `date` | DATE | No | |
 | `day_name` | VARCHAR(20) | Yes | e.g. `Monday` |
@@ -208,9 +208,9 @@ The central table. Each row is one holiday entry for a specific state and date.
 | `source_note` | TEXT | Yes | |
 
 **Indexes:**
-- `idx_holidays_year_state (year, state_code)` — primary query pattern
-- `idx_holidays_date_state (date, state_code)` — date-check endpoint
-- `UNIQUE (year, state_code, date, name)` — deduplication
+- `idx_holidays_year_state (year, state_codes)` — primary query pattern
+- `idx_holidays_date_state (date, state_codes)` — date-check endpoint
+- `UNIQUE (year, state_codes, date, name)` — deduplication
 
 **`scope` enum:** `federal` · `state` · `custom`
 
@@ -229,7 +229,7 @@ Admin-created corrections, additions, or removals on top of published holidays.
 | `id` | BIGINT UNSIGNED PK | No | |
 | `holiday_id` | BIGINT FK → `holidays.id` | Yes | NULL for `add` action |
 | `year` | SMALLINT | No | |
-| `state_code` | VARCHAR(10) | No | |
+| `state_codes` | VARCHAR(10) | No | |
 | `name` | VARCHAR(255) | No | |
 | `date` | DATE | No | |
 | `action` | VARCHAR(30) | No | See action enum |
@@ -240,8 +240,8 @@ Admin-created corrections, additions, or removals on top of published holidays.
 | `approved_at` | TIMESTAMP | Yes | |
 
 **Indexes:**
-- `idx_overrides_year_state (year, state_code)`
-- `idx_overrides_date_state (date, state_code)`
+- `idx_overrides_year_state (year, state_codes)`
+- `idx_overrides_date_state (date, state_codes)`
 
 **`action` enum:** `add` · `remove` · `replace` · `rename` · `mark_subject_to_change`
 
@@ -284,11 +284,11 @@ Immutable append-only event log for all admin actions.
 
 | Table | Index | Columns | Purpose |
 |---|---|---|---|
-| `holidays` | `idx_holidays_year_state` | `year, state_code` | Main list query |
-| `holidays` | `idx_holidays_date_state` | `date, state_code` | Check-date query |
-| `holidays` | `unique_holiday_record` | `year, state_code, date, name` | Deduplication |
-| `holiday_overrides` | `idx_overrides_year_state` | `year, state_code` | Override lookup |
-| `holiday_overrides` | `idx_overrides_date_state` | `date, state_code` | Override date check |
+| `holidays` | `idx_holidays_year_state` | `year, state_codes` | Main list query |
+| `holidays` | `idx_holidays_date_state` | `date, state_codes` | Check-date query |
+| `holidays` | `unique_holiday_record` | `year, state_codes, date, name` | Deduplication |
+| `holiday_overrides` | `idx_overrides_year_state` | `year, state_codes` | Override lookup |
+| `holiday_overrides` | `idx_overrides_date_state` | `date, state_codes` | Override date check |
 | `audit_logs` | `idx_audit_entity` | `entity_type, entity_id` | Entity history |
 | `audit_logs` | `idx_audit_actor` | `actor_id` | User activity |
 
