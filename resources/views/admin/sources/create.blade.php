@@ -8,11 +8,12 @@
             </div>
         </div>
 
-        <form class="app-section max-w-2xl space-y-5" method="POST" action="{{ route('admin.sources.store') }}" enctype="multipart/form-data">
+        <form class="app-form-shell max-w-4xl" method="POST" action="{{ route('admin.sources.store') }}" enctype="multipart/form-data">
             @csrf
 
-            <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" required />
-            <flux:input name="source_name" :label="__('Source name')" required />
+            <div class="app-form-grid">
+                <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" required />
+                <flux:input name="source_name" :label="__('Source name')" required />
             @php
                 $sourceTypes = [
                     'federal_pdf' => 'Federal PDF',
@@ -24,18 +25,22 @@
                 ];
             @endphp
 
-            <flux:select name="source_type" :label="__('Source type')" required>
-                @foreach ($sourceTypes as $value => $label)
-                    <flux:select.option value="{{ $value }}">
-                        {{ $label }}
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:input name="source_url" type="url" :label="__('Source URL')" />
-            <flux:input name="file" type="file" :label="__('File')" />
-            <flux:textarea name="notes" :label="__('Notes')" />
+                <flux:select name="source_type" :label="__('Source type')" required>
+                    @foreach ($sourceTypes as $value => $label)
+                        <flux:select.option value="{{ $value }}">
+                            {{ $label }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:input name="source_url" type="url" :label="__('Source URL')" />
+                <flux:input class="app-form-field-full" name="file" type="file" :label="__('File')" />
+                <flux:textarea class="app-form-field-full" name="notes" :label="__('Notes')" />
 
-            <flux:button type="submit" variant="primary">{{ __('Store source') }}</flux:button>
+                <div class="app-form-actions">
+                    <flux:text>{{ __('Attach a file for PDF extraction or keep metadata only for web references.') }}</flux:text>
+                    <flux:button type="submit" variant="primary">{{ __('Store source') }}</flux:button>
+                </div>
+            </div>
         </form>
     </div>
 </x-layouts::app>

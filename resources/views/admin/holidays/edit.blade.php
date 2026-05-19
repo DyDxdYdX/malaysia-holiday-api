@@ -8,33 +8,40 @@
             </div>
         </div>
 
-        <section class="app-section max-w-2xl">
-            <form class="space-y-5" method="POST" action="{{ route('admin.holidays.update', $holiday) }}">
+        <section class="max-w-4xl">
+            <form class="app-form-shell" method="POST" action="{{ route('admin.holidays.update', $holiday) }}">
                 @csrf
                 @method('PUT')
 
-                <flux:input name="year" type="number" :label="__('Year')" :value="$holiday->year" required />
-                <flux:input
-                    name="state_codes"
-                    :label="__('State codes (comma-separated)')"
-                    :value="old('state_codes', implode(',', $holiday->stateCodes()))"
-                    required
-                />
-                <flux:input name="name" :label="__('Name')" :value="$holiday->name" required />
-                <flux:input name="date" type="date" :label="__('Date')" :value="$holiday->date->toDateString()" required />
-                <flux:input name="scope" :label="__('Scope')" :value="$holiday->scope" required />
-                <flux:input name="type" :label="__('Type')" :value="$holiday->type" required />
-                <flux:checkbox name="is_subject_to_change" :checked="$holiday->is_subject_to_change" :label="__('Subject to change')" />
-                <flux:textarea name="source_note" :label="__('Source note')">{{ $holiday->source_note }}</flux:textarea>
+                <div class="app-form-grid">
+                    <flux:input name="year" type="number" :label="__('Year')" :value="$holiday->year" required />
+                    <flux:input name="date" type="date" :label="__('Date')" :value="$holiday->date->toDateString()" required />
+                    <flux:input
+                        class="app-form-field-full"
+                        name="state_codes"
+                        :label="__('State codes (comma-separated)')"
+                        :value="old('state_codes', implode(',', $holiday->stateCodes()))"
+                        required
+                    />
+                    <flux:input class="app-form-field-full" name="name" :label="__('Name')" :value="$holiday->name" required />
+                    <flux:input name="scope" :label="__('Scope')" :value="$holiday->scope" required />
+                    <flux:input name="type" :label="__('Type')" :value="$holiday->type" required />
+                    <flux:checkbox class="app-form-field-full" name="is_subject_to_change" :checked="$holiday->is_subject_to_change" :label="__('Subject to change')" />
+                    <flux:textarea class="app-form-field-full" name="source_note" :label="__('Source note')">{{ $holiday->source_note }}</flux:textarea>
 
-                <div class="flex gap-3">
-                    <flux:button type="submit" variant="primary" icon="check">{{ __('Save') }}</flux:button>
+                    <div class="app-form-actions">
+                        <flux:text>{{ __('Review and confirm before publishing changes.') }}</flux:text>
+                        <flux:button type="submit" variant="primary" icon="check">{{ __('Save') }}</flux:button>
+                    </div>
                 </div>
             </form>
 
-            <form class="mt-4 border-t border-app-outline/70 pt-4" method="POST" action="{{ route('admin.holidays.reject', $holiday) }}">
+            <form class="mt-5 rounded-2xl border border-brand-red/20 bg-brand-red/5 p-4" method="POST" action="{{ route('admin.holidays.reject', $holiday) }}">
                 @csrf
-                <flux:button type="submit" variant="danger" icon="x-mark">{{ __('Reject') }}</flux:button>
+                <div class="flex items-center justify-between gap-3">
+                    <flux:text>{{ __('Rejecting removes this draft from the publish flow.') }}</flux:text>
+                    <flux:button type="submit" variant="danger" icon="x-mark">{{ __('Reject') }}</flux:button>
+                </div>
             </form>
         </section>
     </div>

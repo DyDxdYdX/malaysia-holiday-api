@@ -8,33 +8,38 @@
             </div>
         </div>
 
-        <form class="app-section max-w-2xl space-y-5" method="POST" action="{{ route('admin.overrides.store') }}">
+        <form class="app-form-shell max-w-4xl" method="POST" action="{{ route('admin.overrides.store') }}">
             @csrf
 
-            <flux:select name="holiday_id" :label="__('Published holiday')">
-                <flux:select.option value="">{{ __('None') }}</flux:select.option>
-                @foreach ($holidays as $holiday)
-                    <flux:select.option
-                        value="{{ $holiday->id }}"
-                        :selected="(string) old('holiday_id', $selectedHoliday?->id) === (string) $holiday->id"
-                    >
-                        {{ $holiday->date->toDateString() }} · {{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->name }}
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="old('year', $selectedHoliday?->year)" required />
-            <flux:input name="state_code" :label="__('State code')" :value="old('state_code', $selectedHoliday?->stateCodes()[0] ?? null)" required />
-            <flux:input name="name" :label="__('Name')" :value="old('name', $selectedHoliday?->name)" required />
-            <flux:input name="date" type="date" :label="__('Date')" :value="old('date', $selectedHoliday?->date?->toDateString())" required />
-            <flux:select name="action" :label="__('Action')" required>
-                @foreach (['add', 'remove', 'replace', 'rename', 'mark_subject_to_change'] as $action)
-                    <flux:select.option value="{{ $action }}" :selected="old('action', 'replace') === $action">{{ $action }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:textarea name="reason" :label="__('Reason')" required>{{ old('reason') }}</flux:textarea>
-            <flux:input name="source_url" type="url" :label="__('Source URL')" :value="old('source_url')" />
+            <div class="app-form-grid">
+                <flux:select class="app-form-field-full" name="holiday_id" :label="__('Published holiday')">
+                    <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                    @foreach ($holidays as $holiday)
+                        <flux:select.option
+                            value="{{ $holiday->id }}"
+                            :selected="(string) old('holiday_id', $selectedHoliday?->id) === (string) $holiday->id"
+                        >
+                            {{ $holiday->date->toDateString() }} · {{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->name }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="old('year', $selectedHoliday?->year)" required />
+                <flux:input name="date" type="date" :label="__('Date')" :value="old('date', $selectedHoliday?->date?->toDateString())" required />
+                <flux:input name="state_code" :label="__('State code')" :value="old('state_code', $selectedHoliday?->stateCodes()[0] ?? null)" required />
+                <flux:select name="action" :label="__('Action')" required>
+                    @foreach (['add', 'remove', 'replace', 'rename', 'mark_subject_to_change'] as $action)
+                        <flux:select.option value="{{ $action }}" :selected="old('action', 'replace') === $action">{{ $action }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:input class="app-form-field-full" name="name" :label="__('Name')" :value="old('name', $selectedHoliday?->name)" required />
+                <flux:textarea class="app-form-field-full" name="reason" :label="__('Reason')" required>{{ old('reason') }}</flux:textarea>
+                <flux:input class="app-form-field-full" name="source_url" type="url" :label="__('Source URL')" :value="old('source_url')" />
 
-            <flux:button type="submit" variant="primary" icon="check">{{ __('Apply override') }}</flux:button>
+                <div class="app-form-actions">
+                    <flux:text>{{ __('Overrides keep import history untouched and publish a corrected version.') }}</flux:text>
+                    <flux:button type="submit" variant="primary" icon="check">{{ __('Apply override') }}</flux:button>
+                </div>
+            </div>
         </form>
     </div>
 </x-layouts::app>

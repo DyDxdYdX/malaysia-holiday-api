@@ -10,7 +10,7 @@
         </div>
 
         <div class="grid gap-5 lg:grid-cols-2">
-            <form class="app-section space-y-5" method="POST" action="{{ route('admin.sources.import.store', $source) }}" enctype="multipart/form-data">
+            <form class="app-form-shell space-y-5" method="POST" action="{{ route('admin.sources.import.store', $source) }}" enctype="multipart/form-data">
                 @csrf
 
                 <div>
@@ -19,15 +19,18 @@
                 </div>
 
                 <flux:input name="file" type="file" :label="__('CSV file')" required />
-                <flux:button type="submit" variant="primary" icon="archive-box-arrow-down">{{ __('Run CSV Import') }}</flux:button>
+                <div class="app-form-actions !border-t-0 !pt-0">
+                    <flux:text>{{ __('Imports run immediately and create a reviewable draft batch.') }}</flux:text>
+                    <flux:button type="submit" variant="primary" icon="archive-box-arrow-down">{{ __('Run CSV Import') }}</flux:button>
+                </div>
             </form>
 
-            <form class="app-section space-y-5" method="POST" action="{{ route('admin.sources.import.pdf', $source) }}">
+            <form class="app-form-shell space-y-5" method="POST" action="{{ route('admin.sources.import.pdf', $source) }}">
                 @csrf
 
                 <div>
                     <h2 class="text-lg font-semibold text-brand-navy dark:text-white">{{ __('PDF extraction') }}</h2>
-                    <p class="app-page-copy mt-2">{{ __('Queue Gemini extraction from the stored source PDF, then review the draft rows before publishing.') }}</p>
+                    <p class="app-page-copy mt-2">{{ __('Queue OCR extraction from the stored source PDF, then review the draft rows before publishing.') }}</p>
                 </div>
 
                 <div class="rounded-lg border border-app-line p-4 text-sm text-app-copy dark:border-white/10">
@@ -35,9 +38,12 @@
                     <p class="mt-2 break-all font-mono">{{ $source->file_path ?? __('No file uploaded') }}</p>
                 </div>
 
-                <flux:button type="submit" variant="primary" icon="sparkles" :disabled="! $source->file_path || strtolower(pathinfo($source->file_path, PATHINFO_EXTENSION)) !== 'pdf'">
-                    {{ __('Extract PDF') }}
-                </flux:button>
+                <div class="app-form-actions !border-t-0 !pt-0">
+                    <flux:text>{{ __('Extraction is available only when the uploaded file is a PDF.') }}</flux:text>
+                    <flux:button type="submit" variant="primary" icon="sparkles" :disabled="! $source->file_path || strtolower(pathinfo($source->file_path, PATHINFO_EXTENSION)) !== 'pdf'">
+                        {{ __('Extract PDF') }}
+                    </flux:button>
+                </div>
             </form>
         </div>
     </div>

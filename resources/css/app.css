@@ -177,4 +177,28 @@ select:focus[data-flux-control] {
     .admin-action-link {
         @apply font-bold text-brand-red decoration-brand-red/30 decoration-2 underline-offset-4 hover:underline hover:decoration-brand-red;
     }
+
+    .app-form-shell {
+        @apply relative overflow-hidden rounded-3xl border border-brand-red/15 bg-gradient-to-br from-white via-app-surface-card to-brand-gold-soft/20 p-6 shadow-sm shadow-brand-red/5 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900;
+    }
+
+    .app-form-shell::before {
+        @apply pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-brand-red/10 blur-3xl content-[''];
+    }
+
+    .app-form-grid {
+        @apply relative grid gap-5 md:grid-cols-2;
+    }
+
+    .app-form-field-full {
+        @apply md:col-span-2;
+    }
+
+    .app-form-note {
+        @apply rounded-xl border border-brand-red/20 bg-brand-red/5 px-4 py-3 text-sm text-brand-navy dark:text-slate-100;
+    }
+
+    .app-form-actions {
+        @apply mt-1 flex flex-wrap items-center justify-between gap-3 border-t border-app-outline/70 pt-5 md:col-span-2;
+    }
 }
