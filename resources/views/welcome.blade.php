@@ -17,7 +17,7 @@
         <header class="sticky top-0 z-40 border-b border-app-outline bg-app-surface/80 backdrop-blur-lg">
             <div class="app-container flex h-16 items-center justify-between gap-6">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 font-extrabold tracking-tight text-brand-navy dark:text-white">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-brand-navy shadow-lg dark:bg-brand-red">
+                    <span class="flex size-9 items-center justify-center rounded-xl bg-white shadow-lg dark:bg-brand-red">
                         <img src="{{ asset('logo.png') }}" class="size-6" alt="{{ config('app.name', 'Malaysia Holiday API') }}" />
                     </span>
                     <span class="text-xl">{{ config('app.name', 'Holiday API') }}</span>
@@ -26,7 +26,7 @@
                 <nav class="hidden items-center gap-10 text-sm font-bold text-app-copy-muted md:flex">
                     <a href="#features" class="transition-colors hover:text-brand-red">{{ __('Features') }}</a>
                     <a href="#workflow" class="transition-colors hover:text-brand-red">{{ __('Workflow') }}</a>
-                    <a href="#api" class="transition-colors hover:text-brand-red">{{ __('API') }}</a>
+                    <a href="{{ route('api.docs') }}" class="transition-colors hover:text-brand-red">{{ __('API Docs') }}</a>
                 </nav>
 
                 <div class="flex items-center gap-4">
@@ -68,7 +68,7 @@
                         </p>
                         <div class="mt-12 flex flex-wrap gap-5">
                             <flux:button :href="route('register')" variant="primary" class="!px-8 !py-4 text-base">{{ __('Start Building Free') }}</flux:button>
-                            <flux:button href="#api" variant="primary" class="!bg-white/5 !px-8 !py-4 text-base text-white hover:!bg-white/10">{{ __('Read Documentation') }}</flux:button>
+                            <flux:button :href="route('api.docs')" variant="primary" class="!bg-white/5 !px-8 !py-4 text-base text-white hover:!bg-white/10">{{ __('Read Documentation') }}</flux:button>
                         </div>
                     </div>
 
@@ -87,13 +87,15 @@
                             <div class="p-6">
                                 <pre class="font-mono text-sm leading-relaxed text-slate-300"><code>{
   <span class="text-brand-gold">"year"</span>: 2026,
-  <span class="text-brand-gold">"state_codes"</span>: "SBH",
+  <span class="text-brand-gold">"state_code"</span>: "SBH",
   <span class="text-brand-gold">"data"</span>: [
     {
+      <span class="text-brand-red-bright">"id"</span>: 1,
       <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan",
       <span class="text-brand-red-bright">"date"</span>: "2026-05-30",
       <span class="text-brand-red-bright">"scope"</span>: "state",
-      <span class="text-brand-red-bright">"is_verified"</span>: true
+      <span class="text-brand-red-bright">"state_codes"</span>: ["SBH"],
+      <span class="text-brand-red-bright">"is_subject_to_change"</span>: false
     }
   ]
 }</code></pre>
@@ -230,19 +232,19 @@
                                 <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
                                     <flux:icon.code-bracket class="size-5" />
                                 </div>
-                                <div class="font-bold">{{ __('RESTful API endpoints') }}</div>
+                                <div class="font-bold">{{ __('Versioned REST API endpoints') }}</div>
                             </div>
                             <div class="flex items-center gap-4 rounded-lg border border-app-outline p-4 transition-colors hover:bg-app-surface-low">
                                 <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
                                     <flux:icon.variable class="size-5" />
                                 </div>
-                                <div class="font-bold">{{ __('Standardized ISO dates') }}</div>
+                                <div class="font-bold">{{ __('ISO dates + consistent JSON errors') }}</div>
                             </div>
                             <div class="flex items-center gap-4 rounded-lg border border-app-outline p-4 transition-colors hover:bg-app-surface-low">
                                 <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
                                     <flux:icon.arrows-up-down class="size-5" />
                                 </div>
-                                <div class="font-bold">{{ __('CORS enabled') }}</div>
+                                <div class="font-bold">{{ __('API key secured private endpoints') }}</div>
                             </div>
                         </div>
                     </div>
@@ -255,14 +257,21 @@
                             </span>
                             <flux:button size="sm" variant="ghost" class="!bg-white/5 text-white hover:!bg-white/10">Copy</flux:button>
                         </div>
-                        <pre class="overflow-x-auto font-mono text-sm leading-relaxed"><code><span class="text-brand-gold">curl</span> "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}"
+                        <pre class="overflow-x-auto font-mono text-sm leading-relaxed"><code><span class="text-brand-gold">curl</span> "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}" \
+  -H "X-API-Key: your-key"
 
 {
   <span class="text-brand-red-bright">"date"</span>: "2026-05-30",
-  <span class="text-brand-red-bright">"state_codes"</span>: "SBH",
+  <span class="text-brand-red-bright">"state_code"</span>: "SBH",
   <span class="text-brand-red-bright">"is_holiday"</span>: <span class="text-brand-gold">true</span>,
   <span class="text-brand-red-bright">"holidays"</span>: [
-    { <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan", <span class="text-brand-red-bright">"scope"</span>: "state" }
+    {
+      <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan",
+      <span class="text-brand-red-bright">"state_codes"</span>: ["SBH"],
+      <span class="text-brand-red-bright">"scope"</span>: "state",
+      <span class="text-brand-red-bright">"type"</span>: "state",
+      <span class="text-brand-red-bright">"is_subject_to_change"</span>: <span class="text-brand-gold">false</span>
+    }
   ]
 }</code></pre>
                     </div>

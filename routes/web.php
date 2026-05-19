@@ -15,6 +15,7 @@ use App\Models\HolidaySource;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::view('/api/docs', 'api.docs')->name('api.docs');
 Route::get('/holidays/calendar', HolidayCalendarController::class)
     ->name('holidays.calendar');
 
