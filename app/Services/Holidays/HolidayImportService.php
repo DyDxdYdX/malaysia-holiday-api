@@ -222,8 +222,8 @@ class HolidayImportService
             $errors[] = 'Holiday type is not supported.';
         }
 
-        if ($errors === [] && $this->holidayExists($payload, $stateCodes)) {
-            $errors[] = 'Duplicate holiday record for year, date, name, and states.';
+        if ($errors === [] && $this->holidayExists($payload)) {
+            $errors[] = 'Duplicate holiday record for year, date, and name.';
         }
 
         return $errors;
@@ -313,24 +313,13 @@ class HolidayImportService
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function holidayExists(array $payload, array $stateCodes): bool
+    private function holidayExists(array $payload): bool
     {
-        $holidays = Holiday::query()
+        return Holiday::query()
             ->where('year', (int) $payload['year'])
             ->whereDate('date', (string) $payload['date'])
             ->where('name', $payload['name'])
-            ->with('states')
-            ->get();
-
-        $expectedStateCodes = collect($stateCodes)->sort()->values()->all();
-
-        foreach ($holidays as $holiday) {
-            if ($holiday->stateCodes() === $expectedStateCodes) {
-                return true;
-            }
-        }
-
-        return false;
+            ->exists();
     }
 
     /**

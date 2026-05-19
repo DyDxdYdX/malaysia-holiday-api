@@ -93,7 +93,16 @@
             <table class="app-table">
                 <thead>
                     <tr>
-                        <th>{{ __('Select') }}</th>
+                        <th>
+                            <label class="inline-flex items-center gap-2">
+                                <input
+                                    id="select-all-holidays"
+                                    type="checkbox"
+                                    class="h-4 w-4 rounded border-app-border text-brand-navy focus:ring-brand-navy"
+                                >
+                                <span>{{ __('Select all') }}</span>
+                            </label>
+                        </th>
                         <th>{{ __('Date') }}</th>
                         <th>{{ __('State') }}</th>
                         <th>{{ __('Name') }}</th>
@@ -106,7 +115,7 @@
                         <tr>
                             <td>
                                 @if ($holiday->status === 'draft')
-                                    <input type="checkbox" name="holiday_ids[]" value="{{ $holiday->id }}" class="h-4 w-4 rounded border-app-border text-brand-navy focus:ring-brand-navy">
+                                    <input type="checkbox" name="holiday_ids[]" value="{{ $holiday->id }}" class="js-holiday-select h-4 w-4 rounded border-app-border text-brand-navy focus:ring-brand-navy">
                                 @endif
                             </td>
                             <td class="font-mono">{{ $holiday->date->toDateString() }}</td>
@@ -122,4 +131,24 @@
             </table>
         </form>
     </div>
+
+    <script>
+        (() => {
+            const selectAllCheckbox = document.getElementById('select-all-holidays');
+
+            if (!selectAllCheckbox) {
+                return;
+            }
+
+            const holidayCheckboxes = Array.from(document.querySelectorAll('.js-holiday-select'));
+
+            selectAllCheckbox.addEventListener('change', () => {
+                const isChecked = selectAllCheckbox.checked;
+
+                holidayCheckboxes.forEach((holidayCheckbox) => {
+                    holidayCheckbox.checked = isChecked;
+                });
+            });
+        })();
+    </script>
 </x-layouts::app>

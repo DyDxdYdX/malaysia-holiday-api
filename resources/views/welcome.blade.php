@@ -68,7 +68,7 @@
                         </p>
                         <div class="mt-12 flex flex-wrap gap-5">
                             <flux:button :href="route('register')" variant="primary" class="!px-8 !py-4 text-base">{{ __('Start Building Free') }}</flux:button>
-                            <flux:button href="#api" variant="ghost" class="!bg-white/5 !px-8 !py-4 text-base text-white hover:!bg-white/10">{{ __('Read Documentation') }}</flux:button>
+                            <flux:button href="#api" variant="primary" class="!bg-white/5 !px-8 !py-4 text-base text-white hover:!bg-white/10">{{ __('Read Documentation') }}</flux:button>
                         </div>
                     </div>
 

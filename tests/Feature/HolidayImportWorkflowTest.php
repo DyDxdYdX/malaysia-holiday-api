@@ -130,7 +130,38 @@ test('csv import stores duplicate rows as invalid without aborting the import', 
         ->valid_rows->toBe(1)
         ->invalid_rows->toBe(1)
         ->and(Holiday::query()->count())->toBe(1)
-        ->and($duplicateRow->errors[0])->toBe('Duplicate holiday record for year, date, name, and states.');
+        ->and($duplicateRow->errors[0])->toBe('Duplicate holiday record for year, date, and name.');
+});
+
+test('csv import marks same year date and name with different states as invalid', function () {
+    $user = adminUser();
+    $source = holidaySource([
+        'uploaded_by' => $user->id,
+    ]);
+    $csv = implode("\n", [
+        'year,state_codes,name,date,scope,type,is_subject_to_change,source_note',
+        '2026,KUL,Tahun Baharu Cina (Hari Kedua),2026-02-18,state,state,false,(P)',
+        '2026,SBH,Tahun Baharu Cina (Hari Kedua),2026-02-18,state,state,false,(P)',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->post(route('admin.sources.import.store', $source), [
+            'file' => UploadedFile::fake()->createWithContent('holidays.csv', $csv),
+        ]);
+
+    $batch = HolidayImportBatch::query()->firstOrFail();
+    $duplicateRow = HolidayImportRow::query()
+        ->where('status', 'invalid')
+        ->firstOrFail();
+
+    $response->assertRedirect(route('admin.batches.show', $batch));
+
+    expect($batch->refresh())
+        ->total_rows->toBe(2)
+        ->valid_rows->toBe(1)
+        ->invalid_rows->toBe(1)
+        ->and(Holiday::query()->count())->toBe(1)
+        ->and($duplicateRow->errors[0])->toBe('Duplicate holiday record for year, date, and name.');
 });
 
 test('batch publish is blocked while invalid rows exist', function () {
