@@ -4,37 +4,37 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-app-surface text-app-copy">
-        <flux:sidebar sticky collapsible="mobile" class="dark border-e border-brand-navy/80 bg-brand-navy text-slate-200 shadow-xl">
-            <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
+        <flux:sidebar sticky collapsible="mobile" class="dark border-e border-white/5 bg-linear-to-b from-brand-navy to-brand-navy-muted text-slate-300 shadow-2xl">
+            <flux:sidebar.header class="mb-4">
+                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate class="transition-transform hover:scale-[1.02]" />
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Console')">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group :heading="__('Data Operations')">
-                    <flux:sidebar.item icon="document-arrow-up" :href="route('admin.sources.index')" :current="request()->routeIs('admin.sources.*')" wire:navigate>
+                <flux:sidebar.group :heading="__('Data Operations')" class="mt-4">
+                    <flux:sidebar.item icon="document-duplicate" :href="route('admin.sources.index')" :current="request()->routeIs('admin.sources.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Sources') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="archive-box" :href="route('admin.batches.index')" :current="request()->routeIs('admin.batches.*')" wire:navigate>
+                    <flux:sidebar.item icon="archive-box" :href="route('admin.batches.index')" :current="request()->routeIs('admin.batches.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Import Batches') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="calendar-days" :href="route('admin.holidays.index')" :current="request()->routeIs('admin.holidays.*')" wire:navigate>
-                        {{ __('Holiday Management') }}
+                    <flux:sidebar.item icon="calendar-days" :href="route('admin.holidays.index')" :current="request()->routeIs('admin.holidays.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
+                        {{ __('Holiday Records') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="pencil-square" :href="route('admin.overrides.index')" :current="request()->routeIs('admin.overrides.*')" wire:navigate>
+                    <flux:sidebar.item icon="pencil-square" :href="route('admin.overrides.index')" :current="request()->routeIs('admin.overrides.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Overrides') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-text" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate>
+                    <flux:sidebar.item icon="document-text" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Audit Logs') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="key" :href="route('admin.api-clients.index')" :current="request()->routeIs('admin.api-clients.*')" wire:navigate>
-                        {{ __('API Clients') }}
+                    <flux:sidebar.item icon="key" :href="route('admin.api-clients.index')" :current="request()->routeIs('admin.api-clients.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
+                        {{ __('API Access') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
@@ -42,12 +42,12 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*') || request()->routeIs('appearance.*') || request()->routeIs('security.*')" wire:navigate>
+                <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" :current="request()->routeIs('profile.*') || request()->routeIs('appearance.*') || request()->routeIs('security.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                     {{ __('Settings') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            <x-desktop-user-menu class="hidden border-t border-white/5 pt-4 lg:block" :name="auth()->user()->name" />
         </flux:sidebar>
 
         <!-- Mobile User Menu -->

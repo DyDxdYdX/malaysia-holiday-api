@@ -13,19 +13,19 @@
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
     --color-brand-navy: #0f172a;
-    --color-brand-navy-muted: #131b2e;
-    --color-brand-red: #bc0001;
-    --color-brand-red-bright: #e41f13;
-    --color-brand-gold: #cea700;
-    --color-brand-gold-soft: #ffe083;
-    --color-app-surface: #fcf8fa;
-    --color-app-surface-low: #f6f3f5;
+    --color-brand-navy-muted: #1e293b;
+    --color-brand-red: #dc2626;
+    --color-brand-red-bright: #ef4444;
+    --color-brand-gold: #fbbf24;
+    --color-brand-gold-soft: #fef3c7;
+    --color-app-surface: #f8fafc;
+    --color-app-surface-low: #f1f5f9;
     --color-app-surface-card: #ffffff;
-    --color-app-surface-muted: #f0edef;
-    --color-app-outline: #c6c6cd;
-    --color-app-copy: #1b1b1d;
-    --color-app-copy-muted: #45464d;
-    --color-app-code: #1e293b;
+    --color-app-surface-muted: #e2e8f0;
+    --color-app-outline: #e2e8f0;
+    --color-app-copy: #0f172a;
+    --color-app-copy-muted: #64748b;
+    --color-app-code: #0f172a;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -50,14 +50,17 @@
         --color-accent-content: var(--color-brand-red-bright);
         --color-accent-foreground: var(--color-white);
 
-        --color-app-surface: var(--color-zinc-950);
-        --color-app-surface-low: var(--color-zinc-900);
-        --color-app-surface-card: var(--color-zinc-900);
-        --color-app-surface-muted: var(--color-zinc-800);
-        --color-app-outline: var(--color-zinc-800);
-        --color-app-copy: var(--color-zinc-50);
-        --color-app-copy-muted: var(--color-zinc-400);
-        --color-app-code: var(--color-zinc-950);
+        --color-brand-navy: #020617;
+        --color-brand-navy-muted: #0f172a;
+
+        --color-app-surface: #020617;
+        --color-app-surface-low: #0f172a;
+        --color-app-surface-card: #0f172a;
+        --color-app-surface-muted: #1e293b;
+        --color-app-outline: #1e293b;
+        --color-app-copy: #f8fafc;
+        --color-app-copy-muted: #94a3b8;
+        --color-app-code: #000000;
     }
 }
 
@@ -68,7 +71,7 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-app-outline, currentColor);
     }
 }
 
@@ -83,7 +86,7 @@
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-brand-red/20 ring-offset-2 ring-offset-white;
+    @apply outline-hidden ring-2 ring-brand-red/20 ring-offset-2 ring-offset-white dark:ring-offset-slate-950;
 }
 
 /* \[:where(&)\]:size-4 {
@@ -92,7 +95,7 @@ select:focus[data-flux-control] {
 
 @layer components {
     .app-shell {
-        @apply min-h-screen bg-app-surface text-app-copy;
+        @apply min-h-screen bg-app-surface text-app-copy selection:bg-brand-red/10 selection:text-brand-red;
     }
 
     .app-container {
@@ -100,23 +103,23 @@ select:focus[data-flux-control] {
     }
 
     .app-card {
-        @apply rounded-lg border border-app-outline/80 bg-app-surface-card shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+        @apply rounded-xl border border-app-outline bg-app-surface-card shadow-sm transition-shadow hover:shadow-md;
     }
 
     .app-section {
-        @apply rounded-xl border border-app-outline/70 bg-app-surface-card p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+        @apply rounded-2xl border border-app-outline bg-app-surface-card p-6 shadow-sm;
     }
 
     .app-label {
-        @apply text-xs font-semibold tracking-wider text-app-copy-muted uppercase;
+        @apply text-[10px] font-bold tracking-widest text-app-copy-muted uppercase;
     }
 
     .app-page-title {
-        @apply text-2xl font-bold tracking-normal text-brand-navy dark:text-zinc-50 sm:text-3xl;
+        @apply text-3xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-4xl;
     }
 
     .app-page-copy {
-        @apply text-sm leading-6 text-app-copy-muted;
+        @apply text-base leading-relaxed text-app-copy-muted;
     }
 
     .app-table {
@@ -124,50 +127,54 @@ select:focus[data-flux-control] {
     }
 
     .app-table thead {
-        @apply bg-app-surface-low text-xs font-semibold tracking-wider text-app-copy-muted uppercase;
+        @apply bg-app-surface-low/50 text-[10px] font-bold tracking-widest text-app-copy-muted uppercase;
     }
 
     .app-table th {
-        @apply px-4 py-3;
+        @apply px-6 py-4;
     }
 
     .app-table td {
-        @apply border-t border-app-outline/70 px-4 py-3 align-middle;
+        @apply border-t border-app-outline px-6 py-4 align-middle transition-colors;
+    }
+
+    .app-table tr:hover td {
+        @apply bg-app-surface-low/30;
     }
 
     .app-badge {
-        @apply inline-flex items-center rounded-sm px-2 py-1 text-xs font-semibold tracking-wide;
+        @apply inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase;
     }
 
     .app-badge-red {
-        @apply bg-brand-red/10 text-brand-red dark:bg-brand-red-bright/20 dark:text-brand-red-bright;
+        @apply bg-brand-red/10 text-brand-red ring-1 ring-inset ring-brand-red/20;
     }
 
     .app-badge-navy {
-        @apply bg-brand-navy/10 text-brand-navy dark:bg-zinc-800 dark:text-zinc-300;
+        @apply bg-brand-navy/5 text-brand-navy ring-1 ring-inset ring-brand-navy/10 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10;
     }
 
     .app-badge-gold {
-        @apply bg-brand-gold-soft text-brand-navy dark:bg-brand-gold/20 dark:text-brand-gold-soft;
+        @apply bg-brand-gold/10 text-brand-gold ring-1 ring-inset ring-brand-gold/20 dark:bg-brand-gold/20 dark:text-brand-gold-soft;
     }
 
     .app-code-block {
-        @apply rounded-lg border border-brand-navy/20 bg-app-code p-5 font-mono text-sm leading-6 text-slate-100 shadow-inner;
+        @apply rounded-xl border border-white/10 bg-app-code p-6 font-mono text-sm leading-relaxed text-slate-100 shadow-2xl;
     }
 
     .admin-page {
-        @apply mx-auto flex w-full flex-col gap-6 p-6 lg:p-8;
+        @apply mx-auto flex w-full flex-col gap-8 p-6 lg:p-10;
     }
 
     .admin-header {
-        @apply flex flex-col justify-between gap-4 md:flex-row md:items-end;
+        @apply flex flex-col justify-between gap-6 md:flex-row md:items-center;
     }
 
     .admin-stat-card {
-        @apply rounded-lg border border-app-outline/80 bg-app-surface-card p-5 shadow-[0_4px_12px_rgba(15,23,42,0.05)];
+        @apply relative overflow-hidden rounded-xl border border-app-outline bg-app-surface-card p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md;
     }
 
     .admin-action-link {
-        @apply font-semibold text-brand-red dark:text-brand-red-bright underline-offset-4 hover:underline;
+        @apply font-bold text-brand-red decoration-brand-red/30 decoration-2 underline-offset-4 hover:underline hover:decoration-brand-red;
     }
 }

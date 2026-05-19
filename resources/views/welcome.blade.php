@@ -14,27 +14,28 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="app-shell antialiased">
-        <header class="sticky top-0 z-40 border-b border-app-outline/70 bg-app-surface/95 backdrop-blur">
+        <header class="sticky top-0 z-40 border-b border-app-outline bg-app-surface/80 backdrop-blur-lg">
             <div class="app-container flex h-16 items-center justify-between gap-6">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 font-bold text-brand-navy dark:text-white">
-                    <span class="flex size-9 items-center justify-center rounded-lg text-sm font-black text-white">
-                        <img src="{{ asset('logo.png') }}" alt="{{ config('app.name', 'Malaysia Holiday API') }}" />
+                <a href="{{ route('home') }}" class="flex items-center gap-3 font-extrabold tracking-tight text-brand-navy dark:text-white">
+                    <span class="flex size-9 items-center justify-center rounded-xl bg-brand-navy shadow-lg dark:bg-brand-red">
+                        <img src="{{ asset('logo.png') }}" class="size-6" alt="{{ config('app.name', 'Malaysia Holiday API') }}" />
                     </span>
-                    <span>{{ config('app.name', 'Malaysia Holiday API') }}</span>
+                    <span class="text-xl">{{ config('app.name', 'Holiday API') }}</span>
                 </a>
 
-                <nav class="hidden items-center gap-8 text-sm font-semibold text-app-copy-muted md:flex">
-                    <a href="#features" class="hover:text-brand-red">{{ __('Features') }}</a>
-                    <a href="#api" class="hover:text-brand-red">{{ __('API Preview') }}</a>
+                <nav class="hidden items-center gap-10 text-sm font-bold text-app-copy-muted md:flex">
+                    <a href="#features" class="transition-colors hover:text-brand-red">{{ __('Features') }}</a>
+                    <a href="#workflow" class="transition-colors hover:text-brand-red">{{ __('Workflow') }}</a>
+                    <a href="#api" class="transition-colors hover:text-brand-red">{{ __('API') }}</a>
                 </nav>
 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="rounded-lg border border-brand-navy px-4 py-2 text-sm font-bold text-brand-navy dark:text-white hover:bg-brand-navy hover:text-white">{{ __('Dashboard') }}</a>
+                        <flux:button :href="route('dashboard')" variant="primary" wire:navigate>{{ __('Go to Dashboard') }}</flux:button>
                     @else
-                        <a href="{{ route('login') }}" class="hidden rounded-lg border border-brand-navy px-4 py-2 text-sm font-bold text-brand-navy dark:text-white hover:bg-brand-navy hover:text-white sm:inline-flex">{{ __('Log in') }}</a>
+                        <flux:button :href="route('login')" variant="ghost" class="hidden sm:inline-flex" wire:navigate>{{ __('Log in') }}</flux:button>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="rounded-lg bg-brand-red px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(188,0,1,0.18)] hover:bg-brand-red-bright">{{ __('Get started') }}</a>
+                            <flux:button :href="route('register')" variant="primary" wire:navigate>{{ __('Get started') }}</flux:button>
                         @endif
                     @endauth
                 </div>
@@ -42,99 +43,226 @@
         </header>
 
         <main>
-            <section class="relative overflow-hidden bg-brand-navy text-white">
-                <div class="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-app-surface to-transparent"></div>
-                <div class="app-container relative grid min-h-[calc(100vh-4rem)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+            <section class="relative overflow-hidden bg-brand-navy py-20 text-white lg:py-32">
+                <!-- Mesh Gradient Background -->
+                <div class="absolute inset-0 z-0 opacity-30">
+                    <div class="absolute -top-[10%] -left-[10%] size-[50%] rounded-full bg-brand-red blur-[120px]"></div>
+                    <div class="absolute top-[20%] -right-[10%] size-[40%] rounded-full bg-brand-gold blur-[120px]"></div>
+                    <div class="absolute -bottom-[20%] left-[20%] size-[60%] rounded-full bg-slate-800 blur-[120px]"></div>
+                </div>
+
+                <div class="app-container relative z-10 grid items-center gap-16 lg:grid-cols-2">
                     <div class="max-w-3xl">
-                        <p class="app-label mb-5 text-brand-gold-soft">{{ __('Verified Malaysian holiday data') }}</p>
-                        <h1 class="text-4xl font-bold leading-tight tracking-normal sm:text-5xl lg:text-6xl">
-                            {{ __('Malaysia public holiday data, reviewed before it ships.') }}
+                        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold tracking-widest text-brand-gold-soft uppercase backdrop-blur-sm">
+                            <span class="relative flex size-2">
+                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-gold opacity-75"></span>
+                                <span class="relative inline-flex size-2 rounded-full bg-brand-gold"></span>
+                            </span>
+                            {{ __('Verified Malaysian Holiday Data') }}
+                        </div>
+                        <h1 class="mt-8 text-5xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl xl:text-7xl">
+                            {{ __('The Source of Truth for') }} <span class="text-brand-gold">{{ __('Malaysian') }}</span> {{ __('Holidays.') }}
                         </h1>
-                        <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-200">
-                            {{ __('A Laravel-backed API for state-level Malaysian public holidays, official source imports, admin review, publishing, and manual overrides.') }}
+                        <p class="mt-8 max-w-xl text-lg leading-relaxed text-slate-300">
+                            {{ __('A high-integrity API for state-level holiday data. Powered by official source imports, rigorous admin review, and transparent audit trails.') }}
                         </p>
-                        <div class="mt-8 flex flex-wrap gap-4">
-                            <a href="#api" class="rounded-lg bg-brand-red px-6 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(188,0,1,0.25)] hover:bg-brand-red-bright">{{ __('View API preview') }}</a>
-                            <a href="{{ route('login') }}" class="rounded-lg border border-slate-300 px-6 py-3 text-sm font-bold text-slate-100 hover:bg-white/10">{{ __('Open admin console') }}</a>
+                        <div class="mt-12 flex flex-wrap gap-5">
+                            <flux:button :href="route('register')" variant="primary" class="!px-8 !py-4 text-base">{{ __('Start Building Free') }}</flux:button>
+                            <flux:button href="#api" variant="ghost" class="!bg-white/5 !px-8 !py-4 text-base text-white hover:!bg-white/10">{{ __('Read Documentation') }}</flux:button>
                         </div>
                     </div>
 
-                    <div class="app-card border-white/10 bg-white/8 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur">
-                        <div class="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
-                            <div>
-                                <p class="text-xs font-semibold tracking-wider text-slate-300 uppercase">{{ __('Endpoint') }}</p>
-                                <p class="font-mono text-sm text-white">GET /api/v1/holidays</p>
+                    <div class="relative">
+                        <div class="absolute -inset-4 rounded-[2rem] bg-brand-gold/10 blur-2xl"></div>
+                        <div class="relative overflow-hidden rounded-2xl border border-white/10 bg-app-code shadow-2xl">
+                            <div class="flex items-center justify-between border-b border-white/5 bg-white/5 px-4 py-3">
+                                <div class="flex gap-1.5">
+                                    <div class="size-3 rounded-full bg-red-500/50"></div>
+                                    <div class="size-3 rounded-full bg-amber-500/50"></div>
+                                    <div class="size-3 rounded-full bg-emerald-500/50"></div>
+                                </div>
+                                <div class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">GET /api/v1/holidays</div>
+                                <div class="size-4"></div>
                             </div>
-                            <span class="app-badge bg-brand-gold-soft text-brand-navy">JSON</span>
-                        </div>
-                        <pre class="overflow-x-auto rounded-lg bg-app-code p-5 font-mono text-sm leading-6 text-slate-100"><code>{
-  "year": 2026,
-  "state_code": "SBH",
-  "data": [
+                            <div class="p-6">
+                                <pre class="font-mono text-sm leading-relaxed text-slate-300"><code>{
+  <span class="text-brand-gold">"year"</span>: 2026,
+  <span class="text-brand-gold">"state_code"</span>: "SBH",
+  <span class="text-brand-gold">"data"</span>: [
     {
-      "name": "Pesta Kaamatan",
-      "date": "2026-05-30",
-      "scope": "state",
-      "is_subject_to_change": false
+      <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan",
+      <span class="text-brand-red-bright">"date"</span>: "2026-05-30",
+      <span class="text-brand-red-bright">"scope"</span>: "state",
+      <span class="text-brand-red-bright">"is_verified"</span>: true
     }
   ]
 }</code></pre>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section class="border-y border-app-outline/70 bg-app-surface-card py-5">
-                <div class="app-container grid gap-4 text-sm font-semibold text-app-copy-muted sm:grid-cols-3">
-                    <div>{{ __('13 states + 3 federal territories') }}</div>
-                    <div>{{ __('Draft review before publishing') }}</div>
-                    <div>{{ __('Manual override audit trail') }}</div>
-                </div>
-            </section>
-
-            <section id="features" class="py-16 sm:py-20">
+            <section class="border-y border-app-outline bg-white py-10 dark:bg-brand-navy-muted">
                 <div class="app-container">
-                    <div class="max-w-2xl">
-                        <p class="app-label text-brand-red">{{ __('Platform capabilities') }}</p>
-                        <h2 class="mt-3 text-3xl font-bold tracking-normal text-brand-navy dark:text-white">{{ __('Built for operational holiday data.') }}</h2>
-                        <p class="mt-4 app-page-copy">{{ __('The public API stays simple, while the admin workflow keeps source documents, imports, review, publishing, and overrides traceable.') }}</p>
+                    <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-8 text-sm font-bold text-app-copy-muted opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
+                        <div class="flex items-center gap-2"><flux:icon.globe-asia-australia class="size-5" /> {{ __('13 States + 3 Federal Territories') }}</div>
+                        <div class="flex items-center gap-2"><flux:icon.shield-check class="size-5" /> {{ __('Multi-Stage Review Workflow') }}</div>
+                        <div class="flex items-center gap-2"><flux:icon.clock class="size-5" /> {{ __('Real-Time Manual Overrides') }}</div>
+                        <div class="flex items-center gap-2"><flux:icon.document-text class="size-5" /> {{ __('PDF & Gazette Source Tracking') }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" class="py-24 sm:py-32">
+                <div class="app-container">
+                    <div class="text-center">
+                        <p class="app-label text-brand-red">{{ __('Platform Capabilities') }}</p>
+                        <h2 class="mt-4 text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-5xl">
+                            {{ __('Built for enterprise-grade operations.') }}
+                        </h2>
+                        <p class="mt-6 mx-auto max-w-2xl text-lg leading-relaxed text-app-copy-muted">
+                            {{ __('We provide the tools to ingest, verify, and serve Malaysian holiday data with absolute confidence. No more scraping unreliable sources.') }}
+                        </p>
                     </div>
 
-                    <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                         @foreach ([
-                            ['Official sources', 'Store PDFs, gazettes, state pages, and CSV source files with checksums.'],
-                            ['CSV import workflow', 'Create review batches from source-linked CSV files before publishing.'],
-                            ['Admin review', 'Edit, confirm, reject, and publish holidays through web-session protected screens.'],
-                            ['State granularity', 'Represent federal, state, replacement, additional, and custom holiday types.'],
-                            ['Manual overrides', 'Apply published corrections without rewriting import history.'],
-                            ['Date check endpoint', 'Quickly answer whether a date is a holiday for a given state.'],
-                        ] as [$title, $copy])
-                            <article class="app-card p-6 transition hover:border-brand-red/60">
-                                <div class="mb-5 flex size-11 items-center justify-center rounded-lg bg-app-surface-muted text-sm font-black text-brand-navy dark:text-white">{{ str($title)->substr(0, 2)->upper() }}</div>
-                                <h3 class="text-lg font-bold text-brand-navy dark:text-white">{{ __($title) }}</h3>
-                                <p class="mt-3 app-page-copy">{{ __($copy) }}</p>
+                            ['Official sources', 'archive-box', 'Store PDFs, gazettes, and official state calendars with cryptographic checksums.'],
+                            ['Import workflow', 'document-arrow-up', 'Seamless CSV ingestion with automated validation and batch-level review.'],
+                            ['Admin review', 'shield-check', 'Expert review interface to confirm or reject holidays before they hit production.'],
+                            ['State granularity', 'map', 'Full support for federal, state, and regional holidays with precise geographical scoping.'],
+                            ['Manual overrides', 'pencil-square', 'Apply emergency corrections and gazetted changes without affecting historical imports.'],
+                            ['Date check API', 'calendar-days', 'Highly optimized endpoints to verify holiday status for any date and state combination.'],
+                        ] as [$title, $icon, $copy])
+                            <article class="group app-card p-8">
+                                <div class="mb-6 flex size-12 items-center justify-center rounded-xl bg-brand-navy text-white transition-transform group-hover:scale-110 dark:bg-brand-red">
+                                    <flux:icon :name="$icon" class="size-6" />
+                                </div>
+                                <h3 class="text-xl font-bold text-brand-navy dark:text-white">{{ __($title) }}</h3>
+                                <p class="mt-4 app-page-copy">{{ __($copy) }}</p>
                             </article>
                         @endforeach
                     </div>
                 </div>
             </section>
 
-            <section id="api" class="bg-app-surface-card py-16 sm:py-20">
-                <div class="app-container grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+            <section id="workflow" class="relative overflow-hidden bg-brand-navy py-24 text-white sm:py-32">
+                <div class="app-container relative z-10">
+                    <div class="grid gap-16 lg:grid-cols-2 lg:items-center">
+                        <div>
+                            <p class="app-label text-brand-gold">{{ __('The Workflow') }}</p>
+                            <h2 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">
+                                {{ __('From PDF to API in') }} <span class="italic text-brand-gold">{{ __('minutes') }}</span>.
+                            </h2>
+                            <p class="mt-6 text-lg leading-relaxed text-slate-300">
+                                {{ __('Our multi-stage pipeline ensures that every single holiday record is backed by an official document and verified by a human administrator.') }}
+                            </p>
+
+                            <div class="mt-12 space-y-8">
+                                <div class="flex gap-6">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-brand-gold">1</div>
+                                    <div>
+                                        <h4 class="text-lg font-bold">{{ __('Source Ingestion') }}</h4>
+                                        <p class="mt-1 text-slate-400">{{ __('Upload official gazettes or state announcements. Each source is tracked and archived.') }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-6">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-brand-gold">2</div>
+                                    <div>
+                                        <h4 class="text-lg font-bold">{{ __('Batch Review') }}</h4>
+                                        <p class="mt-1 text-slate-400">{{ __('Imports are held in draft batches. Admins cross-reference records against the original source.') }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-6">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-brand-gold">3</div>
+                                    <div>
+                                        <h4 class="text-lg font-bold">{{ __('Global Publication') }}</h4>
+                                        <p class="mt-1 text-slate-400">{{ __('Approved data is instantly available via our global API nodes with high-availability.') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-4 pt-12">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                                    <flux:icon.document-text class="mb-4 size-8 text-brand-gold" />
+                                    <div class="text-2xl font-bold">PDF</div>
+                                    <div class="text-xs font-bold tracking-widest text-slate-500 uppercase">{{ __('Sources') }}</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                                    <flux:icon.archive-box class="mb-4 size-8 text-brand-gold" />
+                                    <div class="text-2xl font-bold">99%</div>
+                                    <div class="text-xs font-bold tracking-widest text-slate-500 uppercase">{{ __('Accuracy') }}</div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                                    <flux:icon.shield-check class="mb-4 size-8 text-brand-red-bright" />
+                                    <div class="text-2xl font-bold">Review</div>
+                                    <div class="text-xs font-bold tracking-widest text-slate-500 uppercase">{{ __('Human Checked') }}</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                                    <flux:icon.code-bracket class="mb-4 size-8 text-brand-red-bright" />
+                                    <div class="text-2xl font-bold">API</div>
+                                    <div class="text-xs font-bold tracking-widest text-slate-500 uppercase">{{ __('JSON Output') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="api" class="py-24 sm:py-32">
+                <div class="app-container grid gap-16 lg:grid-cols-[0.8fr_1.2fr]">
                     <div>
-                        <p class="app-label text-brand-red">{{ __('Public API') }}</p>
-                        <h2 class="mt-3 text-3xl font-bold tracking-normal text-brand-navy dark:text-white">{{ __('Stable JSON for apps and integrations.') }}</h2>
-                        <p class="mt-4 app-page-copy">{{ __('Public consumers only need the JSON endpoints. Admin operations stay in the Livewire/Blade dashboard and never require bearer-token admin APIs.') }}</p>
+                        <p class="app-label text-brand-red">{{ __('Developer First') }}</p>
+                        <h2 class="mt-4 text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white">
+                            {{ __('Integration ready.') }}
+                        </h2>
+                        <p class="mt-6 text-lg leading-relaxed text-app-copy-muted">
+                            {{ __('Query by year, state, or specific dates. Our REST API is versioned and designed for reliability in production applications.') }}
+                        </p>
+
+                        <div class="mt-10 space-y-4">
+                            <div class="flex items-center gap-4 rounded-lg border border-app-outline p-4 transition-colors hover:bg-app-surface-low">
+                                <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
+                                    <flux:icon.code-bracket class="size-5" />
+                                </div>
+                                <div class="font-bold">{{ __('RESTful API endpoints') }}</div>
+                            </div>
+                            <div class="flex items-center gap-4 rounded-lg border border-app-outline p-4 transition-colors hover:bg-app-surface-low">
+                                <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
+                                    <flux:icon.variable class="size-5" />
+                                </div>
+                                <div class="font-bold">{{ __('Standardized ISO dates') }}</div>
+                            </div>
+                            <div class="flex items-center gap-4 rounded-lg border border-app-outline p-4 transition-colors hover:bg-app-surface-low">
+                                <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
+                                    <flux:icon.arrows-up-down class="size-5" />
+                                </div>
+                                <div class="font-bold">{{ __('CORS enabled') }}</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="app-code-block overflow-x-auto">
-                        <pre><code>curl "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}"
+                    <div class="app-code-block shadow-2xl">
+                        <div class="mb-4 flex items-center justify-between">
+                            <span class="flex items-center gap-2 font-mono text-xs font-bold text-slate-500 uppercase">
+                                <span class="size-2 rounded-full bg-emerald-500"></span>
+                                cURL / Terminal
+                            </span>
+                            <flux:button size="sm" variant="ghost" class="!bg-white/5 text-white hover:!bg-white/10">Copy</flux:button>
+                        </div>
+                        <pre class="overflow-x-auto font-mono text-sm leading-relaxed"><code><span class="text-brand-gold">curl</span> "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}"
 
 {
-  "date": "2026-05-30",
-  "state_code": "SBH",
-  "is_holiday": true,
-  "holidays": [
-    { "name": "Pesta Kaamatan", "scope": "state" }
+  <span class="text-brand-red-bright">"date"</span>: "2026-05-30",
+  <span class="text-brand-red-bright">"state_code"</span>: "SBH",
+  <span class="text-brand-red-bright">"is_holiday"</span>: <span class="text-brand-gold">true</span>,
+  <span class="text-brand-red-bright">"holidays"</span>: [
+    { <span class="text-brand-red-bright">"name"</span>: "Pesta Kaamatan", <span class="text-brand-red-bright">"scope"</span>: "state" }
   ]
 }</code></pre>
                     </div>
@@ -142,7 +270,7 @@
             </section>
         </main>
 
-        <footer class="border-t border-app-outline/70 bg-app-surface py-8">
+        <footer class="border-t border-app-outline bg-app-surface py-12 dark:bg-brand-navy">
             <div class="app-container flex flex-col items-center justify-between gap-4 sm:flex-row">
                 <p class="text-sm text-app-copy-muted">
                     &copy; {{ date('Y') }} {{ config('app.name', 'Malaysia Holiday API') }}. {{ __('All rights reserved.') }}
