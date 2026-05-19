@@ -6,7 +6,10 @@
                 <h1 class="app-page-title mt-2">{{ __('Holiday Management') }}</h1>
                 <p class="app-page-copy mt-2">{{ __('Search and filter holiday records, then create overrides when corrections are needed.') }}</p>
             </div>
-            <flux:button :href="route('admin.holidays.create')" variant="primary" icon="plus" wire:navigate>{{ __('Add Manual Holiday') }}</flux:button>
+            <div class="flex flex-wrap gap-2">
+                <flux:button :href="route('admin.holidays.calendar')" variant="ghost" icon="calendar" wire:navigate>{{ __('Calendar View') }}</flux:button>
+                <flux:button :href="route('admin.holidays.create')" variant="primary" icon="plus" wire:navigate>{{ __('Add Manual Holiday') }}</flux:button>
+            </div>
         </div>
 
         <section class="app-section space-y-4">

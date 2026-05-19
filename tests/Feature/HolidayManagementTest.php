@@ -36,6 +36,33 @@ test('holiday management pages require authentication', function () {
 
     $this->get(route('admin.holidays.create'))
         ->assertRedirect(route('login'));
+
+    $this->get(route('admin.holidays.calendar'))
+        ->assertRedirect(route('login'));
+});
+
+test('public holiday calendar is accessible and only shows published holidays', function () {
+    createHoliday([
+        'year' => 2026,
+        'state_code' => 'SBH',
+        'name' => 'Published Day',
+        'date' => '2026-01-10',
+        'status' => 'published',
+    ]);
+
+    createHoliday([
+        'year' => 2026,
+        'state_code' => 'SBH',
+        'name' => 'Draft Day',
+        'date' => '2026-01-11',
+        'status' => 'pending',
+    ]);
+
+    $this->get(route('holidays.calendar', ['year' => 2026]))
+        ->assertOk()
+        ->assertSee('Holiday Calendar')
+        ->assertSee('Published Day')
+        ->assertDontSee('Draft Day');
 });
 
 test('data admins can view holiday management index with filters', function () {
@@ -73,6 +100,59 @@ test('data admins can view holiday management index with filters', function () {
         ->assertSee('Holiday Management')
         ->assertSee('Sarawak Day')
         ->assertDontSee('Hari Kebangsaan');
+});
+
+test('data admins can view holiday calendar with all statuses and filters', function () {
+    $user = adminForHolidays();
+
+    createHoliday([
+        'year' => 2026,
+        'state_code' => 'SBH',
+        'name' => 'Sabah Published Day',
+        'date' => '2026-02-02',
+        'scope' => 'state',
+        'status' => 'published',
+    ]);
+
+    createHoliday([
+        'year' => 2026,
+        'state_code' => 'SBH',
+        'name' => 'Sabah Confirmed Day',
+        'date' => '2026-03-03',
+        'scope' => 'state',
+        'status' => 'confirmed',
+    ]);
+
+    createHoliday([
+        'year' => 2026,
+        'state_code' => 'KUL',
+        'name' => 'Federal Day',
+        'date' => '2026-04-04',
+        'scope' => 'federal',
+        'status' => 'published',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('admin.holidays.calendar', [
+            'year' => 2026,
+            'state_code' => 'sbh',
+            'scope' => 'state',
+        ]))
+        ->assertOk()
+        ->assertSee('Sabah Published Day')
+        ->assertSee('Sabah Confirmed Day')
+        ->assertDontSee('Federal Day');
+});
+
+test('holiday calendar shows empty state when no records match filters', function () {
+    $this->get(route('holidays.calendar', [
+        'year' => 2099,
+        'state_code' => 'AAA',
+        'scope' => 'custom',
+    ]))
+        ->assertOk()
+        ->assertSee('January')
+        ->assertSee('No holidays match the selected year and filters.');
 });
 
 test('data admins can create manual holiday entries', function () {

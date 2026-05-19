@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Holiday;
 use App\Support\AuditLogger;
+use App\Support\HolidayCalendarBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -13,6 +14,36 @@ use Illuminate\View\View;
 
 class HolidayController extends Controller
 {
+    public function calendar(Request $request, HolidayCalendarBuilder $calendarBuilder): View
+    {
+        $year = $request->integer('year');
+        $resolvedYear = $year > 0 ? $year : Carbon::now()->year;
+        $stateCode = strtoupper(trim($request->string('state_code')->toString()));
+        $scope = trim($request->string('scope')->toString());
+
+        $holidays = Holiday::query()
+            ->where('year', $resolvedYear)
+            ->when($stateCode !== '', fn ($query) => $query->where('state_code', $stateCode))
+            ->when($scope !== '', fn ($query) => $query->where('scope', $scope))
+            ->orderBy('date')
+            ->orderBy('name')
+            ->get();
+
+        return view('holidays.calendar', [
+            'title' => __('Holiday Calendar'),
+            'subtitle' => __('Review holiday records in a year-based calendar view.'),
+            'filters' => [
+                'year' => (string) $resolvedYear,
+                'state_code' => $stateCode,
+                'scope' => $scope,
+            ],
+            'months' => $calendarBuilder->build($resolvedYear, $holidays),
+            'isAdminView' => true,
+            'hasAnyHoliday' => $holidays->isNotEmpty(),
+            'formAction' => route('admin.holidays.calendar'),
+        ]);
+    }
+
     public function index(Request $request): View
     {
         $search = trim($request->string('q')->toString());

@@ -24,8 +24,11 @@
                     <flux:sidebar.item icon="archive-box" :href="route('admin.batches.index')" :current="request()->routeIs('admin.batches.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Import Batches') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="calendar-days" :href="route('admin.holidays.index')" :current="request()->routeIs('admin.holidays.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
+                    <flux:sidebar.item icon="calendar-days" :href="route('admin.holidays.index')" :current="request()->routeIs('admin.holidays.index') || request()->routeIs('admin.holidays.create') || request()->routeIs('admin.holidays.edit')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Holiday Records') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar" :href="route('admin.holidays.calendar')" :current="request()->routeIs('admin.holidays.calendar')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
+                        {{ __('Holiday Calendar') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="pencil-square" :href="route('admin.overrides.index')" :current="request()->routeIs('admin.overrides.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Overrides') }}

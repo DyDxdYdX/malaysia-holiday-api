@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\HolidayImportBatchController;
 use App\Http\Controllers\Admin\HolidayImportController;
 use App\Http\Controllers\Admin\HolidayOverrideController;
 use App\Http\Controllers\Admin\HolidaySourceController;
+use App\Http\Controllers\HolidayCalendarController;
 use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Models\HolidayOverride;
@@ -14,6 +15,8 @@ use App\Models\HolidaySource;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/holidays/calendar', HolidayCalendarController::class)
+    ->name('holidays.calendar');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -55,6 +58,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])
 
         Route::get('holidays/{holiday}/edit', [HolidayController::class, 'edit'])
             ->name('holidays.edit');
+        Route::get('holidays/calendar', [HolidayController::class, 'calendar'])
+            ->name('holidays.calendar');
         Route::get('holidays', [HolidayController::class, 'index'])
             ->name('holidays.index');
         Route::get('holidays/create', [HolidayController::class, 'create'])
