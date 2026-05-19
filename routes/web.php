@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\ApiClientController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\HolidayImportBatchController;
@@ -88,12 +87,6 @@ Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index');
 
-        Route::get('api-clients', [ApiClientController::class, 'index'])
-            ->name('api-clients.index');
-        Route::post('api-clients', [ApiClientController::class, 'store'])
-            ->name('api-clients.store');
-        Route::patch('api-clients/{apiClient}/disable', [ApiClientController::class, 'disable'])
-            ->name('api-clients.disable');
     });
 
 require __DIR__.'/settings.php';

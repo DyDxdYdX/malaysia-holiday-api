@@ -26,9 +26,10 @@
                     <h2 class="text-2xl font-bold text-brand-navy dark:text-white">Authentication</h2>
                     <ul class="mt-4 list-disc space-y-2 pl-5 text-app-copy-muted">
                         <li><code>GET /api/v1/states</code> is public.</li>
-                        <li><code>GET /api/v1/holidays</code> and <code>GET /api/v1/holidays/check</code> require header <code>X-API-Key</code>.</li>
+                        <li><code>GET /api/v1/holidays</code> is public.</li>
+                        <li><code>GET /api/v1/holidays/check</code> is public.</li>
                     </ul>
-                    <pre class="mt-4 overflow-x-auto rounded-xl bg-app-code p-4 text-sm text-slate-200"><code>X-API-Key: {raw_api_key}</code></pre>
+                    <p class="mt-4 text-app-copy-muted">No API key, account, or bearer token is required to read published holiday data.</p>
                 </section>
 
                 <section class="app-card p-6">
@@ -55,15 +56,13 @@
                     <article class="app-card p-6">
                         <h3 class="text-xl font-bold">GET /api/v1/holidays</h3>
                         <p class="mt-2 text-app-copy-muted">Returns published holidays by year with optional filters.</p>
-                        <pre class="mt-4 overflow-x-auto rounded-xl bg-app-code p-4 text-sm text-slate-200"><code>curl "{{ url('/api/v1/holidays?year=2026&state=SBH&include_source=1') }}" \
-  -H "X-API-Key: your-key"</code></pre>
+                        <pre class="mt-4 overflow-x-auto rounded-xl bg-app-code p-4 text-sm text-slate-200"><code>curl "{{ url('/api/v1/holidays?year=2026&state=SBH&include_source=1') }}"</code></pre>
                     </article>
 
                     <article class="app-card p-6">
                         <h3 class="text-xl font-bold">GET /api/v1/holidays/check</h3>
                         <p class="mt-2 text-app-copy-muted">Checks whether a date is a holiday, optionally scoped to a state.</p>
-                        <pre class="mt-4 overflow-x-auto rounded-xl bg-app-code p-4 text-sm text-slate-200"><code>curl "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}" \
-  -H "X-API-Key: your-key"</code></pre>
+                        <pre class="mt-4 overflow-x-auto rounded-xl bg-app-code p-4 text-sm text-slate-200"><code>curl "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}"</code></pre>
                         <pre class="mt-4 overflow-x-auto rounded-xl bg-app-code p-4 text-sm text-slate-200"><code>{
   "date": "2026-05-30",
   "state_code": "SBH",
@@ -94,9 +93,7 @@
                             </thead>
                             <tbody class="text-app-copy-muted">
                                 <tr class="border-b border-app-outline/70"><td class="py-2 pr-3">VALIDATION_ERROR</td><td class="py-2 pr-3">422</td><td class="py-2 pr-3">Invalid request input</td></tr>
-                                <tr class="border-b border-app-outline/70"><td class="py-2 pr-3">UNAUTHORIZED</td><td class="py-2 pr-3">401</td><td class="py-2 pr-3">Missing or invalid API key</td></tr>
                                 <tr class="border-b border-app-outline/70"><td class="py-2 pr-3">NOT_FOUND</td><td class="py-2 pr-3">404</td><td class="py-2 pr-3">Endpoint/resource not found</td></tr>
-                                <tr><td class="py-2 pr-3">TOO_MANY_REQUESTS</td><td class="py-2 pr-3">429</td><td class="py-2 pr-3">Rate limit exceeded</td></tr>
                             </tbody>
                         </table>
                     </div>

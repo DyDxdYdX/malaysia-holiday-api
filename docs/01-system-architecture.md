@@ -11,7 +11,7 @@ The Malaysia Public Holiday API is a **Laravel-based** backend system that inges
 ```mermaid
 graph TB
     subgraph Consumers["Consumers"]
-        AC[API Client / App]
+        AC[Public API Client / App]
         PU[Public User Browser]
         AD[Admin User Browser]
     end
@@ -28,7 +28,6 @@ graph TB
         REV[HolidayReviewService]
         OVR[HolidayOverrideService]
         API[HolidayApiService]
-        ACS[ApiClientService]
     end
 
     subgraph DataLayer["Data Layer"]
@@ -40,23 +39,20 @@ graph TB
     subgraph CrossCutting["Cross-Cutting"]
         AUTH[Web Auth & RBAC<br/>Session + Role Gate]
         AUD[Audit Log]
-        RL[Rate Limiter]
     end
 
     PU --> PUB
     AC --> PUB
     AD --> WEB
 
-    PUB --> RL
+    PUB --> API
     WEB --> AUTH
 
-    RL --> API
     AUTH --> HSS
     AUTH --> IMP
     AUTH --> PDF
     AUTH --> REV
     AUTH --> OVR
-    AUTH --> ACS
 
     HSS --> DB
     HSS --> FS
@@ -66,13 +62,11 @@ graph TB
     OVR --> DB
     API --> CQ
     CQ --> DB
-    ACS --> DB
 
     HSS --> AUD
     IMP --> AUD
     REV --> AUD
     OVR --> AUD
-    ACS --> AUD
     AUD --> DB
 ```
 
@@ -130,9 +124,9 @@ graph TB
 | **API Controller** | `Api\HolidayController`, `Api\StateController` | Public JSON holiday and state responses |
 | **Form Request** | `StoreHolidaySourceRequest`, `ImportCsvRequest`, etc. | Input validation & authorization |
 | **Service** | `HolidaySourceService`, `HolidayCsvImportService`, `HolidayReviewService`, `HolidayOverrideService`, `HolidayApiService` | Business logic |
-| **Model / Eloquent** | `HolidaySource`, `HolidayImportBatch`, `Holiday`, `HolidayOverride`, `ApiClient` | ORM & query scopes |
+| **Model / Eloquent** | `HolidaySource`, `HolidayImportBatch`, `Holiday`, `HolidayOverride` | ORM & query scopes |
 | **API Resource** | `HolidayResource`, `HolidayCollection`, `StateResource` | Response shaping |
-| **Middleware** | `auth`, `verified`, `role:super_admin,data_admin`, `throttle` | Web session auth, admin role gate, public API rate limit |
+| **Middleware** | `auth`, `verified`, `role:super_admin,data_admin` | Web session auth and admin role gate |
 | **Observers / Events** | `HolidayObserver`, `AuditLogger` | Side-effects, audit log |
 
 ---
@@ -166,7 +160,6 @@ flowchart TB
         AE[GET/POST /admin/*]
     end
 
-    RL[Rate Limiter<br/>throttle middleware] --> PE
     PE --> PF[Published Filter<br/>Only status=published]
 
     AE --> SA[Web Session Auth<br/>auth middleware]

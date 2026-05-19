@@ -34,9 +34,7 @@
                         <flux:button :href="route('dashboard')" variant="primary" wire:navigate>{{ __('Go to Dashboard') }}</flux:button>
                     @else
                         <flux:button :href="route('login')" variant="ghost" class="hidden sm:inline-flex" wire:navigate>{{ __('Log in') }}</flux:button>
-                        @if (Route::has('register'))
-                            <flux:button :href="route('register')" variant="primary" wire:navigate>{{ __('Get started') }}</flux:button>
-                        @endif
+                        <flux:button :href="route('api.docs')" variant="primary">{{ __('API Docs') }}</flux:button>
                     @endauth
                 </div>
             </div>
@@ -67,7 +65,7 @@
                             {{ __('A high-integrity API for state-level holiday data. Powered by official source imports, rigorous admin review, and transparent audit trails.') }}
                         </p>
                         <div class="mt-12 flex flex-wrap gap-5">
-                            <flux:button :href="route('register')" variant="primary" class="!px-8 !py-4 text-base">{{ __('Start Building Free') }}</flux:button>
+                            <flux:button :href="url('/api/v1/holidays?year=2026')" variant="primary" class="!px-8 !py-4 text-base">{{ __('Try the API') }}</flux:button>
                             <flux:button :href="route('api.docs')" variant="primary" class="!bg-white/5 !px-8 !py-4 text-base text-white hover:!bg-white/10">{{ __('Read Documentation') }}</flux:button>
                         </div>
                     </div>
@@ -244,7 +242,7 @@
                                 <div class="flex size-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy dark:bg-white/5 dark:text-white">
                                     <flux:icon.arrows-up-down class="size-5" />
                                 </div>
-                                <div class="font-bold">{{ __('API key secured private endpoints') }}</div>
+                                <div class="font-bold">{{ __('Public endpoints with no API key') }}</div>
                             </div>
                         </div>
                     </div>
@@ -257,8 +255,7 @@
                             </span>
                             <flux:button size="sm" variant="ghost" class="!bg-white/5 text-white hover:!bg-white/10">Copy</flux:button>
                         </div>
-                        <pre class="overflow-x-auto font-mono text-sm leading-relaxed"><code><span class="text-brand-gold">curl</span> "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}" \
-  -H "X-API-Key: your-key"
+                        <pre class="overflow-x-auto font-mono text-sm leading-relaxed"><code><span class="text-brand-gold">curl</span> "{{ url('/api/v1/holidays/check?date=2026-05-30&state=SBH') }}"
 
 {
   <span class="text-brand-red-bright">"date"</span>: "2026-05-30",

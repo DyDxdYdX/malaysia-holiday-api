@@ -36,9 +36,6 @@
                     <flux:sidebar.item icon="document-text" :href="route('admin.audit-logs.index')" :current="request()->routeIs('admin.audit-logs.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
                         {{ __('Audit Logs') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="key" :href="route('admin.api-clients.index')" :current="request()->routeIs('admin.api-clients.*')" wire:navigate class="font-semibold tracking-wide transition-all hover:bg-white/5">
-                        {{ __('API Access') }}
-                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

@@ -16,7 +16,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 1.3 | `holiday_import_rows` table | ✅ |
 | 1.4 | `holidays` table | ✅ |
 | 1.5 | `holiday_overrides` table | ✅ |
-| 1.6 | `api_clients` table | ✅ |
+| 1.6 | Public API schema excludes API-client keys | ✅ |
 | 1.7 | `audit_logs` table | ✅ |
 | 1.8 | `role` column on `users` table | ✅ |
 
@@ -31,7 +31,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 2.3 | `HolidayImportRow` model | ✅ |
 | 2.4 | `Holiday` model | ✅ |
 | 2.5 | `HolidayOverride` model | ✅ |
-| 2.6 | `ApiClient` model | ✅ |
+| 2.6 | Public API uses no API-client model | ✅ |
 | 2.7 | `AuditLog` model | ✅ |
 
 ---
@@ -129,15 +129,15 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 
 ---
 
-## 9. Security & API Clients (§17)
+## 9. Security & Public API (§17)
 
 | # | Item | Status |
 |---|------|--------|
 | 9.1 | Admin routes require authentication + role middleware | ✅ |
 | 9.2 | Role-based authorization (`super_admin`, `data_admin`) | ✅ |
-| 9.3 | API key creation & management for `api_clients` | ✅ |
-| 9.4 | API key authentication middleware on private API routes | ✅ |
-| 9.5 | Rate limiting on API endpoints | ✅ |
+| 9.3 | Public holiday API endpoints require no account or API key | ✅ |
+| 9.4 | Public API returns only published holiday records | ✅ |
+| 9.5 | Public self-registration disabled for admin safety | ✅ |
 | 9.6 | File upload type validation (PDF / CSV only, max 10 MB) | ✅ `File::types(['pdf','csv','txt'])->max(10*1024)` enforced |
 | 9.7 | Source file checksum enforcement | ✅ SHA-256 computed & stored on upload |
 
@@ -148,7 +148,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | # | Item | Status |
 |---|------|--------|
 | 10.1 | Standardised `error.code / message / details` envelope | ✅ |
-| 10.2 | All defined error codes handled (`VALIDATION_ERROR`, `UNAUTHORIZED`, etc.) | ✅ |
+| 10.2 | Public API error codes handled (`VALIDATION_ERROR`, `NOT_FOUND`, etc.) | ✅ |
 
 ---
 
@@ -164,7 +164,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 11.6 | `holiday_created` / `holiday_updated` / `holiday_deleted` | ✅ |
 | 11.7 | `holiday_published` | ✅ |
 | 11.8 | `override_created` / `override_approved` / `override_rejected` | ✅ |
-| 11.9 | `api_client_created` / `api_client_disabled` | ✅ |
+| 11.9 | API-client audit events removed from public API scope | ✅ |
 
 ---
 
@@ -179,7 +179,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | 12.5 | Public API endpoint tests | ✅ |
 | 12.6 | Holiday override tests | ✅ |
 | 12.7 | Audit log tests | ✅ |
-| 12.8 | API key / rate limiting tests | ✅ |
+| 12.8 | Public no-key API access tests | ✅ |
 
 ---
 

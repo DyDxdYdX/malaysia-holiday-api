@@ -121,27 +121,16 @@ stateDiagram-v2
 
 ---
 
-## 5. API Client — Lifecycle
+## 5. Public API Access
 
 ```mermaid
 stateDiagram-v2
-    [*] --> active : Super admin creates client + API key
-
-    active --> disabled : Admin disables client
-    disabled --> active : Admin re-enables client
-    disabled --> deleted : Admin deletes client
-
-    deleted --> [*]
-
-    note right of active
-        API key is valid.
-        Rate limiting enforced per minute.
-    end note
-
-    note right of disabled
-        API key rejected with 401.
-        Record retained for audit.
-    end note
+    [*] --> request_received : Consumer calls public endpoint
+    request_received --> validated : Query parameters pass validation
+    request_received --> rejected : Query parameters fail validation
+    validated --> published_data_returned : Published records queried
+    rejected --> [*] : 422 validation error
+    published_data_returned --> [*] : 200 JSON response
 ```
 
 ---

@@ -101,17 +101,12 @@ roles:
       - create overrides
       - publish approved holidays
 
-  api_client:
-    description: "External or internal application consuming the API."
-    permissions:
-      - read published holidays
-      - query holidays by year and state
-      - check if a date is a holiday
-
   public_user:
-    description: "Unauthenticated user if public access is enabled."
+    description: "Unauthenticated user or application consuming public API data."
     permissions:
       - read public holiday data only
+      - query holidays by year and state
+      - check if a date is a holiday
 ```
 
 ---
@@ -555,22 +550,6 @@ override_action:
 
 ---
 
-### 12.5 `api_clients`
-
-```sql
-CREATE TABLE api_clients (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    api_key_hash VARCHAR(255) NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'active',
-    rate_limit_per_minute INT NOT NULL DEFAULT 60,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
-);
-```
-
----
-
 ## 13. API Specification
 
 ### 13.1 Get Holidays by Year
@@ -929,13 +908,11 @@ Common error codes:
 ```yaml
 error_codes:
   - VALIDATION_ERROR
-  - UNAUTHORIZED
   - FORBIDDEN
   - NOT_FOUND
   - DUPLICATE_HOLIDAY
   - INVALID_SOURCE_FILE
   - IMPORT_BATCH_NOT_READY
-  - RATE_LIMIT_EXCEEDED
   - INTERNAL_SERVER_ERROR
 ```
 
@@ -959,8 +936,6 @@ audit_events:
   - override_created
   - override_approved
   - override_rejected
-  - api_client_created
-  - api_client_disabled
 ```
 
 Audit fields:
@@ -1047,11 +1022,6 @@ services:
       - check holiday by date
       - format API response
 
-  ApiClientService:
-    responsibility:
-      - create API clients
-      - rotate API keys
-      - enforce rate limits
 ```
 
 ---
@@ -1093,8 +1063,6 @@ mvp:
   should_have:
     - PDF text extraction
     - source checksum
-    - API key support
-    - rate limiting
     - export holidays to CSV
 
   nice_to_have:

@@ -6,17 +6,13 @@ Version: `v1`
 
 ## Authentication
 
-### Public endpoint
-- `GET /states` does not require authentication.
+No authentication is required for public holiday data.
 
-### Protected endpoints
-- `GET /holidays` and `GET /holidays/check` require an API client key in the request header:
+- `GET /states` is public.
+- `GET /holidays` is public.
+- `GET /holidays/check` is public.
 
-```http
-X-API-Key: {raw_api_key}
-```
-
-If the key is missing, invalid, or disabled, the API returns `401 Unauthorized`.
+Admin screens remain protected by web authentication and admin roles, but public API consumers do not need accounts or API keys.
 
 ## Error Envelope
 
@@ -39,9 +35,7 @@ All API errors return this shape:
 | Code | HTTP Status | Meaning |
 |---|---|---|
 | `VALIDATION_ERROR` | 422 | Request validation failed |
-| `UNAUTHORIZED` | 401 | Missing/invalid/disabled API key |
 | `NOT_FOUND` | 404 | Route or resource was not found |
-| `TOO_MANY_REQUESTS` | 429 | API client rate limit exceeded |
 
 ## Endpoints
 
@@ -78,7 +72,7 @@ Response `200 OK`:
 ### GET `/holidays`
 Returns published holidays filtered by year and optional filters.
 
-Auth: requires `X-API-Key`.
+Auth: not required.
 
 Query parameters:
 
@@ -94,7 +88,6 @@ Request example:
 
 ```http
 GET /api/v1/holidays?year=2026&state=SBH&include_source=1
-X-API-Key: your-key
 ```
 
 Response `200 OK`:
@@ -134,7 +127,7 @@ Notes:
 ### GET `/holidays/check`
 Checks whether a date is a published holiday, optionally scoped to a state.
 
-Auth: requires `X-API-Key`.
+Auth: not required.
 
 Query parameters:
 
@@ -147,7 +140,6 @@ Request example:
 
 ```http
 GET /api/v1/holidays/check?date=2026-05-30&state=SBH
-X-API-Key: your-key
 ```
 
 Response `200 OK` (holiday found):
@@ -185,7 +177,5 @@ Response `200 OK` (not a holiday):
 | HTTP Status | Meaning |
 |---|---|
 | `200 OK` | Request succeeded |
-| `401 Unauthorized` | Missing/invalid/disabled API key |
 | `404 Not Found` | Endpoint not found |
 | `422 Unprocessable Entity` | Validation failed |
-| `429 Too Many Requests` | Rate limit exceeded |

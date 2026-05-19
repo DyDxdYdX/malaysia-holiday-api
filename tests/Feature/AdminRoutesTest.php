@@ -36,7 +36,6 @@ test('data admins can access redesigned admin workflow pages', function (string 
     ['/admin/holidays', 'Holiday Management'],
     ['/admin/overrides', 'Holiday Overrides'],
     ['/admin/audit-logs', 'Audit Logs'],
-    ['/admin/api-clients', 'API Clients'],
 ]);
 
 test('admin web routes use web auth and role middleware only', function () {
@@ -59,4 +58,11 @@ test('admin routes are not registered under the public api namespace', function 
         ->filter(fn ($route) => str_starts_with($route->uri(), 'api/v1/admin'));
 
     expect($apiAdminRoutes)->toBeEmpty();
+});
+
+test('api client admin routes are not registered', function () {
+    $apiClientRoutes = collect(Route::getRoutes())
+        ->filter(fn ($route) => str_contains($route->uri(), 'api-clients'));
+
+    expect($apiClientRoutes)->toBeEmpty();
 });

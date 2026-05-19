@@ -251,33 +251,18 @@ sequenceDiagram
 
 ---
 
-## 7. API Client Creation and Key Authentication
+## 7. Public API Request
 
 ```mermaid
 sequenceDiagram
-    actor Admin as Super Admin
-    participant SC as ApiClientController
-    participant ACS as ApiClientService
+    actor Consumer
+    participant API as Public API Route
+    participant HC as HolidayController
     participant DB as Database
 
-    Admin->>SC: POST /api/v1/admin/api-clients { name, rate_limit }
-    SC->>ACS: createClient(name, rate_limit)
-    ACS->>ACS: generateRawKey() → random 64-char string
-    ACS->>ACS: hashKey(raw_key) → SHA-256
-    ACS->>DB: INSERT api_clients (api_key_hash=hash, status=active, rate_limit=?)
-    DB-->>ACS: client record
-    ACS-->>SC: { client, raw_key }
-    SC-->>Admin: 201 { id, name, raw_api_key } ← shown ONCE only
-
-    Note over Admin: Admin distributes raw_api_key to the consumer
-
-    actor Consumer
-    Consumer->>MW: GET /api/v1/holidays?... + Header: X-Api-Key: raw_key
-    MW->>DB: SELECT * FROM api_clients WHERE api_key_hash=SHA256(raw_key) AND status=active
-    alt Valid key
-        DB-->>MW: client record
-        MW->>RL: enforce client rate_limit_per_minute
-    else Invalid key
-        MW-->>Consumer: 401 UNAUTHORIZED
-    end
+    Consumer->>API: GET /api/v1/holidays?year=2026&state=SBH
+    API->>HC: Dispatch request without authentication
+    HC->>DB: Query published holidays for filters
+    DB-->>HC: Published holiday records
+    HC-->>Consumer: 200 JSON response
 ```

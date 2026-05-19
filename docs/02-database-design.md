@@ -247,20 +247,6 @@ Admin-created corrections, additions, or removals on top of published holidays.
 
 ---
 
-### `api_clients`
-
-Registered API consumers with hashed keys and rate limits.
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| `id` | BIGINT UNSIGNED PK | No | |
-| `name` | VARCHAR(255) | No | App/client label |
-| `api_key_hash` | VARCHAR(255) | No | SHA-256 of raw key |
-| `status` | VARCHAR(30) | No | `active` / `disabled` |
-| `rate_limit_per_minute` | INT | No | Default 60 |
-
----
-
 ### `audit_logs`
 
 Immutable append-only event log for all admin actions.

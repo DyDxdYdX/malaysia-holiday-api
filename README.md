@@ -72,7 +72,7 @@ Official source reference: [www.kabinet.gov.my/hari-kelepasan-am](https://www.ka
 | Language | PHP 8.3+ |
 | Framework | Laravel |
 | Database | MySQL 8+ |
-| Auth | Laravel Sanctum |
+| Auth | Laravel Fortify |
 | Frontend | Livewire + Flux UI |
 | Testing | Pest |
 | Hosting | Shared hosting / VPS |
@@ -144,7 +144,7 @@ GET https://malaysia-holiday.dydxsoft.my/api/v1/holidays/check?date=2026-05-30&s
 GET https://malaysia-holiday.dydxsoft.my/api/v1/states
 ```
 
-All responses are JSON. Only **published** holidays are returned by public endpoints.
+All responses are JSON. No API key or account is required. Only **published** holidays are returned by public endpoints.
 
 #### JavaScript example
 
@@ -198,6 +198,8 @@ Upload Source → Import CSV → Review Drafts → Publish → Serve via API
 3. **Review** each draft in the admin panel — edit, reject, or approve rows
 4. **Publish** the batch — all approved records become available through the API
 5. Use **overrides** at any time to add, rename, replace, or cancel individual holidays
+
+Public registration is disabled. Admin accounts are seeded or created manually.
 
 ---
 

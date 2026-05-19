@@ -1,23 +1,7 @@
 <?php
 
-use App\Models\ApiClient;
 use App\Models\Holiday;
 use App\Models\HolidaySource;
-
-function privateApiHeaders(): array
-{
-    $rawKey = 'test-api-key-123';
-    ApiClient::query()->create([
-        'name' => 'Public API Test Client',
-        'api_key_hash' => hash('sha256', $rawKey),
-        'status' => 'active',
-        'rate_limit_per_minute' => 120,
-    ]);
-
-    return [
-        'X-API-Key' => $rawKey,
-    ];
-}
 
 // ─── GET /api/v1/states ───────────────────────────────────────────────────────
 
@@ -43,8 +27,7 @@ test('states endpoint returns all 16 malaysia state and territory codes', functi
 // ─── GET /api/v1/holidays ─────────────────────────────────────────────────────
 
 test('holidays endpoint requires a year parameter', function () {
-    $this->withHeaders(privateApiHeaders())
-        ->getJson('/api/v1/holidays')
+    $this->getJson('/api/v1/holidays')
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['year']);
 });
@@ -86,7 +69,7 @@ test('holidays endpoint returns only published holidays for the given year', fun
         'status' => 'draft',
     ]);
 
-    $response = $this->withHeaders(privateApiHeaders())->getJson('/api/v1/holidays?year=2026');
+    $response = $this->getJson('/api/v1/holidays?year=2026');
 
     $response->assertOk()
         ->assertJsonCount(1, 'data')
@@ -120,7 +103,7 @@ test('holidays endpoint filters by state code', function () {
         'status' => 'published',
     ]);
 
-    $response = $this->withHeaders(privateApiHeaders())->getJson('/api/v1/holidays?year=2026&state=SBH');
+    $response = $this->getJson('/api/v1/holidays?year=2026&state=SBH');
 
     $response->assertOk()
         ->assertJsonCount(1, 'data')
@@ -155,7 +138,7 @@ test('holidays endpoint filters by scope', function () {
         'status' => 'published',
     ]);
 
-    $response = $this->withHeaders(privateApiHeaders())->getJson('/api/v1/holidays?year=2026&scope=federal');
+    $response = $this->getJson('/api/v1/holidays?year=2026&scope=federal');
 
     $response->assertOk()
         ->assertJsonCount(1, 'data')
@@ -164,8 +147,7 @@ test('holidays endpoint filters by scope', function () {
 });
 
 test('holidays endpoint rejects an invalid state code', function () {
-    $this->withHeaders(privateApiHeaders())
-        ->getJson('/api/v1/holidays?year=2026&state=XXX')
+    $this->getJson('/api/v1/holidays?year=2026&state=XXX')
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['state']);
 });
@@ -189,7 +171,7 @@ test('holidays endpoint includes source metadata when include_source is set', fu
         'status' => 'published',
     ]);
 
-    $response = $this->withHeaders(privateApiHeaders())->getJson('/api/v1/holidays?year=2026&include_source=1');
+    $response = $this->getJson('/api/v1/holidays?year=2026&include_source=1');
 
     $response->assertOk()
         ->assertJsonPath('data.0.source.source_name', 'JPM HKA 2026')
@@ -197,8 +179,7 @@ test('holidays endpoint includes source metadata when include_source is set', fu
 });
 
 test('holidays endpoint returns empty data for a year with no published holidays', function () {
-    $this->withHeaders(privateApiHeaders())
-        ->getJson('/api/v1/holidays?year=2020')
+    $this->getJson('/api/v1/holidays?year=2020')
         ->assertOk()
         ->assertJsonCount(0, 'data');
 });
@@ -206,8 +187,7 @@ test('holidays endpoint returns empty data for a year with no published holidays
 // ─── GET /api/v1/holidays/check ───────────────────────────────────────────────
 
 test('check endpoint requires a date parameter', function () {
-    $this->withHeaders(privateApiHeaders())
-        ->getJson('/api/v1/holidays/check')
+    $this->getJson('/api/v1/holidays/check')
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['date']);
 });
@@ -230,7 +210,7 @@ test('check endpoint returns is_holiday true when date matches a published holid
         'status' => 'published',
     ]);
 
-    $response = $this->withHeaders(privateApiHeaders())->getJson('/api/v1/holidays/check?date=2026-05-30&state=SBH');
+    $response = $this->getJson('/api/v1/holidays/check?date=2026-05-30&state=SBH');
 
     $response->assertOk()
         ->assertJsonPath('date', '2026-05-30')
@@ -242,7 +222,7 @@ test('check endpoint returns is_holiday true when date matches a published holid
 });
 
 test('check endpoint returns is_holiday false when date is not a holiday', function () {
-    $response = $this->withHeaders(privateApiHeaders())->getJson('/api/v1/holidays/check?date=2026-01-02&state=KUL');
+    $response = $this->getJson('/api/v1/holidays/check?date=2026-01-02&state=KUL');
 
     $response->assertOk()
         ->assertJsonPath('is_holiday', false)
@@ -250,8 +230,7 @@ test('check endpoint returns is_holiday false when date is not a holiday', funct
 });
 
 test('check endpoint rejects a malformed date', function () {
-    $this->withHeaders(privateApiHeaders())
-        ->getJson('/api/v1/holidays/check?date=30-05-2026')
+    $this->getJson('/api/v1/holidays/check?date=30-05-2026')
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['date']);
 });
@@ -274,8 +253,7 @@ test('check endpoint does not return draft holidays', function () {
         'status' => 'draft',
     ]);
 
-    $this->withHeaders(privateApiHeaders())
-        ->getJson('/api/v1/holidays/check?date=2026-03-01&state=KUL')
+    $this->getJson('/api/v1/holidays/check?date=2026-03-01&state=KUL')
         ->assertOk()
         ->assertJsonPath('is_holiday', false);
 });

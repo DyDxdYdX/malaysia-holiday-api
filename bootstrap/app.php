@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\EnsureApiClientAuthenticated;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -24,7 +23,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
-            'api-client' => EnsureApiClientAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
