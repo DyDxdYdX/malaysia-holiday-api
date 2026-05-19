@@ -154,3 +154,86 @@ test('batch publish is blocked while invalid rows exist', function () {
         ->post(route('admin.batches.publish', $batch))
         ->assertStatus(422);
 });
+
+test('data admin can approve selected draft holidays in a batch', function () {
+    $user = adminUser();
+    $source = holidaySource([
+        'uploaded_by' => $user->id,
+    ]);
+
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'csv',
+        'status' => 'review_required',
+        'total_rows' => 2,
+        'valid_rows' => 2,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+    ]);
+
+    $otherBatch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'csv',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+    ]);
+
+    $firstHoliday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'state_code' => 'SBH',
+        'name' => 'Pesta Kaamatan',
+        'date' => '2026-05-30',
+        'day_name' => 'Saturday',
+        'scope' => 'state',
+        'type' => 'state',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    $secondHoliday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'state_code' => 'KUL',
+        'name' => 'Hari Kebangsaan',
+        'date' => '2026-08-31',
+        'day_name' => 'Monday',
+        'scope' => 'federal',
+        'type' => 'federal',
+        'is_subject_to_change' => true,
+        'status' => 'draft',
+    ]);
+
+    $otherBatchHoliday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $otherBatch->id,
+        'year' => 2026,
+        'state_code' => 'SRW',
+        'name' => 'Sarawak Day',
+        'date' => '2026-07-22',
+        'day_name' => 'Wednesday',
+        'scope' => 'state',
+        'type' => 'state',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    $response = $this->actingAs($user)->post(route('admin.batches.approve-selected', $batch), [
+        'holiday_ids' => [$firstHoliday->id, $otherBatchHoliday->id],
+    ]);
+
+    $response->assertRedirect(route('admin.batches.show', $batch));
+
+    expect($firstHoliday->fresh()->status)->toBe('confirmed')
+        ->and($secondHoliday->fresh()->status)->toBe('draft')
+        ->and($otherBatchHoliday->fresh()->status)->toBe('draft');
+});

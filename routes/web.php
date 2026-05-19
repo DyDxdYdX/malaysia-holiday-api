@@ -48,6 +48,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,data_admin'])
             ->name('batches.index');
         Route::get('batches/{batch}', [HolidayImportBatchController::class, 'show'])
             ->name('batches.show');
+        Route::post('batches/{batch}/approve-selected', [HolidayImportBatchController::class, 'approveSelected'])
+            ->name('batches.approve-selected');
         Route::post('batches/{batch}/publish', [HolidayImportBatchController::class, 'publish'])
             ->name('batches.publish');
 

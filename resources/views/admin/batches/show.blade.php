@@ -81,10 +81,19 @@
             </table>
         </div>
 
-        <div class="app-card overflow-hidden">
+        <form method="POST" action="{{ route('admin.batches.approve-selected', $batch) }}" class="app-card overflow-hidden">
+            @csrf
+            <div class="flex items-center justify-between border-b border-app-border px-4 py-3">
+                <p class="app-label">{{ __('Holiday approvals') }}</p>
+                <flux:button type="submit" variant="primary" icon="check">{{ __('Approve Selected') }}</flux:button>
+            </div>
+            @error('holiday_ids')
+                <p class="px-4 pt-3 text-sm text-brand-red">{{ $message }}</p>
+            @enderror
             <table class="app-table">
                 <thead>
                     <tr>
+                        <th>{{ __('Select') }}</th>
                         <th>{{ __('Date') }}</th>
                         <th>{{ __('State') }}</th>
                         <th>{{ __('Name') }}</th>
@@ -95,6 +104,11 @@
                 <tbody>
                     @forelse ($batch->holidays as $holiday)
                         <tr>
+                            <td>
+                                @if ($holiday->status === 'draft')
+                                    <input type="checkbox" name="holiday_ids[]" value="{{ $holiday->id }}" class="h-4 w-4 rounded border-app-border text-brand-navy focus:ring-brand-navy">
+                                @endif
+                            </td>
                             <td class="font-mono">{{ $holiday->date->toDateString() }}</td>
                             <td><span class="app-badge app-badge-navy">{{ $holiday->state_code }}</span></td>
                             <td>{{ $holiday->name }}</td>
@@ -102,10 +116,10 @@
                             <td><a class="admin-action-link" href="{{ route('admin.holidays.edit', $holiday) }}">{{ __('Edit') }}</a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5">{{ __('No holidays in this batch.') }}</td></tr>
+                        <tr><td colspan="6">{{ __('No holidays in this batch.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
+        </form>
     </div>
 </x-layouts::app>

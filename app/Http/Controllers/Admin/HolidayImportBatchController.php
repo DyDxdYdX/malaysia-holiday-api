@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
@@ -82,5 +83,45 @@ class HolidayImportBatchController extends Controller
         return redirect()
             ->route('admin.batches.show', $batch)
             ->with('status', 'Batch published.');
+    }
+
+    public function approveSelected(Request $request, HolidayImportBatch $batch, AuditLogger $auditLogger): RedirectResponse
+    {
+        $validated = $request->validate([
+            'holiday_ids' => ['required', 'array'],
+            'holiday_ids.*' => ['integer'],
+        ]);
+
+        $selectedHolidayIds = array_map('intval', $validated['holiday_ids']);
+
+        $holidays = Holiday::query()
+            ->where('holiday_import_batch_id', $batch->id)
+            ->where('status', 'draft')
+            ->whereIn('id', $selectedHolidayIds)
+            ->get();
+
+        if ($holidays->isEmpty()) {
+            return redirect()
+                ->route('admin.batches.show', $batch)
+                ->withErrors(['holiday_ids' => 'No draft holidays were selected for approval.']);
+        }
+
+        foreach ($holidays as $holiday) {
+            $oldValues = $holiday->toArray();
+            $holiday->update(['status' => 'confirmed']);
+
+            $auditLogger->logFromRequest(
+                request: $request,
+                action: 'holiday_updated',
+                entityType: 'holiday',
+                entityId: $holiday->id,
+                oldValues: $oldValues,
+                newValues: $holiday->fresh()?->toArray(),
+            );
+        }
+
+        return redirect()
+            ->route('admin.batches.show', $batch)
+            ->with('status', "{$holidays->count()} holiday(s) approved.");
     }
 }
