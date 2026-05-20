@@ -79,6 +79,8 @@ b̶̩͇̤̣̓̀̂͋̑͛͛͒̇r̸̺̊̎̾ų̶̧͎͕͑͂̒͂̅̊̌͘h̶͋̓̑́͗
 
 Lain la kalau kau suruh chatgpt yg baca, tapi still mau manusia pnya review baru tepat bro/sis
 
+**Update: LLM ndk dpt baca government pdf, tested with gemini-3.1-flash-lite-preview(bcoz im broke), too many hallucinations**
+
 So dashboard tu untuk:
 
 - upload sauce
