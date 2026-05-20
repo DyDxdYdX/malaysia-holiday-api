@@ -6,9 +6,13 @@ test('api docs page returns successful response with key sections', function () 
     $response
         ->assertOk()
         ->assertSee('API Documentation (v1)')
-        ->assertSee('GET /api/v1/states')
-        ->assertSee('GET /api/v1/holidays')
-        ->assertSee('GET /api/v1/holidays/check')
+        ->assertSee('/api/v1/states')
+        ->assertSee('/api/v1/holidays')
+        ->assertSee('/api/v1/holidays/check')
+        ->assertSee('Supported regions')
+        ->assertSee('VALIDATION_ERROR')
+        ->assertSee('include_source')
+        ->assertSee('Pesta Kaamatan')
         ->assertSee('No API key')
         ->assertDontSee('X-API-Key');
 });
