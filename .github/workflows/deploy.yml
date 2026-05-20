@@ -38,8 +38,8 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOSTINGER_HOST }}
           REMOTE_USER: ${{ secrets.HOSTINGER_USERNAME }}
           REMOTE_PORT: ${{ secrets.HOSTINGER_PORT }}
-          SOURCE: "public/"
-          TARGET: "${{ secrets.HOSTINGER_PATH }}/public_html/"
+          SOURCE: "public/build/"
+          TARGET: "${{ secrets.HOSTINGER_PATH }}/public_html/build/"
           ARGS: "-avz --delete"
 
       - name: Run Laravel deploy commands
