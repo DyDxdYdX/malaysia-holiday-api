@@ -33,7 +33,7 @@ class HolidayController extends Controller
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
             'state' => ['nullable', 'string', Rule::in(self::VALID_STATE_CODES)],
-            'scope' => ['nullable', 'string', Rule::in(['federal', 'state', 'custom'])],
+            'scope' => ['nullable', 'string', Rule::in(['federal', 'state', 'federal_and_state', 'custom'])],
             'type' => ['nullable', 'string', Rule::in(['federal', 'state', 'replacement', 'additional', 'custom'])],
             'include_source' => ['nullable', 'boolean'],
         ]);

@@ -29,7 +29,7 @@ class HolidayImportService
         'PJY',
     ];
 
-    private const SCOPES = ['federal', 'state', 'custom'];
+    private const SCOPES = ['federal', 'state', 'federal_and_state', 'custom'];
 
     private const TYPES = ['federal', 'state', 'replacement', 'additional', 'custom'];
 

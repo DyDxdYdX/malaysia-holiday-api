@@ -48,7 +48,8 @@ class ExtractHolidayPdf implements ShouldQueue
         }
 
         $model = config('ai.holiday_pdf_extraction_model', 'gemini-2.5-flash-lite');
-        $response = (new HolidayPdfExtractionAgent)->prompt(
+        $agent = new HolidayPdfExtractionAgent;
+        $response = $agent->prompt(
             prompt: $this->prompt($batch),
             attachments: [
                 Document::fromStorage($batch->source->file_path),
@@ -57,7 +58,7 @@ class ExtractHolidayPdf implements ShouldQueue
             model: $model,
             timeout: $this->timeout,
         );
-        $responsePayload = $response->toArray();
+        $responsePayload = $agent->validateExtraction($response->toArray());
 
         $batch->update([
             'ai_raw_response' => $responsePayload,
@@ -121,12 +122,28 @@ class ExtractHolidayPdf implements ShouldQueue
                     'scope' => $payload['scope'] ?? null,
                     'type' => $payload['type'] ?? null,
                     'is_subject_to_change' => $payload['is_subject_to_change'] ?? false,
-                    'source_note' => $payload['source_note'] ?? null,
+                    'source_note' => $payload['source_note'] ?? $this->sourceNote($payload['source'] ?? null),
                 ],
                 'errors' => [],
                 'warnings' => is_array($payload['warnings'] ?? null) ? $payload['warnings'] : [],
                 'confidence' => $payload['confidence'] ?? null,
             ];
         }, $rows, array_keys($rows)));
+    }
+
+    private function sourceNote(mixed $source): ?string
+    {
+        if (! is_array($source)) {
+            return null;
+        }
+
+        $parts = array_filter([
+            $source['table_title'] ?? null,
+            isset($source['page_number']) ? 'Page '.$source['page_number'] : null,
+            $source['raw_marker'] ?? null,
+            $source['raw_row_text'] ?? null,
+        ], fn (mixed $part): bool => is_string($part) && trim($part) !== '');
+
+        return $parts === [] ? null : implode(' | ', $parts);
     }
 }
