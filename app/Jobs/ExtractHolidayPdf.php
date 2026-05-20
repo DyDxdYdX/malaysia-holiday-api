@@ -4,7 +4,9 @@ namespace App\Jobs;
 
 use App\Ai\Agents\HolidayPdfExtractionAgent;
 use App\Models\HolidayImportBatch;
+use App\Services\Holidays\DetectedHolidayGridRow;
 use App\Services\Holidays\HolidayImportService;
+use App\Services\Holidays\HolidayPdfGridExtractor;
 use App\Support\AuditLogger;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,9 +30,13 @@ class ExtractHolidayPdf implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(HolidayImportService $imports, ?AuditLogger $auditLogger = null): void
-    {
+    public function handle(
+        HolidayImportService $imports,
+        ?HolidayPdfGridExtractor $gridExtractor = null,
+        ?AuditLogger $auditLogger = null,
+    ): void {
         $auditLogger ??= app(AuditLogger::class);
+        $gridExtractor ??= app(HolidayPdfGridExtractor::class);
         $batch = HolidayImportBatch::query()
             ->with('source')
             ->findOrFail($this->batchId);
@@ -58,7 +64,11 @@ class ExtractHolidayPdf implements ShouldQueue
             model: $model,
             timeout: $this->timeout,
         );
-        $responsePayload = $agent->validateExtraction($response->toArray());
+        $responsePayload = $response->toArray();
+        $responsePayload = $this->mergeGridDetection(
+            $responsePayload,
+            $gridExtractor->extract($batch->source->file_path, is_array($responsePayload['rows'] ?? null) ? $responsePayload['rows'] : []),
+        );
 
         $batch->update([
             'ai_raw_response' => $responsePayload,
@@ -95,7 +105,73 @@ class ExtractHolidayPdf implements ShouldQueue
 
     private function prompt(HolidayImportBatch $batch): string
     {
-        return "Extract public holiday rows for source year {$batch->year}. Return rows that match the configured structured output schema.";
+        return "Extract text metadata for public holiday rows for source year {$batch->year}. Do not extract or infer state applicability; state checkmarks are processed separately by code.";
+    }
+
+    /**
+     * @param  array<string, mixed>  $response
+     * @param  array<int, DetectedHolidayGridRow>  $gridRows
+     * @return array<string, mixed>
+     */
+    private function mergeGridDetection(array $response, array $gridRows): array
+    {
+        $rows = is_array($response['rows'] ?? null) ? $response['rows'] : [];
+
+        $response['rows'] = array_values(array_map(function (mixed $row, int $index) use ($gridRows): array {
+            $row = is_array($row) ? $row : [];
+            $rowNumber = (int) ($row['row_number'] ?? $index + 1);
+            $gridRow = $gridRows[$rowNumber] ?? new DetectedHolidayGridRow(
+                rowNumber: $rowNumber,
+                checkedColumns: [],
+                uncheckedColumns: [],
+                uncertainColumns: HolidayPdfGridExtractor::STATE_CODES,
+                confidence: 0.0,
+                warnings: ['No code-owned grid detection was available for this AI text row.'],
+            );
+
+            $checkedColumns = $this->stateCodeList($gridRow->checkedColumns);
+            $uncheckedColumns = $this->stateCodeList($gridRow->uncheckedColumns);
+            $uncertainColumns = $this->stateCodeList($gridRow->uncertainColumns);
+            $warnings = array_values(array_unique(array_merge(
+                $this->stringList($row['warnings'] ?? []),
+                $gridRow->warnings,
+            )));
+
+            if (array_intersect($checkedColumns, $uncheckedColumns) !== []) {
+                $warnings[] = 'Grid detection listed a column as both checked and unchecked; unchecked wins.';
+                $checkedColumns = array_values(array_diff($checkedColumns, $uncheckedColumns));
+            }
+
+            if ($uncertainColumns !== []) {
+                $warnings[] = 'Some state columns are uncertain: '.implode(', ', $uncertainColumns);
+            }
+
+            $source = is_array($row['source'] ?? null) ? $row['source'] : [];
+            $rawText = (string) ($source['raw_row_text'] ?? '');
+
+            return [
+                'row_number' => $rowNumber,
+                'year' => $row['year'] ?? null,
+                'name' => $row['name'] ?? null,
+                'date' => $row['date'] ?? null,
+                'day_name' => $row['day_name'] ?? null,
+                'marker' => $row['marker'] ?? null,
+                'scope' => $this->scopeFromMarker($row['marker'] ?? null, $row['scope'] ?? null),
+                'checked_columns' => $checkedColumns,
+                'unchecked_columns' => $uncheckedColumns,
+                'uncertain_columns' => $uncertainColumns,
+                'state_codes' => $checkedColumns,
+                'type' => $this->typeFromMarker($row['marker'] ?? null),
+                'is_subject_to_change' => (bool) ($row['is_subject_to_change'] ?? false)
+                    || str_contains((string) ($row['name'] ?? ''), '*')
+                    || str_contains($rawText, '*'),
+                'source' => $row['source'] ?? null,
+                'warnings' => $warnings,
+                'confidence' => min($this->confidence($row['confidence'] ?? null), $gridRow->confidence),
+            ];
+        }, $rows, array_keys($rows)));
+
+        return $response;
     }
 
     /**
@@ -145,5 +221,67 @@ class ExtractHolidayPdf implements ShouldQueue
         ], fn (mixed $part): bool => is_string($part) && trim($part) !== '');
 
         return $parts === [] ? null : implode(' | ', $parts);
+    }
+
+    private function scopeFromMarker(mixed $marker, mixed $scope): string
+    {
+        return match ($marker) {
+            'P' => 'federal',
+            'N' => 'state',
+            'P/N' => 'federal_and_state',
+            default => in_array($scope, ['federal', 'state', 'federal_and_state'], true) ? $scope : 'state',
+        };
+    }
+
+    private function typeFromMarker(mixed $marker): string
+    {
+        return match ($marker) {
+            'P' => 'federal',
+            'N' => 'state',
+            default => 'custom',
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stateCodeList(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            fn (mixed $code): string => strtoupper(trim((string) $code)),
+            $value,
+        ), fn (string $code): bool => in_array($code, HolidayPdfGridExtractor::STATE_CODES, true))));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stringList(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $warning): string => trim((string) $warning),
+            $value,
+        )));
+    }
+
+    private function confidence(mixed $confidence): float
+    {
+        if (! is_numeric($confidence)) {
+            return 0.0;
+        }
+
+        return max(0.0, min(1.0, (float) $confidence));
     }
 }

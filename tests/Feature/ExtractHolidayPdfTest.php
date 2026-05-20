@@ -9,6 +9,7 @@ use App\Models\HolidayImportRow;
 use App\Models\HolidaySource;
 use App\Models\User;
 use App\Services\Holidays\HolidayImportService;
+use App\Services\Holidays\HolidayPdfGridExtractor;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
@@ -128,6 +129,26 @@ test('pdf extraction rejects non pdf sources', function () {
 test('pdf extraction job stores ai rows warnings counts and draft holidays', function () {
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
+    Storage::put('sources/hka-2026.grid.json', json_encode([
+        'rows' => [
+            [
+                'row_number' => 4,
+                'checked_columns' => ['SBH'],
+                'unchecked_columns' => array_values(array_diff(HolidayPdfGridExtractor::STATE_CODES, ['SBH'])),
+                'uncertain_columns' => [],
+                'confidence' => 0.99,
+                'warnings' => [],
+            ],
+            [
+                'row_number' => 5,
+                'checked_columns' => ['KUL'],
+                'unchecked_columns' => array_values(array_diff(HolidayPdfGridExtractor::STATE_CODES, ['KUL'])),
+                'uncertain_columns' => [],
+                'confidence' => 0.89,
+                'warnings' => [],
+            ],
+        ],
+    ]));
 
     $user = User::factory()->create(['role' => 'data_admin']);
     $source = HolidaySource::create([
@@ -156,18 +177,11 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
             [
                 'row_number' => 4,
                 'year' => 2026,
-                'state_codes' => ['SBH'],
                 'name' => 'Pesta Kaamatan',
                 'date' => '2026-05-30',
                 'day_name' => 'Sabtu',
+                'marker' => 'N',
                 'scope' => 'state',
-                'type' => 'state',
-                'state_detection' => [
-                    'column_order' => HolidayPdfExtractionAgent::STATE_CODES,
-                    'checked_columns' => ['SBH'],
-                    'unchecked_columns' => array_values(array_diff(HolidayPdfExtractionAgent::STATE_CODES, ['SBH'])),
-                    'uncertain_columns' => [],
-                ],
                 'is_subject_to_change' => false,
                 'source' => [
                     'page_number' => 4,
@@ -181,18 +195,11 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
             [
                 'row_number' => 5,
                 'year' => 2026,
-                'state_codes' => ['KUL'],
                 'name' => 'Hari Kebangsaan',
                 'date' => '2026-08-31',
                 'day_name' => 'Isnin',
+                'marker' => 'P',
                 'scope' => 'federal',
-                'type' => 'federal',
-                'state_detection' => [
-                    'column_order' => HolidayPdfExtractionAgent::STATE_CODES,
-                    'checked_columns' => ['KUL'],
-                    'unchecked_columns' => array_values(array_diff(HolidayPdfExtractionAgent::STATE_CODES, ['KUL'])),
-                    'uncertain_columns' => [],
-                ],
                 'is_subject_to_change' => true,
                 'source' => [
                     'page_number' => 5,
@@ -224,9 +231,21 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
     HolidayPdfExtractionAgent::assertPrompted(fn ($prompt): bool => $prompt->attachments->isNotEmpty());
 });
 
-test('pdf extraction corrects state codes from visible checked columns', function () {
+test('pdf extraction ignores ai state codes and uses code grid detection only', function () {
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
+    Storage::put('sources/hka-2026.grid.json', json_encode([
+        'rows' => [
+            [
+                'row_number' => 46,
+                'checked_columns' => ['KUL', 'LBN'],
+                'unchecked_columns' => array_values(array_diff(HolidayPdfGridExtractor::STATE_CODES, ['KUL', 'LBN', 'SWK'])),
+                'uncertain_columns' => ['SWK'],
+                'confidence' => 0.82,
+                'warnings' => [],
+            ],
+        ],
+    ]));
 
     $user = User::factory()->create(['role' => 'data_admin']);
     $source = HolidaySource::create([
@@ -258,15 +277,9 @@ test('pdf extraction corrects state codes from visible checked columns', functio
                 'name' => 'Hari Deepavali',
                 'date' => '2026-11-08',
                 'day_name' => 'Ahad',
+                'marker' => 'P',
                 'scope' => 'federal',
-                'type' => 'federal',
-                'state_codes' => HolidayPdfExtractionAgent::STATE_CODES,
-                'state_detection' => [
-                    'column_order' => HolidayPdfExtractionAgent::STATE_CODES,
-                    'checked_columns' => ['KUL', 'LBN'],
-                    'unchecked_columns' => array_values(array_diff(HolidayPdfExtractionAgent::STATE_CODES, ['KUL', 'LBN'])),
-                    'uncertain_columns' => ['SWK'],
-                ],
+                'state_codes' => HolidayPdfGridExtractor::STATE_CODES,
                 'is_subject_to_change' => false,
                 'source' => [
                     'page_number' => 6,
@@ -288,11 +301,11 @@ test('pdf extraction corrects state codes from visible checked columns', functio
 
     expect($row->raw_payload)
         ->state_codes->toBe(['KUL', 'LBN'])
-        ->state_detection->checked_columns->toBe(['KUL', 'LBN'])
+        ->checked_columns->toBe(['KUL', 'LBN'])
+        ->unchecked_columns->not->toContain('SWK')
         ->is_subject_to_change->toBeTrue()
-        ->warnings->toContain('state_codes does not match checked_columns. Use checked_columns as source of truth.')
         ->warnings->toContain('Some state columns are uncertain: SWK')
-        ->confidence->toBe(0.75)
+        ->confidence->toBe(0.82)
         ->and($row->normalized_payload)
         ->state_codes->toBe('KUL,LBN')
         ->is_subject_to_change->toBeTrue()
