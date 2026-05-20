@@ -65,9 +65,32 @@ class ExtractHolidayPdf implements ShouldQueue
             timeout: $this->timeout,
         );
         $responsePayload = $response->toArray();
+        $gridRows = $gridExtractor->extract($batch->source->file_path, is_array($responsePayload['rows'] ?? null) ? $responsePayload['rows'] : []);
+
+        if (! $this->hasUsableGridEvidence($gridRows)) {
+            $responsePayload['grid_extraction_error'] = 'Code-owned checkmark grid extraction did not produce usable state applicability evidence.';
+
+            $batch->update([
+                'ai_raw_response' => $responsePayload,
+            ]);
+
+            $imports->markFailed($batch, 'Unable to extract state applicability from the PDF checkmark grid. No holiday rows were imported because state_codes must come from code-owned grid detection.');
+            $auditLogger->logSystem(
+                action: 'pdf_parse_completed',
+                entityType: 'holiday_import_batch',
+                entityId: $batch->id,
+                newValues: [
+                    'status' => 'rejected',
+                    'failure_reason' => $batch->fresh()?->failure_reason,
+                ],
+            );
+
+            return;
+        }
+
         $responsePayload = $this->mergeGridDetection(
             $responsePayload,
-            $gridExtractor->extract($batch->source->file_path, is_array($responsePayload['rows'] ?? null) ? $responsePayload['rows'] : []),
+            $gridRows,
         );
 
         $batch->update([
@@ -172,6 +195,24 @@ class ExtractHolidayPdf implements ShouldQueue
         }, $rows, array_keys($rows)));
 
         return $response;
+    }
+
+    /**
+     * @param  array<int, DetectedHolidayGridRow>  $gridRows
+     */
+    private function hasUsableGridEvidence(array $gridRows): bool
+    {
+        if ($gridRows === []) {
+            return false;
+        }
+
+        foreach ($gridRows as $gridRow) {
+            if ($gridRow->checkedColumns !== [] || $gridRow->uncheckedColumns !== []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

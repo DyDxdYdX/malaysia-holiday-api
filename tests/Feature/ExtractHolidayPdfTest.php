@@ -314,3 +314,63 @@ test('pdf extraction ignores ai state codes and uses code grid detection only', 
         ->state_codes->toBe('KUL,LBN')
         ->is_subject_to_change->toBeTrue();
 });
+
+test('pdf extraction rejects batch when grid evidence is unavailable', function () {
+    Storage::fake();
+    Storage::put('sources/hka-2026.pdf', 'fake pdf content');
+
+    $user = User::factory()->create(['role' => 'data_admin']);
+    $source = HolidaySource::create([
+        'year' => 2026,
+        'source_name' => 'JPM PDF 2026',
+        'source_type' => 'federal_pdf',
+        'file_path' => 'sources/hka-2026.pdf',
+        'status' => 'draft',
+        'uploaded_by' => $user->id,
+        'uploaded_at' => now(),
+    ]);
+    $batch = HolidayImportBatch::create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'status' => 'draft',
+        'import_method' => 'pdf_ai',
+        'provider' => 'gemini',
+        'model' => 'gemini-2.5-flash-lite',
+        'started_at' => now(),
+        'imported_by' => $user->id,
+        'imported_at' => now(),
+    ]);
+
+    HolidayPdfExtractionAgent::fake([[
+        'rows' => [
+            [
+                'row_number' => 1,
+                'year' => 2026,
+                'name' => 'Tahun Baharu Cina',
+                'date' => '2026-02-17',
+                'day_name' => 'Selasa',
+                'marker' => 'P',
+                'scope' => 'federal',
+                'is_subject_to_change' => false,
+                'source' => [
+                    'page_number' => 1,
+                    'table_title' => 'JADUAL HARI KELEPASAN AM PERSEKUTUAN 2026',
+                    'raw_row_text' => '1 Tahun Baharu Cina 17 Februari Selasa',
+                    'raw_marker' => 'P',
+                ],
+                'warnings' => [],
+                'confidence' => 0.98,
+            ],
+        ],
+        'extraction_notes' => 'Extracted from table.',
+    ]]);
+
+    (new ExtractHolidayPdf($batch->id))->handle(app(HolidayImportService::class));
+
+    expect($batch->refresh())
+        ->status->toBe('rejected')
+        ->failure_reason->toBe('Unable to extract state applicability from the PDF checkmark grid. No holiday rows were imported because state_codes must come from code-owned grid detection.')
+        ->ai_raw_response->grid_extraction_error->toBe('Code-owned checkmark grid extraction did not produce usable state applicability evidence.')
+        ->and(HolidayImportRow::query()->count())->toBe(0)
+        ->and(Holiday::query()->count())->toBe(0);
+});
