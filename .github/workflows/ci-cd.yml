@@ -184,14 +184,23 @@ jobs:
           script: |
             set -e
 
+            PHP="/opt/alt/php85/usr/bin/php"
+            COMPOSER="$(which composer)"
+
             cd ${{ secrets.HOSTINGER_PATH }}
+
+            echo "Using PHP:"
+            $PHP -v
+
+            echo "Using Composer:"
+            $PHP $COMPOSER --version
 
             git pull origin main
 
-            composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            $PHP $COMPOSER install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-            php artisan migrate --force
+            $PHP artisan migrate --force
 
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            $PHP artisan config:cache
+            $PHP artisan route:cache
+            $PHP artisan view:cache
