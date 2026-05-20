@@ -3,34 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Support\MalaysiaStates;
 use Illuminate\Http\JsonResponse;
 
 class StateController extends Controller
 {
-    /**
-     * All Malaysia states and federal territories.
-     *
-     * @var array<string, string>
-     */
-    private const STATES = [
-        'JHR' => 'Johor',
-        'KDH' => 'Kedah',
-        'KTN' => 'Kelantan',
-        'MLK' => 'Melaka',
-        'NSN' => 'Negeri Sembilan',
-        'PHG' => 'Pahang',
-        'PRK' => 'Perak',
-        'PLS' => 'Perlis',
-        'PNG' => 'Pulau Pinang',
-        'SBH' => 'Sabah',
-        'SWK' => 'Sarawak',
-        'SGR' => 'Selangor',
-        'TRG' => 'Terengganu',
-        'KUL' => 'Wilayah Persekutuan Kuala Lumpur',
-        'LBN' => 'Wilayah Persekutuan Labuan',
-        'PJY' => 'Wilayah Persekutuan Putrajaya',
-    ];
-
     /**
      * GET /api/v1/states
      *
@@ -38,7 +15,7 @@ class StateController extends Controller
      */
     public function index(): JsonResponse
     {
-        $states = collect(self::STATES)
+        $states = collect(MalaysiaStates::options())
             ->map(fn (string $name, string $code) => [
                 'code' => $code,
                 'name' => $name,

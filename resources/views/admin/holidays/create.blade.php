@@ -14,7 +14,24 @@
             <div class="app-form-grid">
                 <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="old('year')" required />
                 <flux:input name="date" type="date" :label="__('Date')" :value="old('date')" required />
-                <flux:input class="app-form-field-full" name="state_codes" :label="__('State codes (comma-separated)')" :value="old('state_codes')" required />
+                <fieldset class="app-form-field-full">
+                    <legend class="mb-2 text-sm font-semibold text-app-copy">{{ __('States') }}</legend>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        @foreach ($stateOptions as $stateCode => $stateName)
+                            <flux:field variant="inline">
+                                <flux:checkbox
+                                    name="state_codes[]"
+                                    value="{{ $stateCode }}"
+                                    :checked="in_array($stateCode, old('state_codes', []), true)"
+                                />
+                                <flux:label>{{ $stateCode }} · {{ $stateName }}</flux:label>
+                            </flux:field>
+                        @endforeach
+                    </div>
+                    @error('state_codes')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </fieldset>
                 <flux:input class="app-form-field-full" name="name" :label="__('Name')" :value="old('name')" required />
 
                 <flux:select name="scope" :label="__('Scope')" required>
@@ -29,9 +46,6 @@
                     @endforeach
                 </flux:select>
 
-                <div class="app-form-field-full app-form-note">
-                    {{ __('Tip: use state codes like KUL, SWK, and LBN separated by commas for multi-state holidays.') }}
-                </div>
                 <flux:checkbox class="app-form-field-full" name="is_subject_to_change" :checked="(bool) old('is_subject_to_change')" :label="__('Subject to change')" />
                 <flux:textarea class="app-form-field-full" name="source_note" :label="__('Source note')">{{ old('source_note') }}</flux:textarea>
 

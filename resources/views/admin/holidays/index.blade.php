@@ -16,7 +16,14 @@
             <form method="GET" action="{{ route('admin.holidays.index') }}" class="grid gap-3 md:grid-cols-5">
                 <flux:input name="q" :label="__('Search')" :value="$filters['q']" :placeholder="__('Name, state, date, note...')" />
                 <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="$filters['year']" />
-                <flux:input name="state_code" :label="__('State code')" :value="$filters['state_code']" />
+                <flux:select name="state_code" :label="__('State')">
+                    <flux:select.option value="">{{ __('All states') }}</flux:select.option>
+                    @foreach ($stateOptions as $stateCode => $stateName)
+                        <flux:select.option value="{{ $stateCode }}" :selected="$filters['state_code'] === $stateCode">
+                            {{ $stateCode }} · {{ $stateName }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
                 <flux:select name="scope" :label="__('Scope')">
                     <flux:select.option value="">{{ __('All') }}</flux:select.option>
                     @foreach (['federal', 'state', 'custom'] as $scopeOption)

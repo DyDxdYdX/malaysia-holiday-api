@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Holiday;
 use App\Support\AuditLogger;
 use App\Support\HolidayCalendarBuilder;
+use App\Support\MalaysiaStates;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -86,26 +87,39 @@ class HolidayController extends Controller
                 'state_code' => $stateCode,
                 'scope' => $scope,
             ],
+            'stateOptions' => MalaysiaStates::options(),
         ]);
     }
 
     public function create(): View
     {
-        return view('admin.holidays.create');
+        return view('admin.holidays.create', [
+            'stateOptions' => MalaysiaStates::options(),
+        ]);
     }
 
     public function edit(Holiday $holiday): View
     {
         return view('admin.holidays.edit', [
             'holiday' => $holiday,
+            'stateOptions' => MalaysiaStates::options(),
         ]);
     }
 
     public function store(Request $request, AuditLogger $auditLogger): RedirectResponse
     {
+        $request->merge([
+            'state_codes' => collect($request->input('state_codes', []))
+                ->map(fn (mixed $stateCode): string => Str::upper(trim((string) $stateCode)))
+                ->filter(fn (string $stateCode): bool => $stateCode !== '')
+                ->values()
+                ->all(),
+        ]);
+
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
-            'state_codes' => ['required', 'string'],
+            'state_codes' => ['required', 'array', 'min:1'],
+            'state_codes.*' => ['string', 'distinct', Rule::in(MalaysiaStates::codes())],
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'scope' => ['required', Rule::in(['federal', 'state', 'custom'])],
@@ -115,11 +129,11 @@ class HolidayController extends Controller
         ]);
 
         $date = Carbon::parse($validated['date']);
-        $stateCodes = $this->parseStateCodes($validated['state_codes']);
-
-        if ($stateCodes === []) {
-            return back()->withErrors(['state_codes' => 'At least one state code is required.'])->withInput();
-        }
+        $stateCodes = collect($validated['state_codes'])
+            ->map(fn (string $stateCode): string => Str::upper(trim($stateCode)))
+            ->filter(fn (string $stateCode): bool => $stateCode !== '')
+            ->values()
+            ->all();
 
         $holiday = Holiday::query()->create([
             'year' => $validated['year'],
@@ -149,9 +163,18 @@ class HolidayController extends Controller
     public function update(Request $request, Holiday $holiday, AuditLogger $auditLogger): RedirectResponse
     {
         $oldValues = $holiday->toArray();
+        $request->merge([
+            'state_codes' => collect($request->input('state_codes', []))
+                ->map(fn (mixed $stateCode): string => Str::upper(trim((string) $stateCode)))
+                ->filter(fn (string $stateCode): bool => $stateCode !== '')
+                ->values()
+                ->all(),
+        ]);
+
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
-            'state_codes' => ['required', 'string'],
+            'state_codes' => ['required', 'array', 'min:1'],
+            'state_codes.*' => ['string', 'distinct', Rule::in(MalaysiaStates::codes())],
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'scope' => ['required', Rule::in(['federal', 'state', 'custom'])],
@@ -161,11 +184,11 @@ class HolidayController extends Controller
         ]);
 
         $date = Carbon::parse($validated['date']);
-        $stateCodes = $this->parseStateCodes($validated['state_codes']);
-
-        if ($stateCodes === []) {
-            return back()->withErrors(['state_codes' => 'At least one state code is required.'])->withInput();
-        }
+        $stateCodes = collect($validated['state_codes'])
+            ->map(fn (string $stateCode): string => Str::upper(trim($stateCode)))
+            ->filter(fn (string $stateCode): bool => $stateCode !== '')
+            ->values()
+            ->all();
 
         $holiday->update([
             'year' => $validated['year'],
@@ -209,18 +232,5 @@ class HolidayController extends Controller
         return redirect()
             ->route('admin.batches.show', $holiday->holiday_import_batch_id)
             ->with('status', 'Holiday rejected.');
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function parseStateCodes(string $stateCodes): array
-    {
-        return collect(preg_split('/[\s,|]+/', Str::upper($stateCodes)) ?: [])
-            ->map(fn (string $stateCode): string => trim($stateCode))
-            ->filter(fn (string $stateCode): bool => $stateCode !== '')
-            ->unique()
-            ->values()
-            ->all();
     }
 }

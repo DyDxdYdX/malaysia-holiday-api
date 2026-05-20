@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Holiday;
 use App\Models\HolidayOverride;
 use App\Support\AuditLogger;
+use App\Support\MalaysiaStates;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -44,6 +45,7 @@ class HolidayOverrideController extends Controller
                 ->limit(100)
                 ->get(),
             'selectedHoliday' => $selectedHoliday,
+            'stateOptions' => MalaysiaStates::options(),
         ]);
     }
 
@@ -94,6 +96,7 @@ class HolidayOverrideController extends Controller
                 ->with('states')
                 ->limit(100)
                 ->get(),
+            'stateOptions' => MalaysiaStates::options(),
         ]);
     }
 
@@ -153,7 +156,7 @@ class HolidayOverrideController extends Controller
         return $request->validate([
             'holiday_id' => ['nullable', 'exists:holidays,id'],
             'year' => ['required', 'integer', 'between:2000,2100'],
-            'state_code' => ['required', 'string', 'max:10'],
+            'state_code' => ['required', 'string', Rule::in(MalaysiaStates::codes())],
             'name' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'action' => ['required', Rule::in(['add', 'remove', 'replace', 'rename', 'mark_subject_to_change'])],

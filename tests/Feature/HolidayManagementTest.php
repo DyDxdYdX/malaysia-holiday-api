@@ -2,6 +2,8 @@
 
 use App\Models\AuditLog;
 use App\Models\Holiday;
+use App\Models\HolidayImportBatch;
+use App\Models\HolidaySource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -161,7 +163,7 @@ test('data admins can create manual holiday entries', function () {
     $response = $this->actingAs($user)
         ->post(route('admin.holidays.store'), [
             'year' => 2028,
-            'state_codes' => 'kul',
+            'state_codes' => ['kul', 'SBH'],
             'name' => 'Special Closure Day',
             'date' => '2028-09-18',
             'scope' => 'custom',
@@ -176,7 +178,7 @@ test('data admins can create manual holiday entries', function () {
 
     expect($holiday)
         ->year->toBe(2028)
-        ->state_codes->toBe('KUL')
+        ->state_codes->toBe('KUL,SBH')
         ->day_name->toBe('Monday')
         ->status->toBe('published')
         ->is_subject_to_change->toBeTrue()
@@ -189,7 +191,7 @@ test('manual holiday creation validates required fields', function () {
     $this->actingAs($user)
         ->post(route('admin.holidays.store'), [
             'year' => '',
-            'state_codes' => '',
+            'state_codes' => [],
             'name' => '',
             'date' => '',
             'scope' => '',
@@ -203,6 +205,69 @@ test('manual holiday creation validates required fields', function () {
             'scope',
             'type',
         ]);
+});
+
+test('manual holiday creation rejects invalid state codes', function () {
+    $user = adminForHolidays();
+
+    $this->actingAs($user)
+        ->post(route('admin.holidays.store'), [
+            'year' => 2028,
+            'state_codes' => ['XXX'],
+            'name' => 'Invalid State Day',
+            'date' => '2028-10-18',
+            'scope' => 'custom',
+            'type' => 'custom',
+        ])
+        ->assertSessionHasErrors(['state_codes.0']);
+});
+
+test('data admins can update holiday with multiple selected states', function () {
+    $user = adminForHolidays();
+    $holiday = createHoliday([
+        'status' => 'draft',
+    ]);
+
+    $source = HolidaySource::query()->create([
+        'year' => 2026,
+        'source_name' => 'Source',
+        'source_type' => 'admin_csv',
+        'status' => 'draft',
+        'uploaded_by' => $user->id,
+        'uploaded_at' => now(),
+    ]);
+
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'status' => 'review_required',
+        'import_method' => 'csv',
+        'started_at' => now(),
+        'imported_by' => $user->id,
+        'imported_at' => now(),
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+    ]);
+
+    $holiday->update([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+    ]);
+
+    $this->actingAs($user)
+        ->put(route('admin.holidays.update', $holiday), [
+            'year' => 2026,
+            'state_codes' => ['sbh', 'kul'],
+            'name' => 'Updated Holiday',
+            'date' => '2026-06-01',
+            'scope' => 'state',
+            'type' => 'state',
+        ])
+        ->assertRedirect(route('admin.batches.show', $batch));
+
+    expect($holiday->fresh()->state_codes)->toBe('KUL,SBH');
 });
 
 test('holiday list provides create override action with selected holiday context', function () {

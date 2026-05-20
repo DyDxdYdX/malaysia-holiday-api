@@ -26,7 +26,16 @@
                 </flux:select>
                 <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="old('year', $override->year)" required />
                 <flux:input name="date" type="date" :label="__('Date')" :value="old('date', $override->date->toDateString())" required />
-                <flux:input name="state_code" :label="__('State code')" :value="old('state_code', $override->state_code)" required />
+                <flux:select name="state_code" :label="__('State')" required>
+                    @foreach ($stateOptions as $stateCode => $stateName)
+                        <flux:select.option
+                            value="{{ $stateCode }}"
+                            :selected="old('state_code', $override->state_code) === $stateCode"
+                        >
+                            {{ $stateCode }} · {{ $stateName }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
                 <flux:select name="action" :label="__('Action')" required>
                     @foreach (['add', 'remove', 'replace', 'rename', 'mark_subject_to_change'] as $action)
                         <flux:select.option value="{{ $action }}" :selected="old('action', $override->action) === $action">{{ $action }}</flux:select.option>

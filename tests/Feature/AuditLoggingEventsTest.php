@@ -102,7 +102,7 @@ test('holiday edits and reject create audit logs', function () {
     $this->actingAs($user)
         ->put(route('admin.holidays.update', $holiday), [
             'year' => 2026,
-            'state_codes' => 'SBH',
+            'state_codes' => ['SBH'],
             'name' => 'Pesta Kaamatan Updated',
             'date' => '2026-05-30',
             'scope' => 'state',

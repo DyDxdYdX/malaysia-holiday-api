@@ -72,7 +72,7 @@ test('updating override updates override and targeted holiday', function () {
         ->put(route('admin.overrides.update', $override), [
             'holiday_id' => $holiday->id,
             'year' => 2026,
-            'state_code' => 'kul',
+            'state_code' => 'KUL',
             'name' => 'Holiday Target Updated',
             'date' => '2026-09-01',
             'action' => 'replace',
@@ -114,4 +114,21 @@ test('deleting override removes the override entry', function () {
         ->assertRedirect(route('admin.overrides.index'));
 
     expect(HolidayOverride::query()->whereKey($override->id)->exists())->toBeFalse();
+});
+
+test('override validation rejects invalid state code', function () {
+    $user = overrideAdmin();
+    $holiday = publishedHoliday();
+
+    $this->actingAs($user)
+        ->post(route('admin.overrides.store'), [
+            'holiday_id' => $holiday->id,
+            'year' => 2026,
+            'state_code' => 'XXX',
+            'name' => 'Holiday Target Updated',
+            'date' => '2026-09-01',
+            'action' => 'replace',
+            'reason' => 'Invalid state code test',
+        ])
+        ->assertSessionHasErrors(['state_code']);
 });

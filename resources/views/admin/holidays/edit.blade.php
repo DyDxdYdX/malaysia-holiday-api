@@ -16,13 +16,29 @@
                 <div class="app-form-grid">
                     <flux:input name="year" type="number" :label="__('Year')" :value="$holiday->year" required />
                     <flux:input name="date" type="date" :label="__('Date')" :value="$holiday->date->toDateString()" required />
-                    <flux:input
-                        class="app-form-field-full"
-                        name="state_codes"
-                        :label="__('State codes (comma-separated)')"
-                        :value="old('state_codes', implode(',', $holiday->stateCodes()))"
-                        required
-                    />
+                    <fieldset class="app-form-field-full">
+                        <legend class="mb-2 text-sm font-semibold text-app-copy">{{ __('States') }}</legend>
+                        @php
+                            $selectedStates = collect(old('state_codes', $holiday->stateCodes()))
+                                ->map(fn (mixed $stateCode): string => (string) $stateCode)
+                                ->all();
+                        @endphp
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            @foreach ($stateOptions as $stateCode => $stateName)
+                                <flux:field variant="inline">
+                                    <flux:checkbox
+                                        name="state_codes[]"
+                                        value="{{ $stateCode }}"
+                                        :checked="in_array($stateCode, $selectedStates, true)"
+                                    />
+                                    <flux:label>{{ $stateCode }} · {{ $stateName }}</flux:label>
+                                </flux:field>
+                            @endforeach
+                        </div>
+                        @error('state_codes')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </fieldset>
                     <flux:input class="app-form-field-full" name="name" :label="__('Name')" :value="$holiday->name" required />
                     <flux:input name="scope" :label="__('Scope')" :value="$holiday->scope" required />
                     <flux:input name="type" :label="__('Type')" :value="$holiday->type" required />
