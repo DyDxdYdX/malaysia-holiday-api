@@ -191,6 +191,8 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
         ->valid_rows->toBe(2)
         ->warning_rows->toBe(1)
         ->invalid_rows->toBe(0)
+        ->ai_raw_response->toBeArray()
+        ->and($batch->refresh()->ai_raw_response['extraction_notes'] ?? null)->toBe('Extracted from table.')
         ->and(HolidayImportRow::query()->count())->toBe(2)
         ->and(Holiday::query()->where('status', 'draft')->count())->toBe(2)
         ->and(AuditLog::query()->where('action', 'pdf_parse_completed')->exists())->toBeTrue();

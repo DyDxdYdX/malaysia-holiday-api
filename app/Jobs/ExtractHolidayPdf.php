@@ -57,8 +57,13 @@ class ExtractHolidayPdf implements ShouldQueue
             model: $model,
             timeout: $this->timeout,
         );
+        $responsePayload = $response->toArray();
 
-        $imports->completePendingBatch($batch, $this->rowsFromResponse($response->toArray()));
+        $batch->update([
+            'ai_raw_response' => $responsePayload,
+        ]);
+
+        $imports->completePendingBatch($batch, $this->rowsFromResponse($responsePayload));
         $auditLogger->logSystem(
             action: 'pdf_parse_completed',
             entityType: 'holiday_import_batch',

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'completed_at',
     'failed_at',
     'failure_reason',
+    'ai_raw_response',
     'total_rows',
     'valid_rows',
     'invalid_rows',
@@ -48,6 +49,7 @@ class HolidayImportBatch extends Model
             'imported_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'published_at' => 'datetime',
+            'ai_raw_response' => 'array',
         ];
     }
 
