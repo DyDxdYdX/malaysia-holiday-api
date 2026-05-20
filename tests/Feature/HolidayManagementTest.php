@@ -120,7 +120,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
         'year' => 2026,
         'state_codes' => 'SBH',
         'name' => 'Sabah Confirmed Day',
-        'date' => '2026-03-03',
+        'date' => '2026-02-03',
         'scope' => 'state',
         'status' => 'confirmed',
     ]);
@@ -137,6 +137,7 @@ test('data admins can view holiday calendar with all statuses and filters', func
     $this->actingAs($user)
         ->get(route('admin.holidays.calendar', [
             'year' => 2026,
+            'month' => 2,
             'state_codes' => 'sbh',
             'scope' => 'state',
         ]))

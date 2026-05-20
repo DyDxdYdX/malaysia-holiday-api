@@ -14,6 +14,8 @@ class HolidayCalendarController extends Controller
     {
         $year = $request->integer('year');
         $resolvedYear = $year > 0 ? $year : Carbon::now()->year;
+        $month = $request->integer('month');
+        $resolvedMonth = $month > 0 && $month <= 12 ? $month : 1;
         $stateCode = strtoupper(trim($request->string('state_code')->toString()));
         $scope = trim($request->string('scope')->toString());
 
@@ -36,10 +38,11 @@ class HolidayCalendarController extends Controller
             'subtitle' => __('Browse published holidays for the selected year.'),
             'filters' => [
                 'year' => (string) $resolvedYear,
+                'month' => (string) $resolvedMonth,
                 'state_code' => $stateCode,
                 'scope' => $scope,
             ],
-            'months' => $calendarBuilder->build($resolvedYear, $holidays),
+            'month' => $calendarBuilder->buildMonth($resolvedYear, $resolvedMonth, $holidays),
             'isAdminView' => false,
             'hasAnyHoliday' => $holidays->isNotEmpty(),
             'formAction' => route('holidays.calendar'),

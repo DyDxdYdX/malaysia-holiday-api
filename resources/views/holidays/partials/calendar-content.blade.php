@@ -13,6 +13,7 @@
     <section class="app-section space-y-4">
         <form method="GET" action="{{ $formAction }}" class="grid gap-3 md:grid-cols-5">
             <flux:input name="year" type="number" min="2000" max="2100" :label="__('Year')" :value="$filters['year']" />
+            <input type="hidden" name="month" value="{{ $filters['month'] }}" />
             <flux:input name="state_code" :label="__('State code')" :value="$filters['state_code']" />
             <flux:select name="scope" :label="__('Scope')">
                 <flux:select.option value="">{{ __('All') }}</flux:select.option>
@@ -43,41 +44,81 @@
         </div>
     @endif
 
-    <section class="grid gap-4 lg:grid-cols-3">
-        @foreach ($months as $month)
-            <article class="app-card overflow-hidden">
-                <header class="border-b border-app-outline px-4 py-3">
-                    <h2 class="font-bold text-brand-navy dark:text-white">{{ $month['month_name'] }}</h2>
-                </header>
-                <div class="grid grid-cols-7 border-b border-app-outline bg-app-surface-low/50 text-[10px] font-bold tracking-widest text-app-copy-muted uppercase">
-                    @foreach (['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $weekday)
-                        <div class="border-r border-app-outline px-2 py-1 last:border-r-0">{{ $weekday }}</div>
+    @php
+        $monthNumber = $month['month_number'];
+        $previousMonth = $monthNumber > 1 ? $monthNumber - 1 : null;
+        $nextMonth = $monthNumber < 12 ? $monthNumber + 1 : null;
+    @endphp
+
+    <section class="space-y-4">
+        <div class="flex items-center justify-between gap-2">
+            <div>
+                <p class="app-label">{{ __('Viewing month') }}</p>
+                <p class="text-sm font-semibold text-brand-navy dark:text-white">{{ $month['month_name'] }} {{ $filters['year'] }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+                @if ($previousMonth)
+                    <flux:button
+                        :href="$formAction.'?'.http_build_query([
+                            'year' => $filters['year'],
+                            'month' => $previousMonth,
+                            'state_code' => $filters['state_code'],
+                            'scope' => $filters['scope'],
+                        ])"
+                        variant="ghost"
+                        icon="chevron-left"
+                        wire:navigate
+                    >{{ __('Previous') }}</flux:button>
+                @endif
+
+                @if ($nextMonth)
+                    <flux:button
+                        :href="$formAction.'?'.http_build_query([
+                            'year' => $filters['year'],
+                            'month' => $nextMonth,
+                            'state_code' => $filters['state_code'],
+                            'scope' => $filters['scope'],
+                        ])"
+                        variant="ghost"
+                        icon:trailing="chevron-right"
+                        wire:navigate
+                    >{{ __('Next') }}</flux:button>
+                @endif
+            </div>
+        </div>
+
+        <article class="app-card overflow-hidden">
+            <header class="border-b border-app-outline px-4 py-3">
+                <h2 class="font-bold text-brand-navy dark:text-white">{{ $month['month_name'] }}</h2>
+            </header>
+            <div class="grid grid-cols-7 border-b border-app-outline bg-app-surface-low/50 text-[10px] font-bold tracking-widest text-app-copy-muted uppercase">
+                @foreach (['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $weekday)
+                    <div class="border-r border-app-outline px-2 py-1 last:border-r-0">{{ $weekday }}</div>
+                @endforeach
+            </div>
+            @foreach ($month['weeks'] as $week)
+                <div class="grid grid-cols-7">
+                    @foreach ($week as $day)
+                        <div @class([
+                            'min-h-28 border-r border-b border-app-outline p-2 text-xs last:border-r-0',
+                            'bg-app-surface-low/20 text-app-copy-muted' => ! $day['in_month'],
+                        ])>
+                            <p class="font-semibold">{{ $day['date']->day }}</p>
+                            <div class="mt-1 space-y-1">
+                                @foreach ($day['holidays'] as $holiday)
+                                    <div class="rounded-md bg-brand-red/10 px-1.5 py-1 text-[10px] leading-tight text-brand-red">
+                                        <p class="font-semibold">{{ $holiday->name }}</p>
+                                        <p>{{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->scope }}</p>
+                                        @if ($isAdminView)
+                                            <p class="uppercase tracking-wider">{{ $holiday->status }}</p>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
                     @endforeach
                 </div>
-                @foreach ($month['weeks'] as $week)
-                    <div class="grid grid-cols-7">
-                        @foreach ($week as $day)
-                            <div @class([
-                                'min-h-28 border-r border-b border-app-outline p-2 text-xs last:border-r-0',
-                                'bg-app-surface-low/20 text-app-copy-muted' => ! $day['in_month'],
-                            ])>
-                                <p class="font-semibold">{{ $day['date']->day }}</p>
-                                <div class="mt-1 space-y-1">
-                                    @foreach ($day['holidays'] as $holiday)
-                                        <div class="rounded-md bg-brand-red/10 px-1.5 py-1 text-[10px] leading-tight text-brand-red">
-                                            <p class="font-semibold">{{ $holiday->name }}</p>
-                                            <p>{{ implode(', ', $holiday->stateCodes()) }} · {{ $holiday->scope }}</p>
-                                            @if ($isAdminView)
-                                                <p class="uppercase tracking-wider">{{ $holiday->status }}</p>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endforeach
-            </article>
-        @endforeach
+            @endforeach
+        </article>
     </section>
 </div>
