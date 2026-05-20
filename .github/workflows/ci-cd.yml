@@ -43,6 +43,13 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Check versions
+        run: |
+          php -v
+          composer --version
+          node -v
+          npm -v
+
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
 
@@ -86,6 +93,13 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Check versions
+        run: |
+          php -v
+          composer --version
+          node -v
+          npm -v
+
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
 
@@ -125,6 +139,13 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Check versions
+        run: |
+          php -v
+          composer --version
+          node -v
+          npm -v
+
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
 
@@ -137,11 +158,14 @@ jobs:
       - name: Build Frontend Assets
         run: npm run build
 
-      - name: Upload Build Artifact
+      - name: Compress Built Assets
+        run: tar -czf public-build.tar.gz -C public build
+
+      - name: Upload Build Archive
         uses: actions/upload-artifact@v6
         with:
-          name: public-build
-          path: public/build
+          name: public-build-archive
+          path: public-build.tar.gz
           retention-days: 1
 
   deploy:
@@ -157,22 +181,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Download Build Artifact
+      - name: Download Build Archive
         uses: actions/download-artifact@v6
         with:
-          name: public-build
-          path: public/build
+          name: public-build-archive
 
-      - name: Upload Built Assets to Hostinger
-        uses: easingthemes/ssh-deploy@main
+      - name: Upload Built Assets Archive to Hostinger
+        uses: appleboy/scp-action@v0.1.7
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.HOSTINGER_HOST }}
-          REMOTE_USER: ${{ secrets.HOSTINGER_USERNAME }}
-          REMOTE_PORT: ${{ secrets.HOSTINGER_PORT }}
-          SOURCE: public/build/
-          TARGET: ${{ secrets.HOSTINGER_PATH }}/public_html/build/
-          ARGS: -avz --delete
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT }}
+          source: public-build.tar.gz
+          target: ${{ secrets.HOSTINGER_PATH }}
+          overwrite: true
 
       - name: Run Laravel Deploy Commands
         uses: appleboy/ssh-action@v1.2.0
@@ -186,8 +209,9 @@ jobs:
 
             PHP="/opt/alt/php85/usr/bin/php"
             COMPOSER="$(which composer)"
+            APP_DIR="${{ secrets.HOSTINGER_PATH }}"
 
-            cd ${{ secrets.HOSTINGER_PATH }}
+            cd "$APP_DIR"
 
             echo "Using PHP:"
             $PHP -v
@@ -195,12 +219,26 @@ jobs:
             echo "Using Composer:"
             $PHP $COMPOSER --version
 
+            echo "Pulling latest code..."
             git pull origin main
 
+            echo "Installing Composer dependencies..."
             $PHP $COMPOSER install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
+            echo "Replacing built frontend assets..."
+            rm -rf public_html/build
+            tar -xzf public-build.tar.gz -C public_html
+            rm -f public-build.tar.gz
+
+            echo "Running migrations..."
             $PHP artisan migrate --force
 
+            echo "Clearing old cache..."
+            $PHP artisan optimize:clear
+
+            echo "Building production cache..."
             $PHP artisan config:cache
             $PHP artisan route:cache
             $PHP artisan view:cache
+
+            echo "Deploy completed."
