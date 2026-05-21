@@ -66,7 +66,7 @@ class HolidayController extends Controller
         $holidays = $query->get();
 
         return HolidayResource::collection($holidays)
-            ->additional($this->buildMeta($validated));
+            ->additional($this->buildMeta($validated, $holidays->count()));
     }
 
     /**
@@ -110,17 +110,20 @@ class HolidayController extends Controller
     }
 
     /**
-     * Build meta fields to attach alongside the collection response.
+     * Build the meta envelope attached alongside the collection response.
      *
      * @param  array<string, mixed>  $filters
      * @return array<string, mixed>
      */
-    private function buildMeta(array $filters): array
+    private function buildMeta(array $filters, int $count): array
     {
-        $meta = ['year' => (int) $filters['year']];
+        $meta = [
+            'year' => (int) $filters['year'],
+            'count' => $count,
+        ];
 
         if (! empty($filters['state'])) {
-            $meta['state_code'] = strtoupper($filters['state']);
+            $meta['state'] = strtoupper($filters['state']);
         }
 
         if (! empty($filters['scope'])) {
@@ -131,6 +134,6 @@ class HolidayController extends Controller
             $meta['type'] = $filters['type'];
         }
 
-        return $meta;
+        return ['meta' => $meta];
     }
 }

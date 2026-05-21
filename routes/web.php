@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 Route::view('/api/docs', 'api.docs')->name('api.docs');
+Route::view('/api/playground', 'api.playground')->name('api.playground');
 Route::get('/holidays/calendar', HolidayCalendarController::class)
     ->name('holidays.calendar');
 

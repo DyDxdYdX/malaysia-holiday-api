@@ -4,6 +4,12 @@ Base URL: `http://malaysia-holday-api.test/api/v1`
 Response format: `application/json`  
 Version: `v1`
 
+## Interactive Playground
+
+Test all endpoints live in the browser — no Postman, no API key:
+
+**[Open API Playground →](http://malaysia-holday-api.test/api/playground)**
+
 ## Authentication
 
 No authentication is required for public holiday data.
@@ -82,7 +88,7 @@ Query parameters:
 | `state` | string | No | `JHR`,`KDH`,`KTN`,`MLK`,`NSN`,`PHG`,`PRK`,`PLS`,`PNG`,`SBH`,`SWK`,`SGR`,`TRG`,`KUL`,`LBN`,`PJY`,`FED` | Filter by state code |
 | `scope` | string | No | `federal`,`state`,`custom` | Filter by scope |
 | `type` | string | No | `federal`,`state`,`replacement`,`additional`,`custom` | Filter by type |
-| `include_source` | boolean | No | `true`/`false` | Include source object |
+| `include_source` | boolean | No | `true`/`false` | Include source object per holiday |
 
 Request example:
 
@@ -90,22 +96,18 @@ Request example:
 GET /api/v1/holidays?year=2026&state=SBH&include_source=1
 ```
 
-Response `200 OK`:
+Response `200 OK` (with `state` filter — `state_codes` omitted per item since you already filtered):
 
 ```json
 {
   "data": [
     {
-      "id": 1,
       "name": "Pesta Kaamatan",
       "date": "2026-05-30",
       "day_name": "Saturday",
-      "year": 2026,
-      "state_codes": ["SBH"],
       "scope": "state",
       "type": "state",
       "is_subject_to_change": false,
-      "source_note": null,
       "source": {
         "source_name": "JPM HKA 2026",
         "source_type": "federal_pdf",
@@ -115,14 +117,41 @@ Response `200 OK`:
       }
     }
   ],
-  "year": 2026,
-  "state_code": "SBH"
+  "meta": {
+    "year": 2026,
+    "state": "SBH",
+    "count": 1
+  }
+}
+```
+
+Response `200 OK` (without `state` filter — `state_codes` included per item):
+
+```json
+{
+  "data": [
+    {
+      "name": "Hari Merdeka",
+      "date": "2026-08-31",
+      "day_name": "Monday",
+      "state_codes": ["JHR", "KDH", "KTN", "MLK", "NSN", "PHG", "PRK", "PLS", "PNG", "SBH", "SWK", "SGR", "TRG", "KUL", "LBN", "PJY"],
+      "scope": "federal",
+      "type": "federal",
+      "is_subject_to_change": false
+    }
+  ],
+  "meta": {
+    "year": 2026,
+    "count": 16
+  }
 }
 ```
 
 Notes:
 - Only `published` holidays are returned.
 - If no records match, `data` is an empty array.
+- `state_codes` is present only when no `state` filter is applied. When `state` is filtered, it is omitted as redundant.
+- The `meta` object always includes `year` and `count`. Active filters (`state`, `scope`, `type`) are reflected there too.
 
 ### GET `/holidays/check`
 Checks whether a date is a published holiday, optionally scoped to a state.

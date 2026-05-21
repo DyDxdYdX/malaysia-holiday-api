@@ -26,6 +26,7 @@
                 <nav class="hidden items-center gap-10 text-sm font-bold text-app-copy-muted md:flex">
                     <a href="#features" class="transition-colors hover:text-brand-red">{{ __('Features') }}</a>
                     <a href="#workflow" class="transition-colors hover:text-brand-red">{{ __('Workflow') }}</a>
+                    <a href="{{ route('api.playground') }}" class="transition-colors hover:text-brand-red">{{ __('Playground') }}</a>
                     <a href="{{ route('api.docs') }}" class="transition-colors hover:text-brand-red">{{ __('API Docs') }}</a>
                 </nav>
 
@@ -271,6 +272,107 @@
     }
   ]
 }</code></pre>
+                    </div>
+                </div>
+            </section>
+            {{-- API Playground CTA --}}
+            <section class="relative overflow-hidden border-y border-app-outline bg-app-surface-low py-24 sm:py-32">
+                <div class="absolute inset-0 z-0 opacity-10 dark:opacity-20">
+                    <div class="absolute -top-[20%] right-[10%] size-[40%] rounded-full bg-brand-red blur-[100px]"></div>
+                    <div class="absolute -bottom-[20%] left-[5%] size-[35%] rounded-full bg-brand-gold blur-[100px]"></div>
+                </div>
+
+                <div class="app-container relative z-10">
+                    <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
+                        <div>
+                            <p class="app-label text-brand-red">{{ __('Interactive') }}</p>
+                            <h2 class="mt-4 text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-5xl">
+                                {{ __('Try it in the') }} <span class="text-brand-red">{{ __('Playground') }}</span>.
+                            </h2>
+                            <p class="mt-6 text-lg leading-relaxed text-app-copy-muted">
+                                {{ __('No Postman. No terminal. Just pick an endpoint, fill in your parameters, and see the live JSON response — right in your browser.') }}
+                            </p>
+                            <ul class="mt-8 space-y-3 text-sm text-app-copy-muted">
+                                @foreach ([
+                                    'Select endpoint from a list',
+                                    'Configure year, state, date — via dropdowns',
+                                    'See the live curl command update in real-time',
+                                    'Copy the JSON response instantly',
+                                ] as $item)
+                                    <li class="flex items-center gap-3">
+                                        <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-400/20">
+                                            <svg class="size-3 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                        </span>
+                                        {{ $item }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <div class="mt-10">
+                                <flux:button :href="route('api.playground')" variant="primary" class="!px-8 !py-4 text-base">
+                                    {{ __('Open API Playground') }}
+                                    <svg class="ml-2 size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                                </flux:button>
+                            </div>
+                        </div>
+
+                        {{-- Playground preview card --}}
+                        <div class="relative">
+                            <div class="absolute -inset-4 rounded-[2rem] bg-brand-red/5 blur-2xl dark:bg-brand-red/10"></div>
+                            <div class="relative overflow-hidden rounded-2xl border border-app-outline bg-app-surface shadow-xl">
+                                {{-- Fake browser chrome --}}
+                                <div class="flex items-center gap-3 border-b border-app-outline bg-app-surface-low px-4 py-3">
+                                    <div class="flex gap-1.5">
+                                        <div class="size-3 rounded-full bg-red-400/60"></div>
+                                        <div class="size-3 rounded-full bg-amber-400/60"></div>
+                                        <div class="size-3 rounded-full bg-emerald-400/60"></div>
+                                    </div>
+                                    <div class="flex-1 rounded-md bg-app-code px-3 py-1 font-mono text-xs text-slate-500">{{ url('/api/playground') }}</div>
+                                </div>
+
+                                {{-- Mock playground layout --}}
+                                <div class="grid grid-cols-[140px_1fr] gap-0 divide-x divide-app-outline">
+                                    {{-- Sidebar --}}
+                                    <div class="space-y-1 p-3">
+                                        <div class="rounded-md bg-brand-red/10 px-3 py-2">
+                                            <div class="text-xs font-bold text-brand-red">GET /holidays</div>
+                                        </div>
+                                        <div class="px-3 py-2">
+                                            <div class="text-xs text-app-copy-muted">GET /holidays/check</div>
+                                        </div>
+                                        <div class="px-3 py-2">
+                                            <div class="text-xs text-app-copy-muted">GET /states</div>
+                                        </div>
+                                        <div class="mt-4 space-y-2">
+                                            <div class="h-6 rounded-md bg-app-surface-low px-2 text-[10px] leading-6 text-app-copy-muted">year: 2026</div>
+                                            <div class="h-6 rounded-md bg-app-surface-low px-2 text-[10px] leading-6 text-app-copy-muted">state: SBH</div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="w-full rounded-lg bg-brand-red py-2 text-center text-xs font-bold text-white">Send →</div>
+                                        </div>
+                                    </div>
+                                    {{-- Response --}}
+                                    <div class="bg-app-code p-4">
+                                        <div class="mb-2 flex items-center gap-2">
+                                            <span class="rounded-full bg-emerald-400/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-400">HTTP 200</span>
+                                        </div>
+                                        <pre class="font-mono text-[10px] leading-relaxed text-slate-400"><code>{
+  <span class="text-brand-gold">"data"</span>: [
+    {
+      <span class="text-slate-200">"name"</span>: <span class="text-emerald-400">"Pesta Kaamatan"</span>,
+      <span class="text-slate-200">"date"</span>: <span class="text-emerald-400">"2026-05-30"</span>,
+      <span class="text-slate-200">"scope"</span>: <span class="text-emerald-400">"state"</span>
+    }
+  ],
+  <span class="text-brand-gold">"meta"</span>: {
+    <span class="text-slate-200">"year"</span>: <span class="text-brand-gold">2026</span>,
+    <span class="text-slate-200">"state"</span>: <span class="text-emerald-400">"SBH"</span>,
+    <span class="text-slate-200">"count"</span>: <span class="text-brand-gold">1</span>
+  }
+}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

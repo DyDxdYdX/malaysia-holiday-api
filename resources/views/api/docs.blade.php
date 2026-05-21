@@ -36,6 +36,7 @@
                 <nav class="flex items-center gap-5 text-sm font-semibold text-app-copy-muted">
                     <a href="#endpoints" class="hidden transition-colors hover:text-brand-red sm:inline">Endpoints</a>
                     <a href="#state-codes" class="hidden transition-colors hover:text-brand-red sm:inline">State Codes</a>
+                    <a href="{{ route('api.playground') }}" class="hidden transition-colors hover:text-brand-red sm:inline">Playground</a>
                     <a href="{{ route('home') }}" class="transition-colors hover:text-brand-red">Home</a>
                 </nav>
             </div>
@@ -117,6 +118,12 @@
 }</code></pre>
                             </div>
                         </div>
+                        <div class="border-t border-app-outline px-6 py-4 flex justify-end">
+                            <a href="{{ route('api.playground') }}" class="inline-flex items-center gap-2 rounded-lg border border-app-outline px-4 py-2 text-sm font-bold text-brand-red transition hover:bg-app-surface-low">
+                                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                Try in Playground
+                            </a>
+                        </div>
                     </article>
 
                     <article id="holidays" class="app-card overflow-hidden">
@@ -154,20 +161,16 @@
                                     <pre class="mt-3 overflow-x-auto rounded-lg bg-app-code p-4 text-sm text-slate-100"><code>curl "{{ $baseUrl }}/holidays?year=2026&state=SBH&include_source=1"</code></pre>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-brand-navy dark:text-white">Response 200</h4>
+                                    <h4 class="font-bold text-brand-navy dark:text-white">Response 200 <span class="text-xs font-normal text-app-copy-muted">(with state filter)</span></h4>
                                     <pre class="mt-3 overflow-x-auto rounded-lg bg-app-code p-4 text-sm text-slate-100"><code>{
   "data": [
     {
-      "id": 1,
       "name": "Pesta Kaamatan",
       "date": "2026-05-30",
       "day_name": "Saturday",
-      "year": 2026,
-      "state_codes": ["SBH"],
       "scope": "state",
       "type": "state",
       "is_subject_to_change": false,
-      "source_note": null,
       "source": {
         "source_name": "JPM HKA 2026",
         "source_type": "federal_pdf",
@@ -177,10 +180,20 @@
       }
     }
   ],
-  "year": 2026,
-  "state_code": "SBH"
+  "meta": {
+    "year": 2026,
+    "state": "SBH",
+    "count": 1
+  }
 }</code></pre>
+                                    <p class="mt-3 text-xs text-app-copy-muted">Without <code>state</code> filter, each item also includes a <code>state_codes</code> array.</p>
                                 </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <a href="{{ route('api.playground') }}?endpoint=holidays" class="inline-flex items-center gap-2 rounded-lg border border-app-outline px-4 py-2 text-sm font-bold text-brand-red transition hover:bg-app-surface-low">
+                                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                    Try in Playground
+                                </a>
                             </div>
                         </div>
                     </article>
@@ -233,6 +246,12 @@
   ]
 }</code></pre>
                                 </div>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <a href="{{ route('api.playground') }}" class="inline-flex items-center gap-2 rounded-lg border border-app-outline px-4 py-2 text-sm font-bold text-brand-red transition hover:bg-app-surface-low">
+                                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                    Try in Playground
+                                </a>
                             </div>
                         </div>
                     </article>

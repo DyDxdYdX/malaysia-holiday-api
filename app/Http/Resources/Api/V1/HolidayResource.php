@@ -10,21 +10,27 @@ class HolidayResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * When a `state` filter is active the caller already knows which state
+     * they are querying, so the per-item `state_codes` array is redundant
+     * and is omitted to keep the payload lean.
+     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
+        $stateFilter = $request->input('state');
+
         return [
-            'id' => $this->id,
             'name' => $this->name,
             'date' => $this->date->toDateString(),
             'day_name' => $this->day_name,
-            'year' => $this->year,
-            'state_codes' => $this->stateCodes(),
+            'state_codes' => $this->when(
+                empty($stateFilter),
+                fn () => $this->stateCodes()
+            ),
             'scope' => $this->scope,
             'type' => $this->type,
             'is_subject_to_change' => $this->is_subject_to_change,
-            'source_note' => $this->source_note,
             'source' => $this->when(
                 $request->boolean('include_source') && $this->relationLoaded('source'),
                 fn () => new HolidaySourceResource($this->source)

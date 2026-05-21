@@ -73,7 +73,8 @@ test('holidays endpoint returns only published holidays for the given year', fun
 
     $response->assertOk()
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('year', 2026)
+        ->assertJsonPath('meta.year', 2026)
+        ->assertJsonPath('meta.count', 1)
         ->assertJsonPath('data.0.name', 'Hari Kebangsaan');
 });
 
@@ -107,9 +108,36 @@ test('holidays endpoint filters by state code', function () {
 
     $response->assertOk()
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('state_code', 'SBH')
-        ->assertJsonPath('data.0.state_codes.0', 'SBH')
+        ->assertJsonPath('meta.state', 'SBH')
+        ->assertJsonPath('meta.count', 1)
         ->assertJsonPath('data.0.name', 'Pesta Kaamatan');
+
+    // state_codes should be absent when a state filter is applied
+    expect($response->json('data.0'))->not->toHaveKey('state_codes');
+});
+
+test('holidays endpoint state_codes is present when no state filter is applied', function () {
+    $source = HolidaySource::create([
+        'year' => 2026,
+        'source_name' => 'Test',
+        'source_type' => 'admin_csv',
+        'status' => 'published',
+        'uploaded_by' => null,
+        'uploaded_at' => now(),
+    ]);
+
+    Holiday::create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026, 'state_codes' => 'KUL', 'name' => 'Hari Kebangsaan',
+        'date' => '2026-08-31', 'day_name' => 'Monday',
+        'scope' => 'federal', 'type' => 'federal', 'is_subject_to_change' => false,
+        'status' => 'published',
+    ]);
+
+    $response = $this->getJson('/api/v1/holidays?year=2026');
+
+    $response->assertOk();
+    expect($response->json('data.0'))->toHaveKey('state_codes');
 });
 
 test('holidays endpoint filters by scope', function () {
@@ -142,7 +170,7 @@ test('holidays endpoint filters by scope', function () {
 
     $response->assertOk()
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('scope', 'federal')
+        ->assertJsonPath('meta.scope', 'federal')
         ->assertJsonPath('data.0.name', 'Hari Kebangsaan');
 });
 
@@ -181,7 +209,8 @@ test('holidays endpoint includes source metadata when include_source is set', fu
 test('holidays endpoint returns empty data for a year with no published holidays', function () {
     $this->getJson('/api/v1/holidays?year=2020')
         ->assertOk()
-        ->assertJsonCount(0, 'data');
+        ->assertJsonCount(0, 'data')
+        ->assertJsonPath('meta.count', 0);
 });
 
 // ─── GET /api/v1/holidays/check ───────────────────────────────────────────────
