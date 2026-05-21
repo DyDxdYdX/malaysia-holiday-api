@@ -27,12 +27,6 @@ class HolidayImportBatchController extends Controller
 
     public function show(HolidayImportBatch $batch): Response
     {
-        $batch->load([
-            'source',
-            'holidays' => fn ($query) => $query->orderBy('date')->with('states'),
-            'importRows' => fn ($query) => $query->orderBy('row_number'),
-        ]);
-
         $isPdfExtractionPending = $batch->import_method === 'pdf_ai'
             && $batch->status === 'draft'
             && $batch->completed_at === null
@@ -40,8 +34,6 @@ class HolidayImportBatchController extends Controller
 
         $response = response()->view('admin.batches.show', [
             'batch' => $batch,
-            'isPdfExtractionPending' => $isPdfExtractionPending,
-            'stateOptions' => MalaysiaStates::options(),
         ]);
 
         if ($isPdfExtractionPending) {

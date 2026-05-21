@@ -1,11 +1,14 @@
 <?php
 
+use App\Livewire\Admin\BatchShow;
 use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Models\HolidayImportRow;
 use App\Models\HolidaySource;
 use App\Models\User;
+use App\Support\MalaysiaStates;
 use Illuminate\Http\UploadedFile;
+use Livewire\Livewire;
 
 function adminUser(): User
 {
@@ -393,4 +396,199 @@ test('batch publish is blocked while holidays are missing states', function () {
     $this->actingAs($user)
         ->post(route('admin.batches.publish', $batch))
         ->assertStatus(422);
+});
+
+test('livewire batch show component can toggle states', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'csv',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+    ]);
+    $holiday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Test Holiday',
+        'date' => '2026-05-30',
+        'day_name' => 'Saturday',
+        'scope' => 'state',
+        'type' => 'state',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('toggleState', $holiday->id, 'SBH')
+        ->assertOk();
+
+    expect($holiday->fresh()->stateCodes())->toBe(['SBH']);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('toggleState', $holiday->id, 'SBH')
+        ->assertOk();
+
+    expect($holiday->fresh()->stateCodes())->toBe([]);
+});
+
+test('livewire batch show component can select all and clear all states', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'csv',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+    ]);
+    $holiday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Test Holiday',
+        'date' => '2026-05-30',
+        'day_name' => 'Saturday',
+        'scope' => 'state',
+        'type' => 'state',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('selectAllStates', $holiday->id)
+        ->assertOk();
+
+    expect($holiday->fresh()->stateCodes())->toHaveCount(count(MalaysiaStates::codes()));
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('clearStates', $holiday->id)
+        ->assertOk();
+
+    expect($holiday->fresh()->stateCodes())->toBe([]);
+});
+
+test('livewire batch show component can approve and reject holiday', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'csv',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+    ]);
+    $holiday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Test Holiday',
+        'date' => '2026-05-30',
+        'day_name' => 'Saturday',
+        'scope' => 'state',
+        'type' => 'state',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    // Approving without states fails
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('approveHoliday', $holiday->id)
+        ->assertHasErrors(["holiday-{$holiday->id}"]);
+
+    // Set a state and approve succeeds
+    $holiday->syncStateCodes(['SBH']);
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('approveHoliday', $holiday->id)
+        ->assertHasNoErrors()
+        ->assertStatus(200);
+
+    expect($holiday->fresh()->status)->toBe('confirmed');
+
+    // Rejecting confirmed holiday cancels it
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('rejectHoliday', $holiday->id)
+        ->assertOk();
+
+    expect($holiday->fresh()->status)->toBe('cancelled');
+});
+
+test('livewire batch show component can approve all drafts and publish', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'csv',
+        'status' => 'review_required',
+        'total_rows' => 2,
+        'valid_rows' => 2,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+    ]);
+    $holiday1 = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Test Holiday 1',
+        'date' => '2026-05-30',
+        'day_name' => 'Saturday',
+        'scope' => 'state',
+        'type' => 'state',
+        'is_subject_to_change' => false,
+        'state_codes' => 'SBH',
+        'status' => 'draft',
+    ]);
+    $holiday2 = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Test Holiday 2',
+        'date' => '2026-06-01',
+        'day_name' => 'Monday',
+        'scope' => 'federal',
+        'type' => 'federal',
+        'is_subject_to_change' => false,
+        'state_codes' => 'KUL',
+        'status' => 'draft',
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('approveAll')
+        ->assertOk();
+
+    expect($holiday1->fresh()->status)->toBe('confirmed')
+        ->and($holiday2->fresh()->status)->toBe('confirmed');
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('publish')
+        ->assertOk();
+
+    expect($batch->fresh()->status)->toBe('published')
+        ->and($holiday1->fresh()->status)->toBe('published')
+        ->and($holiday2->fresh()->status)->toBe('published');
 });

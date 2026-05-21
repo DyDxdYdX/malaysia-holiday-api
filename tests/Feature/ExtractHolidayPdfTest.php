@@ -2,6 +2,7 @@
 
 use App\Ai\Agents\HolidayPdfExtractionAgent;
 use App\Jobs\ExtractHolidayPdf;
+use App\Livewire\Admin\BatchShow;
 use App\Models\AuditLog;
 use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Services\Holidays\HolidayImportService;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 
 test('pdf extraction queues a job for pdf sources', function () {
     Queue::fake();
@@ -341,8 +343,9 @@ test('batch review displays manual state checkboxes for pdf draft holidays', fun
     $this->actingAs($user)
         ->get(route('admin.batches.show', $batch->refresh()))
         ->assertOk()
-        ->assertSee('State applicability requires manual review.')
-        ->assertSee('name="state_codes['.$holiday->id.'][]"', false)
-        ->assertSee('value="KUL"', false)
-        ->assertSee('value="SBH"', false);
+        ->assertSee('State applicability requires manual review.');
+
+    Livewire::test(BatchShow::class, ['batch' => $batch])
+        ->assertSee('KUL')
+        ->assertSee('SBH');
 });
