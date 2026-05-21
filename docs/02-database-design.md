@@ -134,7 +134,7 @@ Standard Laravel auth table. Extended with a `role` column.
 | `name` | VARCHAR(255) | No | Display name |
 | `email` | VARCHAR(255) UNIQUE | No | Login credential |
 | `password` | VARCHAR(255) | No | Hashed |
-| `role` | ENUM(`super_admin`, `data_admin`) | No | Default `data_admin` |
+| `role` | ENUM(`admin`) | No | Default `admin` |
 | `created_at` | TIMESTAMP | Yes | |
 | `updated_at` | TIMESTAMP | Yes | |
 

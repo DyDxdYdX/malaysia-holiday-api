@@ -18,7 +18,7 @@ test('pdf extraction queues a job for pdf sources', function () {
     Queue::fake();
     Storage::fake();
 
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
     $source = HolidaySource::create([
         'year' => 2026,
@@ -46,7 +46,7 @@ test('pdf extraction queues a job for pdf sources', function () {
 });
 
 test('pending pdf extraction batch shows loading state and refreshes', function () {
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     $source = HolidaySource::create([
         'year' => 2026,
         'source_name' => 'JPM PDF 2026',
@@ -76,7 +76,7 @@ test('pending pdf extraction batch shows loading state and refreshes', function 
 });
 
 test('completed pdf extraction batch does not keep refreshing', function () {
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     $source = HolidaySource::create([
         'year' => 2026,
         'source_name' => 'JPM PDF 2026',
@@ -109,7 +109,7 @@ test('completed pdf extraction batch does not keep refreshing', function () {
 test('pdf extraction rejects non pdf sources', function () {
     Queue::fake();
 
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     $source = HolidaySource::create([
         'year' => 2026,
         'source_name' => 'CSV Source',
@@ -131,7 +131,7 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
 
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     $source = HolidaySource::create([
         'year' => 2026,
         'source_name' => 'JPM PDF 2026',
@@ -220,7 +220,7 @@ test('pdf extraction ignores ai state codes and leaves states for manual review'
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
 
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     $source = HolidaySource::create([
         'year' => 2026,
         'source_name' => 'JPM PDF 2026',
@@ -290,7 +290,7 @@ test('batch review displays manual state checkboxes for pdf draft holidays', fun
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
 
-    $user = User::factory()->create(['role' => 'data_admin']);
+    $user = User::factory()->create(['role' => 'admin']);
     $source = HolidaySource::create([
         'year' => 2026,
         'source_name' => 'JPM PDF 2026',

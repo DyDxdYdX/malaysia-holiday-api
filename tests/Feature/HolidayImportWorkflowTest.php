@@ -13,7 +13,7 @@ use Livewire\Livewire;
 function adminUser(): User
 {
     return User::factory()->create([
-        'role' => 'data_admin',
+        'role' => 'admin',
     ]);
 }
 

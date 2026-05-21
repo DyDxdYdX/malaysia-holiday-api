@@ -126,7 +126,7 @@ graph TB
 | **Service** | `HolidaySourceService`, `HolidayCsvImportService`, `HolidayReviewService`, `HolidayOverrideService`, `HolidayApiService` | Business logic |
 | **Model / Eloquent** | `HolidaySource`, `HolidayImportBatch`, `Holiday`, `HolidayOverride` | ORM & query scopes |
 | **API Resource** | `HolidayResource`, `HolidayCollection`, `StateResource` | Response shaping |
-| **Middleware** | `auth`, `verified`, `role:super_admin,data_admin` | Web session auth and admin role gate |
+| **Middleware** | `auth`, `verified`, `role:admin` | Web session auth and admin role gate |
 | **Observers / Events** | `HolidayObserver`, `AuditLogger` | Side-effects, audit log |
 
 ---
@@ -164,7 +164,7 @@ flowchart TB
 
     AE --> SA[Web Session Auth<br/>auth middleware]
     SA --> VE[Verified Email<br/>verified middleware]
-    VE --> RB[Role Gate<br/>super_admin / data_admin]
+    VE --> RB[Role Gate<br/>admin]
     RB --> BL[Business Logic]
     BL --> AL[Audit Log Entry]
 ```
