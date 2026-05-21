@@ -69,7 +69,7 @@ Official source reference: [www.kabinet.gov.my/hari-kelepasan-am](https://www.ka
 
 | Component | Technology |
 |---|---|
-| Language | PHP 8.3+ |
+| Language | PHP 8.4+ |
 | Framework | Laravel |
 | Database | MySQL 8+ |
 | Auth | Laravel Fortify |
@@ -83,7 +83,7 @@ Official source reference: [www.kabinet.gov.my/hari-kelepasan-am](https://www.ka
 
 ### Requirements
 
-- PHP 8.3+
+- PHP 8.4+
 - Composer
 - MySQL 8+ or PostgreSQL 14+
 - Laravel 13

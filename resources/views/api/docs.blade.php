@@ -49,7 +49,7 @@
                         <p class="app-label text-brand-red">REST API v1</p>
                         <h1 class="mt-3 text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-5xl">API Documentation (v1)</h1>
                         <p class="mt-4 max-w-3xl text-lg leading-relaxed text-app-copy-muted">
-                            Public Malaysia holiday data by year, state, scope, and date. All endpoints return JSON and only expose published holiday records.
+                            Public Malaysia holiday data by year, state, and date. All endpoints return JSON and only expose published holiday records.
                         </p>
                     </div>
 
@@ -132,7 +132,7 @@
                                 <span class="rounded-md bg-emerald-100 px-2 py-1 font-mono text-xs font-bold text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200">GET</span>
                                 <h3 class="font-mono text-xl font-bold text-brand-navy dark:text-white">/api/v1/holidays</h3>
                             </div>
-                            <p class="mt-3 text-app-copy-muted">Returns published holidays for a required year, with optional state, scope, type, and source filters.</p>
+                            <p class="mt-3 text-app-copy-muted">Returns published holidays for a required year, with optional state and source filters.</p>
                         </div>
                         <div class="space-y-6 p-6">
                             <div class="overflow-x-auto">
@@ -148,8 +148,6 @@
                                     <tbody class="text-app-copy-muted">
                                         <tr class="border-b border-app-outline/70"><td class="py-3 pr-4 font-mono">year</td><td class="py-3 pr-4">Yes</td><td class="py-3 pr-4">2000..2100</td><td class="py-3 pr-4">Holiday year.</td></tr>
                                         <tr class="border-b border-app-outline/70"><td class="py-3 pr-4 font-mono">state</td><td class="py-3 pr-4">No</td><td class="py-3 pr-4">State code or FED</td><td class="py-3 pr-4">Filters records to one state or territory.</td></tr>
-                                        <tr class="border-b border-app-outline/70"><td class="py-3 pr-4 font-mono">scope</td><td class="py-3 pr-4">No</td><td class="py-3 pr-4">federal, state, custom</td><td class="py-3 pr-4">Filters by holiday scope.</td></tr>
-                                        <tr class="border-b border-app-outline/70"><td class="py-3 pr-4 font-mono">type</td><td class="py-3 pr-4">No</td><td class="py-3 pr-4">federal, state, replacement, additional, custom</td><td class="py-3 pr-4">Filters by holiday type.</td></tr>
                                         <tr><td class="py-3 pr-4 font-mono">include_source</td><td class="py-3 pr-4">No</td><td class="py-3 pr-4">true, false, 1, 0</td><td class="py-3 pr-4">Includes source metadata when truthy.</td></tr>
                                     </tbody>
                                 </table>
@@ -168,8 +166,6 @@
       "name": "Pesta Kaamatan",
       "date": "2026-05-30",
       "day_name": "Saturday",
-      "scope": "state",
-      "type": "state",
       "is_subject_to_change": false,
       "source": {
         "source_name": "JPM HKA 2026",
@@ -239,8 +235,6 @@
     {
       "name": "Pesta Kaamatan",
       "state_codes": ["SBH"],
-      "scope": "state",
-      "type": "state",
       "is_subject_to_change": false
     }
   ]

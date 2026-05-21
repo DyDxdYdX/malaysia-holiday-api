@@ -134,7 +134,7 @@ Legend: ✅ Done · 🚧 Partial · ❌ Not started
 | # | Item | Status |
 |---|------|--------|
 | 9.1 | Admin routes require authentication + role middleware | ✅ |
-| 9.2 | Role-based authorization (`super_admin`, `data_admin`) | ✅ |
+| 9.2 | Single `admin` role — no role hierarchy | ✅ |
 | 9.3 | Public holiday API endpoints require no account or API key | ✅ |
 | 9.4 | Public API returns only published holiday records | ✅ |
 | 9.5 | Public self-registration disabled for admin safety | ✅ |

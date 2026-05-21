@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 function adminForHolidays(): User
 {
     return User::factory()->create([
-        'role' => 'data_admin',
+        'role' => 'admin',
     ]);
 }
 

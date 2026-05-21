@@ -99,7 +99,7 @@ stateDiagram-v2
 stateDiagram-v2
     [*] --> pending : Admin creates override
 
-    pending --> approved : Approver (super_admin) approves
+    pending --> approved : Admin approves
     pending --> rejected_override : Approver rejects
 
     approved --> applied : System applies override to holiday record
@@ -117,7 +117,7 @@ stateDiagram-v2
     end note
 ```
 
-> **Note:** For MVP, the `data_admin` may self-approve overrides if `super_admin` approval workflow is not yet implemented.
+> **Note:** Admins can approve their own overrides.
 
 ---
 

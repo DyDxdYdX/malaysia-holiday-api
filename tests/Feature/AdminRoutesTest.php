@@ -13,7 +13,7 @@ test('guests are redirected away from admin sources', function () {
 
 test('data admins can access admin source pages', function () {
     $user = User::factory()->create([
-        'role' => 'data_admin',
+        'role' => 'admin',
     ]);
 
     $this->actingAs($user)
@@ -24,7 +24,7 @@ test('data admins can access admin source pages', function () {
 
 test('data admins can access redesigned admin workflow pages', function (string $path, string $expectedText) {
     $user = User::factory()->create([
-        'role' => 'data_admin',
+        'role' => 'admin',
     ]);
 
     $this->actingAs($user)
@@ -48,7 +48,7 @@ test('admin web routes use web auth and role middleware only', function () {
         expect($route->gatherMiddleware())
             ->toContain('auth')
             ->toContain('verified')
-            ->toContain('role:super_admin,data_admin')
+            ->toContain('role:admin')
             ->not->toContain('auth:sanctum');
     });
 });

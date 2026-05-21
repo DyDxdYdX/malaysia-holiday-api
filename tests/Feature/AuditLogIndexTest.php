@@ -8,7 +8,7 @@ uses(RefreshDatabase::class);
 
 test('data admins can view the audit logs page', function () {
     $user = User::factory()->create([
-        'role' => 'data_admin',
+        'role' => 'admin',
     ]);
 
     AuditLog::query()->create([

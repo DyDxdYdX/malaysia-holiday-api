@@ -16,10 +16,6 @@ class ApiPlayground extends Component
 
     public string $state = '';
 
-    public string $scope = '';
-
-    public string $type = '';
-
     public string $date = '';
 
     public bool $includeSource = false;
@@ -39,8 +35,6 @@ class ApiPlayground extends Component
     {
         $this->year = '2026';
         $this->state = '';
-        $this->scope = '';
-        $this->type = '';
         $this->date = '';
         $this->includeSource = false;
         $this->responseJson = null;
@@ -60,8 +54,6 @@ class ApiPlayground extends Component
             'holidays' => array_filter([
                 'year' => $this->year,
                 'state' => $this->state ?: null,
-                'scope' => $this->scope ?: null,
-                'type' => $this->type ?: null,
                 'include_source' => $this->includeSource ? '1' : null,
             ]),
             'holidays/check' => array_filter([
@@ -118,8 +110,6 @@ class ApiPlayground extends Component
     {
         return view('livewire.api-playground', [
             'stateOptions' => MalaysiaStates::options(),
-            'scopeOptions' => ['federal', 'state', 'custom'],
-            'typeOptions' => ['federal', 'state', 'replacement', 'additional', 'custom'],
         ]);
     }
 }

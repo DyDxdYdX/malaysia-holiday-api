@@ -81,8 +81,8 @@ non_goals:
 
 ```yaml
 roles:
-  super_admin:
-    description: "Full system administrator."
+  admin:
+    description: "Full system administrator. Manages holiday data through the admin dashboard."
     permissions:
       - manage users
       - upload sources
@@ -91,15 +91,6 @@ roles:
       - manage overrides
       - delete records
       - access audit logs
-
-  data_admin:
-    description: "Maintains holiday data."
-    permissions:
-      - upload sources
-      - import CSV
-      - review draft holidays
-      - create overrides
-      - publish approved holidays
 
   public_user:
     description: "Unauthenticated user or application consuming public API data."

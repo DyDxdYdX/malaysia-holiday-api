@@ -86,8 +86,6 @@ Query parameters:
 |---|---|---|---|---|
 | `year` | integer | Yes | `2000..2100` | Holiday year |
 | `state` | string | No | `JHR`,`KDH`,`KTN`,`MLK`,`NSN`,`PHG`,`PRK`,`PLS`,`PNG`,`SBH`,`SWK`,`SGR`,`TRG`,`KUL`,`LBN`,`PJY`,`FED` | Filter by state code |
-| `scope` | string | No | `federal`,`state`,`custom` | Filter by scope |
-| `type` | string | No | `federal`,`state`,`replacement`,`additional`,`custom` | Filter by type |
 | `include_source` | boolean | No | `true`/`false` | Include source object per holiday |
 
 Request example:
@@ -105,8 +103,6 @@ Response `200 OK` (with `state` filter — `state_codes` omitted per item since 
       "name": "Pesta Kaamatan",
       "date": "2026-05-30",
       "day_name": "Saturday",
-      "scope": "state",
-      "type": "state",
       "is_subject_to_change": false,
       "source": {
         "source_name": "JPM HKA 2026",
@@ -135,8 +131,6 @@ Response `200 OK` (without `state` filter — `state_codes` included per item):
       "date": "2026-08-31",
       "day_name": "Monday",
       "state_codes": ["JHR", "KDH", "KTN", "MLK", "NSN", "PHG", "PRK", "PLS", "PNG", "SBH", "SWK", "SGR", "TRG", "KUL", "LBN", "PJY"],
-      "scope": "federal",
-      "type": "federal",
       "is_subject_to_change": false
     }
   ],
@@ -151,7 +145,7 @@ Notes:
 - Only `published` holidays are returned.
 - If no records match, `data` is an empty array.
 - `state_codes` is present only when no `state` filter is applied. When `state` is filtered, it is omitted as redundant.
-- The `meta` object always includes `year` and `count`. Active filters (`state`, `scope`, `type`) are reflected there too.
+- The `meta` object always includes `year` and `count`. The active `state` filter is reflected there too.
 
 ### GET `/holidays/check`
 Checks whether a date is a published holiday, optionally scoped to a state.
@@ -182,8 +176,6 @@ Response `200 OK` (holiday found):
     {
       "name": "Pesta Kaamatan",
       "state_codes": ["SBH"],
-      "scope": "state",
-      "type": "state",
       "is_subject_to_change": false
     }
   ]

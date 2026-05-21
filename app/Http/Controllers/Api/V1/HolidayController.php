@@ -33,8 +33,6 @@ class HolidayController extends Controller
         $validated = $request->validate([
             'year' => ['required', 'integer', 'between:2000,2100'],
             'state' => ['nullable', 'string', Rule::in(self::VALID_STATE_CODES)],
-            'scope' => ['nullable', 'string', Rule::in(['federal', 'state', 'federal_and_state', 'custom'])],
-            'type' => ['nullable', 'string', Rule::in(['federal', 'state', 'replacement', 'additional', 'custom'])],
             'include_source' => ['nullable', 'boolean'],
         ]);
 
@@ -49,14 +47,6 @@ class HolidayController extends Controller
             $query->whereHas('states', function ($stateQuery) use ($validated): void {
                 $stateQuery->where('state_code', strtoupper($validated['state']));
             });
-        }
-
-        if (! empty($validated['scope'])) {
-            $query->where('scope', $validated['scope']);
-        }
-
-        if (! empty($validated['type'])) {
-            $query->where('type', $validated['type']);
         }
 
         if ($request->boolean('include_source')) {
@@ -102,8 +92,6 @@ class HolidayController extends Controller
             'holidays' => $holidays->map(fn (Holiday $holiday) => [
                 'name' => $holiday->name,
                 'state_codes' => $holiday->stateCodes(),
-                'scope' => $holiday->scope,
-                'type' => $holiday->type,
                 'is_subject_to_change' => $holiday->is_subject_to_change,
             ]),
         ]);
@@ -124,14 +112,6 @@ class HolidayController extends Controller
 
         if (! empty($filters['state'])) {
             $meta['state'] = strtoupper($filters['state']);
-        }
-
-        if (! empty($filters['scope'])) {
-            $meta['scope'] = $filters['scope'];
-        }
-
-        if (! empty($filters['type'])) {
-            $meta['type'] = $filters['type'];
         }
 
         return ['meta' => $meta];

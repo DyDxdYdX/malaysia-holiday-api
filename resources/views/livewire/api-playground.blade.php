@@ -88,34 +88,6 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label for="pg-scope" class="mb-1.5 block text-xs font-bold text-brand-navy dark:text-white">scope</label>
-                            <select
-                                id="pg-scope"
-                                wire:model.live="scope"
-                                class="w-full rounded-lg border border-app-outline bg-app-surface px-3 py-2 font-mono text-sm text-brand-navy focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 focus:outline-none dark:text-white"
-                            >
-                                <option value="">— any scope —</option>
-                                @foreach ($scopeOptions as $opt)
-                                    <option value="{{ $opt }}">{{ $opt }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="pg-type" class="mb-1.5 block text-xs font-bold text-brand-navy dark:text-white">type</label>
-                            <select
-                                id="pg-type"
-                                wire:model.live="type"
-                                class="w-full rounded-lg border border-app-outline bg-app-surface px-3 py-2 font-mono text-sm text-brand-navy focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 focus:outline-none dark:text-white"
-                            >
-                                <option value="">— any type —</option>
-                                @foreach ($typeOptions as $opt)
-                                    <option value="{{ $opt }}">{{ $opt }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
                         <label for="pg-include-source" class="flex cursor-pointer items-center gap-3 pt-1">
                             <input
                                 id="pg-include-source"
