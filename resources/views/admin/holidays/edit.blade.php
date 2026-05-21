@@ -8,7 +8,7 @@
             </div>
         </div>
 
-        <section class="max-w-4xl">
+        <section>
             <form class="app-form-shell" method="POST" action="{{ route('admin.holidays.update', $holiday) }}">
                 @csrf
                 @method('PUT')

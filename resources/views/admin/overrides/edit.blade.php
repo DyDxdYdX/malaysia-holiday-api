@@ -8,7 +8,7 @@
             </div>
         </div>
 
-        <form class="app-form-shell max-w-4xl" method="POST" action="{{ route('admin.overrides.update', $override) }}">
+        <form class="app-form-shell" method="POST" action="{{ route('admin.overrides.update', $override) }}">
             @csrf
             @method('PUT')
 

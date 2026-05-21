@@ -8,7 +8,7 @@
             </div>
         </div>
 
-        <form class="app-form-shell max-w-4xl" method="POST" action="{{ route('admin.sources.store') }}" enctype="multipart/form-data">
+        <form class="app-form-shell" method="POST" action="{{ route('admin.sources.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="app-form-grid">
