@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Batch #:id', ['id' => $batch->id])">
-    <div class="admin-page max-w-7xl mx-auto space-y-8">
+    <div class="admin-page mx-auto space-y-8">
         <!-- Modernized Header -->
         <div class="admin-header flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-app-surface-card p-6 rounded-2xl border border-app-outline shadow-xs">
             <div>
