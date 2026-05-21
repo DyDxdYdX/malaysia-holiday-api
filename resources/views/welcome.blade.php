@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title>{{ config('app.name', 'Malaysia Holiday API') }}</title>
-
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
-        @fonts
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('partials.head', [
+            'title' => config('app.name', 'Malaysia Holiday API'),
+            'description' => 'Malaysia Holiday API provides reliable federal and state public holiday data with official-source review workflows and versioned REST endpoints.',
+            'canonical' => route('home'),
+            'ogType' => 'website',
+        ])
     </head>
     <body class="app-shell antialiased">
         <header class="sticky top-0 z-40 border-b border-app-outline bg-app-surface/80 backdrop-blur-lg">
             <div class="app-container flex h-16 items-center justify-between gap-6">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 font-extrabold tracking-tight text-brand-navy dark:text-white">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-white shadow-lg dark:bg-brand-red">
+                    <span class="flex size-9 items-center justify-center rounded-xl bg-white shadow-lg">
                         <img src="{{ asset('logo.png') }}" class="size-6" alt="{{ config('app.name', 'Malaysia Holiday API') }}" />
                     </span>
                     <span class="text-xl">{{ config('app.name', 'Holiday API') }}</span>
@@ -26,8 +21,8 @@
                 <nav class="hidden items-center gap-10 text-sm font-bold text-app-copy-muted md:flex">
                     <a href="#features" class="transition-colors hover:text-brand-red">{{ __('Features') }}</a>
                     <a href="#workflow" class="transition-colors hover:text-brand-red">{{ __('Workflow') }}</a>
+                    <a href="{{ route('holidays.calendar') }}" class="transition-colors hover:text-brand-red">{{ __('Calendar') }}</a>
                     <a href="{{ route('api.playground') }}" class="transition-colors hover:text-brand-red">{{ __('Playground') }}</a>
-                    <a href="{{ route('api.docs') }}" class="transition-colors hover:text-brand-red">{{ __('API Docs') }}</a>
                 </nav>
 
                 <div class="flex items-center gap-4">

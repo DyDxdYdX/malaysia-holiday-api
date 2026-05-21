@@ -11,6 +11,7 @@ use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Models\HolidayOverride;
 use App\Models\HolidaySource;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -18,6 +19,44 @@ Route::view('/api/docs', 'api.docs')->name('api.docs');
 Route::view('/api/playground', 'api.playground')->name('api.playground');
 Route::get('/holidays/calendar', HolidayCalendarController::class)
     ->name('holidays.calendar');
+Route::get('/sitemap.xml', function (): Response {
+    $lastModified = now()->toDateString();
+    $urls = [
+        route('home'),
+        route('api.docs'),
+        route('api.playground'),
+        route('holidays.calendar'),
+    ];
+
+    $entries = collect($urls)->map(function (string $url) use ($lastModified): string {
+        return implode('', [
+            '<url>',
+            '<loc>'.e($url).'</loc>',
+            '<lastmod>'.$lastModified.'</lastmod>',
+            '<changefreq>weekly</changefreq>',
+            '</url>',
+        ]);
+    })->implode('');
+
+    $xml = implode('', [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        $entries,
+        '</urlset>',
+    ]);
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
+Route::get('/robots.txt', function (): Response {
+    $content = implode(PHP_EOL, [
+        'User-agent: *',
+        'Allow: /',
+        'Sitemap: '.route('sitemap'),
+        '',
+    ]);
+
+    return response($content, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+})->name('robots');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

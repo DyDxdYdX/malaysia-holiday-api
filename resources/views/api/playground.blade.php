@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>API Playground – {{ config('app.name', 'Malaysia Holiday API') }}</title>
-        <meta name="description" content="Interactively explore and test the Malaysia Public Holiday REST API. Try all endpoints live in your browser.">
-        @fonts
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('partials.head', [
+            'title' => 'API Playground',
+            'description' => 'Test Malaysia Holiday API endpoints directly in your browser with interactive request parameters and live JSON responses.',
+            'canonical' => route('api.playground'),
+            'ogType' => 'website',
+        ])
     </head>
     <body class="app-shell antialiased">
         {{-- Header --}}
         <header class="sticky top-0 z-40 border-b border-app-outline bg-app-surface/90 backdrop-blur-lg">
             <div class="app-container flex h-16 items-center justify-between gap-4">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 font-extrabold tracking-tight text-brand-navy dark:text-white">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-white shadow-lg dark:bg-brand-red">
+                    <span class="flex size-9 items-center justify-center rounded-xl bg-white shadow-lg">
                         <img src="{{ asset('logo.png') }}" class="size-6" alt="{{ config('app.name') }}" />
                     </span>
                     <span class="text-xl">{{ config('app.name', 'Holiday API') }}</span>

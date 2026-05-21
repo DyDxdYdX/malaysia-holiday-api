@@ -1,9 +1,48 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+@php
+    $appName = config('app.name', 'Malaysia Holiday API');
+    $pageTitle = filled($title ?? null) ? $title.' - '.$appName : $appName;
+    $pageDescription = $description
+        ?? 'Trusted Malaysian public holiday API with state-level coverage, validated data imports, and production-ready endpoints.';
+    $pageCanonical = $canonical ?? url()->current();
+    $pageRobots = $robots
+        ?? (request()->routeIs(
+            'dashboard',
+            'admin.*',
+            'login',
+            'register',
+            'password.*',
+            'verification.*',
+            'two-factor.*',
+            'profile.*',
+            'appearance.*',
+            'security.*'
+        ) ? 'noindex, nofollow' : 'index, follow');
+    $openGraphType = $ogType ?? 'website';
+    $socialImage = $ogImage ?? asset('logo.png');
+@endphp
+
 <title>
-    {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
+    {{ $pageTitle }}
 </title>
+<meta name="description" content="{{ $pageDescription }}">
+<meta name="robots" content="{{ $pageRobots }}">
+
+<link rel="canonical" href="{{ $pageCanonical }}">
+
+<meta property="og:site_name" content="{{ $appName }}">
+<meta property="og:type" content="{{ $openGraphType }}">
+<meta property="og:title" content="{{ $pageTitle }}">
+<meta property="og:description" content="{{ $pageDescription }}">
+<meta property="og:url" content="{{ $pageCanonical }}">
+<meta property="og:image" content="{{ $socialImage }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $pageTitle }}">
+<meta name="twitter:description" content="{{ $pageDescription }}">
+<meta name="twitter:image" content="{{ $socialImage }}">
 
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
