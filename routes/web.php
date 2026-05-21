@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\HolidayOverrideController;
 use App\Http\Controllers\Admin\HolidaySourceController;
 use App\Http\Controllers\HolidayCalendarController;
 use App\Http\Controllers\SitemapController;
+use App\Livewire\Admin\AnalyticsDashboard;
 use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Models\HolidayOverride;
@@ -90,6 +91,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index');
+
+        Route::get('analytics', AnalyticsDashboard::class)
+            ->name('analytics');
 
     });
 
