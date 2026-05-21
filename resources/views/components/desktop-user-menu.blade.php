@@ -3,6 +3,7 @@
         :name="auth()->user()->name"
         :initials="auth()->user()->initials()"
         icon:trailing="chevrons-up-down"
+        avatar:class="bg-accent text-accent-foreground"
         data-test="sidebar-menu-button"
     />
 
@@ -11,6 +12,7 @@
             <flux:avatar
                 :name="auth()->user()->name"
                 :initials="auth()->user()->initials()"
+                class="bg-accent text-accent-foreground"
             />
             <div class="grid flex-1 text-start text-sm leading-tight">
                 <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>

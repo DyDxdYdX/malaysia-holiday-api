@@ -23,11 +23,12 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>API Documentation - {{ config('app.name', 'Malaysia Holiday API') }}</title>
-        @fonts
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @include('partials.head', [
+            'title' => 'API Documentation',
+            'description' => 'Reference documentation for Malaysia Holiday API v1 endpoints, parameters, examples, and error response formats.',
+            'canonical' => route('api.docs'),
+            'ogType' => 'article',
+        ])
     </head>
     <body class="app-shell antialiased">
         <header class="sticky top-0 z-40 border-b border-app-outline bg-app-surface/90 backdrop-blur">

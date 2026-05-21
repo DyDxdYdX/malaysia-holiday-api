@@ -5,6 +5,7 @@ use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Models\HolidaySource;
 use App\Models\User;
+use App\Support\MalaysiaStates;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -65,6 +66,22 @@ test('public holiday calendar is accessible and only shows published holidays', 
         ->assertSee('Holiday Calendar')
         ->assertSee('Published Day')
         ->assertDontSee('Draft Day');
+});
+
+test('public holiday calendar shows all states label for nationwide holidays', function () {
+    createHoliday([
+        'year' => 2026,
+        'state_codes' => implode(',', MalaysiaStates::codes()),
+        'name' => 'National Celebration Day',
+        'date' => '2026-03-10',
+        'scope' => 'federal',
+        'status' => 'published',
+    ]);
+
+    $this->get(route('holidays.calendar', ['year' => 2026, 'month' => 3]))
+        ->assertOk()
+        ->assertSee('National Celebration Day')
+        ->assertSee('All States · federal');
 });
 
 test('data admins can view holiday management index with filters', function () {
