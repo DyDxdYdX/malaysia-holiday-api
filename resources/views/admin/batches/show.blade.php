@@ -9,9 +9,16 @@
                     <p class="app-page-copy mt-1">{{ $batch->provider }} · {{ $batch->model }}</p>
                 @endif
             </div>
+            @php
+                $hasHolidaysMissingStates = $batch->holidays
+                    ->where('status', '!=', 'cancelled')
+                    ->contains(function ($holiday): bool {
+                        return $holiday->stateCodes() === [];
+                    });
+            @endphp
             <form method="POST" action="{{ route('admin.batches.publish', $batch) }}">
                 @csrf
-                <flux:button type="submit" variant="primary" icon="check-circle" :disabled="$batch->invalid_rows > 0 || $batch->status === 'draft'">{{ __('Publish') }}</flux:button>
+                <flux:button type="submit" variant="primary" icon="check-circle" :disabled="$batch->invalid_rows > 0 || $batch->status === 'draft' || $hasHolidaysMissingStates">{{ __('Publish') }}</flux:button>
             </form>
         </div>
 
@@ -55,7 +62,9 @@
                 </thead>
                 <tbody>
                     @forelse ($batch->importRows as $row)
-                        @php($payload = $row->normalized_payload ?? [])
+                        @php
+                            $payload = $row->normalized_payload ?? [];
+                        @endphp
                         <tr>
                             <td class="font-mono">{{ $row->row_number }}</td>
                             <td><span class="app-badge {{ $row->status === 'invalid' ? 'app-badge-red' : ($row->status === 'warning' ? 'app-badge-gold' : 'app-badge-navy') }}">{{ $row->status }}</span></td>
@@ -104,14 +113,21 @@
                             </label>
                         </th>
                         <th>{{ __('Date') }}</th>
-                        <th>{{ __('State') }}</th>
+                        <th>{{ __('States') }}</th>
                         <th>{{ __('Name') }}</th>
+                        <th>{{ __('Flags') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($batch->holidays as $holiday)
+                        @php
+                            $selectedStates = collect(old("state_codes.{$holiday->id}", $holiday->stateCodes()))
+                                ->map(fn (mixed $stateCode): string => (string) $stateCode)
+                                ->all();
+                            $stateErrorKey = "state_codes.{$holiday->id}";
+                        @endphp
                         <tr>
                             <td>
                                 @if ($holiday->status === 'draft')
@@ -119,13 +135,43 @@
                                 @endif
                             </td>
                             <td class="font-mono">{{ $holiday->date->toDateString() }}</td>
-                            <td><span class="app-badge app-badge-navy">{{ implode(', ', $holiday->stateCodes()) }}</span></td>
+                            <td class="min-w-80">
+                                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                                    @foreach ($stateOptions as $stateCode => $stateName)
+                                        <label class="inline-flex items-center gap-2 text-xs text-app-copy" title="{{ $stateName }}">
+                                            <input
+                                                type="checkbox"
+                                                name="state_codes[{{ $holiday->id }}][]"
+                                                value="{{ $stateCode }}"
+                                                {{ in_array($stateCode, $selectedStates, true) ? 'checked' : '' }}
+                                                {{ $holiday->status !== 'draft' ? 'disabled' : '' }}
+                                                class="h-4 w-4 rounded border-app-border text-brand-navy focus:ring-brand-navy disabled:opacity-50"
+                                            >
+                                            <span>{{ $stateCode }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                @error($stateErrorKey)
+                                    <p class="mt-2 text-sm text-brand-red">{{ $message }}</p>
+                                @enderror
+                                @if ($holiday->stateCodes() === [])
+                                    <p class="mt-2 text-xs font-semibold text-brand-gold">{{ __('State applicability requires manual review.') }}</p>
+                                @endif
+                            </td>
                             <td>{{ $holiday->name }}</td>
+                            <td>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="app-badge app-badge-navy">{{ $holiday->scope }}</span>
+                                    @if ($holiday->is_subject_to_change)
+                                        <span class="app-badge app-badge-gold">{{ __('Subject to change') }}</span>
+                                    @endif
+                                </div>
+                            </td>
                             <td><span class="app-badge {{ $holiday->status === 'published' ? 'app-badge-gold' : 'app-badge-red' }}">{{ $holiday->status }}</span></td>
                             <td><a class="admin-action-link" href="{{ route('admin.holidays.edit', $holiday) }}">{{ __('Edit') }}</a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="6">{{ __('No holidays in this batch.') }}</td></tr>
+                        <tr><td colspan="7">{{ __('No holidays in this batch.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

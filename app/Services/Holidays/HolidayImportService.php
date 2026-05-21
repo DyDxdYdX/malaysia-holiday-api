@@ -127,7 +127,7 @@ class HolidayImportService
             $normalizedPayload = $this->normalizePayload($this->payloadArray($row['normalized_payload'] ?? $rawPayload));
             $errors = array_values(array_filter([
                 ...$this->stringList($row['errors'] ?? []),
-                ...$this->validatePayload($normalizedPayload, $source),
+                ...$this->validatePayload($normalizedPayload, $source, $batch->import_method),
             ]));
             $warnings = array_values(array_filter($this->stringList($row['warnings'] ?? [])));
             $confidence = isset($row['confidence']) && is_numeric($row['confidence']) ? (float) $row['confidence'] : null;
@@ -182,11 +182,16 @@ class HolidayImportService
      * @param  array<string, mixed>  $payload
      * @return list<string>
      */
-    private function validatePayload(array $payload, HolidaySource $source): array
+    private function validatePayload(array $payload, HolidaySource $source, string $importMethod): array
     {
         $errors = [];
+        $requiredFields = ['year', 'name', 'date', 'scope', 'type'];
 
-        foreach (['year', 'state_codes', 'name', 'date', 'scope', 'type'] as $field) {
+        if ($importMethod !== 'pdf_ai') {
+            $requiredFields[] = 'state_codes';
+        }
+
+        foreach ($requiredFields as $field) {
             if (! isset($payload[$field]) || trim((string) $payload[$field]) === '') {
                 $errors[] = "Missing required value for {$field}.";
             }
@@ -202,7 +207,7 @@ class HolidayImportService
 
         $stateCodes = $this->parseStateCodes((string) $payload['state_codes']);
 
-        if ($stateCodes === []) {
+        if ($stateCodes === [] && $importMethod !== 'pdf_ai') {
             $errors[] = 'State codes are required.';
         }
 

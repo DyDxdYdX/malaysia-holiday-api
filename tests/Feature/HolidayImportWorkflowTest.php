@@ -248,7 +248,7 @@ test('data admin can approve selected draft holidays in a batch', function () {
         'holiday_source_id' => $source->id,
         'holiday_import_batch_id' => $otherBatch->id,
         'year' => 2026,
-        'state_codes' => 'SRW',
+        'state_codes' => 'SWK',
         'name' => 'Sarawak Day',
         'date' => '2026-07-22',
         'day_name' => 'Wednesday',
@@ -260,6 +260,10 @@ test('data admin can approve selected draft holidays in a batch', function () {
 
     $response = $this->actingAs($user)->post(route('admin.batches.approve-selected', $batch), [
         'holiday_ids' => [$firstHoliday->id, $otherBatchHoliday->id],
+        'state_codes' => [
+            $firstHoliday->id => ['SBH'],
+            $otherBatchHoliday->id => ['SWK'],
+        ],
     ]);
 
     $response->assertRedirect(route('admin.batches.show', $batch));
@@ -267,4 +271,126 @@ test('data admin can approve selected draft holidays in a batch', function () {
     expect($firstHoliday->fresh()->status)->toBe('confirmed')
         ->and($secondHoliday->fresh()->status)->toBe('draft')
         ->and($otherBatchHoliday->fresh()->status)->toBe('draft');
+});
+
+test('data admin must select states before approving draft holidays', function () {
+    $user = adminUser();
+    $source = holidaySource([
+        'uploaded_by' => $user->id,
+    ]);
+
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 1,
+        'imported_by' => $user->id,
+    ]);
+
+    $holiday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Tahun Baharu Cina',
+        'date' => '2026-02-17',
+        'day_name' => 'Selasa',
+        'scope' => 'federal',
+        'type' => 'federal',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('admin.batches.approve-selected', $batch), [
+            'holiday_ids' => [$holiday->id],
+        ])
+        ->assertRedirect(route('admin.batches.show', $batch))
+        ->assertSessionHasErrors(["state_codes.{$holiday->id}"]);
+
+    expect($holiday->fresh()->status)->toBe('draft')
+        ->and($holiday->fresh()->stateCodes())->toBe([]);
+});
+
+test('data admin can approve draft holidays with inline state selections', function () {
+    $user = adminUser();
+    $source = holidaySource([
+        'uploaded_by' => $user->id,
+    ]);
+
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 1,
+        'imported_by' => $user->id,
+    ]);
+
+    $holiday = Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Tahun Baharu Cina',
+        'date' => '2026-02-17',
+        'day_name' => 'Selasa',
+        'scope' => 'federal',
+        'type' => 'federal',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('admin.batches.approve-selected', $batch), [
+            'holiday_ids' => [$holiday->id],
+            'state_codes' => [
+                $holiday->id => ['KUL', 'SBH'],
+            ],
+        ])
+        ->assertRedirect(route('admin.batches.show', $batch));
+
+    expect($holiday->fresh()->status)->toBe('confirmed')
+        ->and($holiday->fresh()->state_codes)->toBe('KUL,SBH');
+});
+
+test('batch publish is blocked while holidays are missing states', function () {
+    $user = adminUser();
+    $source = holidaySource([
+        'uploaded_by' => $user->id,
+    ]);
+
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 1,
+        'imported_by' => $user->id,
+    ]);
+
+    Holiday::query()->create([
+        'holiday_source_id' => $source->id,
+        'holiday_import_batch_id' => $batch->id,
+        'year' => 2026,
+        'name' => 'Tahun Baharu Cina',
+        'date' => '2026-02-17',
+        'day_name' => 'Selasa',
+        'scope' => 'federal',
+        'type' => 'federal',
+        'is_subject_to_change' => false,
+        'status' => 'draft',
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('admin.batches.publish', $batch))
+        ->assertStatus(422);
 });

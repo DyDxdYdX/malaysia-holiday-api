@@ -4,9 +4,7 @@ namespace App\Jobs;
 
 use App\Ai\Agents\HolidayPdfExtractionAgent;
 use App\Models\HolidayImportBatch;
-use App\Services\Holidays\DetectedHolidayGridRow;
 use App\Services\Holidays\HolidayImportService;
-use App\Services\Holidays\HolidayPdfGridExtractor;
 use App\Support\AuditLogger;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -32,11 +30,9 @@ class ExtractHolidayPdf implements ShouldQueue
      */
     public function handle(
         HolidayImportService $imports,
-        ?HolidayPdfGridExtractor $gridExtractor = null,
         ?AuditLogger $auditLogger = null,
     ): void {
         $auditLogger ??= app(AuditLogger::class);
-        $gridExtractor ??= app(HolidayPdfGridExtractor::class);
         $batch = HolidayImportBatch::query()
             ->with('source')
             ->findOrFail($this->batchId);
@@ -64,34 +60,7 @@ class ExtractHolidayPdf implements ShouldQueue
             model: $model,
             timeout: $this->timeout,
         );
-        $responsePayload = $response->toArray();
-        $gridRows = $gridExtractor->extract($batch->source->file_path, is_array($responsePayload['rows'] ?? null) ? $responsePayload['rows'] : []);
-
-        if (! $this->hasUsableGridEvidence($gridRows)) {
-            $responsePayload['grid_extraction_error'] = 'Code-owned checkmark grid extraction did not produce usable state applicability evidence.';
-
-            $batch->update([
-                'ai_raw_response' => $responsePayload,
-            ]);
-
-            $imports->markFailed($batch, 'Unable to extract state applicability from the PDF checkmark grid. No holiday rows were imported because state_codes must come from code-owned grid detection.');
-            $auditLogger->logSystem(
-                action: 'pdf_parse_completed',
-                entityType: 'holiday_import_batch',
-                entityId: $batch->id,
-                newValues: [
-                    'status' => 'rejected',
-                    'failure_reason' => $batch->fresh()?->failure_reason,
-                ],
-            );
-
-            return;
-        }
-
-        $responsePayload = $this->mergeGridDetection(
-            $responsePayload,
-            $gridRows,
-        );
+        $responsePayload = $this->prepareManualStateReviewRows($response->toArray());
 
         $batch->update([
             'ai_raw_response' => $responsePayload,
@@ -128,46 +97,24 @@ class ExtractHolidayPdf implements ShouldQueue
 
     private function prompt(HolidayImportBatch $batch): string
     {
-        return "Extract text metadata for public holiday rows for source year {$batch->year}. Do not extract or infer state applicability; state checkmarks are processed separately by code.";
+        return "Extract text metadata for public holiday rows for source year {$batch->year}. Do not extract or infer state applicability; admins will choose state applicability manually.";
     }
 
     /**
      * @param  array<string, mixed>  $response
-     * @param  array<int, DetectedHolidayGridRow>  $gridRows
      * @return array<string, mixed>
      */
-    private function mergeGridDetection(array $response, array $gridRows): array
+    private function prepareManualStateReviewRows(array $response): array
     {
         $rows = is_array($response['rows'] ?? null) ? $response['rows'] : [];
 
-        $response['rows'] = array_values(array_map(function (mixed $row, int $index) use ($gridRows): array {
+        $response['rows'] = array_values(array_map(function (mixed $row, int $index): array {
             $row = is_array($row) ? $row : [];
             $rowNumber = (int) ($row['row_number'] ?? $index + 1);
-            $gridRow = $gridRows[$rowNumber] ?? new DetectedHolidayGridRow(
-                rowNumber: $rowNumber,
-                checkedColumns: [],
-                uncheckedColumns: [],
-                uncertainColumns: HolidayPdfGridExtractor::STATE_CODES,
-                confidence: 0.0,
-                warnings: ['No code-owned grid detection was available for this AI text row.'],
-            );
-
-            $checkedColumns = $this->stateCodeList($gridRow->checkedColumns);
-            $uncheckedColumns = $this->stateCodeList($gridRow->uncheckedColumns);
-            $uncertainColumns = $this->stateCodeList($gridRow->uncertainColumns);
             $warnings = array_values(array_unique(array_merge(
                 $this->stringList($row['warnings'] ?? []),
-                $gridRow->warnings,
+                ['State applicability requires manual review.'],
             )));
-
-            if (array_intersect($checkedColumns, $uncheckedColumns) !== []) {
-                $warnings[] = 'Grid detection listed a column as both checked and unchecked; unchecked wins.';
-                $checkedColumns = array_values(array_diff($checkedColumns, $uncheckedColumns));
-            }
-
-            if ($uncertainColumns !== []) {
-                $warnings[] = 'Some state columns are uncertain: '.implode(', ', $uncertainColumns);
-            }
 
             $source = is_array($row['source'] ?? null) ? $row['source'] : [];
             $rawText = (string) ($source['raw_row_text'] ?? '');
@@ -180,39 +127,18 @@ class ExtractHolidayPdf implements ShouldQueue
                 'day_name' => $row['day_name'] ?? null,
                 'marker' => $row['marker'] ?? null,
                 'scope' => $this->scopeFromMarker($row['marker'] ?? null, $row['scope'] ?? null),
-                'checked_columns' => $checkedColumns,
-                'unchecked_columns' => $uncheckedColumns,
-                'uncertain_columns' => $uncertainColumns,
-                'state_codes' => $checkedColumns,
+                'state_codes' => [],
                 'type' => $this->typeFromMarker($row['marker'] ?? null),
                 'is_subject_to_change' => (bool) ($row['is_subject_to_change'] ?? false)
                     || str_contains((string) ($row['name'] ?? ''), '*')
                     || str_contains($rawText, '*'),
                 'source' => $row['source'] ?? null,
                 'warnings' => $warnings,
-                'confidence' => min($this->confidence($row['confidence'] ?? null), $gridRow->confidence),
+                'confidence' => $this->confidence($row['confidence'] ?? null),
             ];
         }, $rows, array_keys($rows)));
 
         return $response;
-    }
-
-    /**
-     * @param  array<int, DetectedHolidayGridRow>  $gridRows
-     */
-    private function hasUsableGridEvidence(array $gridRows): bool
-    {
-        if ($gridRows === []) {
-            return false;
-        }
-
-        foreach ($gridRows as $gridRow) {
-            if ($gridRow->checkedColumns !== [] || $gridRow->uncheckedColumns !== []) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -281,25 +207,6 @@ class ExtractHolidayPdf implements ShouldQueue
             'N' => 'state',
             default => 'custom',
         };
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function stateCodeList(mixed $value): array
-    {
-        if (is_string($value)) {
-            $value = explode(',', $value);
-        }
-
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_unique(array_filter(array_map(
-            fn (mixed $code): string => strtoupper(trim((string) $code)),
-            $value,
-        ), fn (string $code): bool => in_array($code, HolidayPdfGridExtractor::STATE_CODES, true))));
     }
 
     /**

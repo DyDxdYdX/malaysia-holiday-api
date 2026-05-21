@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Support\AuditLogger;
+use App\Support\MalaysiaStates;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class HolidayImportBatchController extends Controller
@@ -39,6 +41,7 @@ class HolidayImportBatchController extends Controller
         $response = response()->view('admin.batches.show', [
             'batch' => $batch,
             'isPdfExtractionPending' => $isPdfExtractionPending,
+            'stateOptions' => MalaysiaStates::options(),
         ]);
 
         if ($isPdfExtractionPending) {
@@ -51,6 +54,14 @@ class HolidayImportBatchController extends Controller
     public function publish(Request $request, HolidayImportBatch $batch, AuditLogger $auditLogger): RedirectResponse
     {
         abort_if($batch->invalid_rows > 0, 422, 'Batch still has unresolved invalid rows.');
+        abort_if(
+            $batch->holidays()
+                ->where('status', '!=', 'cancelled')
+                ->whereDoesntHave('states')
+                ->exists(),
+            422,
+            'Batch still has holidays without state selections.'
+        );
 
         $oldBatchValues = $batch->toArray();
         $batch->holidays()
@@ -90,9 +101,13 @@ class HolidayImportBatchController extends Controller
         $validated = $request->validate([
             'holiday_ids' => ['required', 'array'],
             'holiday_ids.*' => ['integer'],
+            'state_codes' => ['nullable', 'array'],
+            'state_codes.*' => ['array', 'min:1'],
+            'state_codes.*.*' => ['string', 'distinct', Rule::in(MalaysiaStates::codes())],
         ]);
 
         $selectedHolidayIds = array_map('intval', $validated['holiday_ids']);
+        $stateSelections = $this->stateSelections($request->input('state_codes', []));
 
         $holidays = Holiday::query()
             ->where('holiday_import_batch_id', $batch->id)
@@ -107,7 +122,16 @@ class HolidayImportBatchController extends Controller
         }
 
         foreach ($holidays as $holiday) {
+            $stateCodes = $stateSelections[$holiday->id] ?? [];
+
+            if ($stateCodes === []) {
+                return redirect()
+                    ->route('admin.batches.show', $batch)
+                    ->withErrors(["state_codes.{$holiday->id}" => 'Select at least one state before approving this holiday.']);
+            }
+
             $oldValues = $holiday->toArray();
+            $holiday->syncStateCodes($stateCodes);
             $holiday->update(['status' => 'confirmed']);
 
             $auditLogger->logFromRequest(
@@ -123,5 +147,32 @@ class HolidayImportBatchController extends Controller
         return redirect()
             ->route('admin.batches.show', $batch)
             ->with('status', "{$holidays->count()} holiday(s) approved.");
+    }
+
+    /**
+     * @return array<int, list<string>>
+     */
+    private function stateSelections(mixed $stateSelections): array
+    {
+        if (! is_array($stateSelections)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($stateSelections as $holidayId => $stateCodes) {
+            if (! is_array($stateCodes)) {
+                continue;
+            }
+
+            $normalized[(int) $holidayId] = collect($stateCodes)
+                ->map(fn (mixed $stateCode): string => strtoupper(trim((string) $stateCode)))
+                ->filter(fn (string $stateCode): bool => in_array($stateCode, MalaysiaStates::codes(), true))
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return $normalized;
     }
 }

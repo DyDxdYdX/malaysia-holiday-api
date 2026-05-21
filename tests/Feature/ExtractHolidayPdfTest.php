@@ -9,7 +9,6 @@ use App\Models\HolidayImportRow;
 use App\Models\HolidaySource;
 use App\Models\User;
 use App\Services\Holidays\HolidayImportService;
-use App\Services\Holidays\HolidayPdfGridExtractor;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
@@ -129,26 +128,6 @@ test('pdf extraction rejects non pdf sources', function () {
 test('pdf extraction job stores ai rows warnings counts and draft holidays', function () {
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
-    Storage::put('sources/hka-2026.grid.json', json_encode([
-        'rows' => [
-            [
-                'row_number' => 4,
-                'checked_columns' => ['SBH'],
-                'unchecked_columns' => array_values(array_diff(HolidayPdfGridExtractor::STATE_CODES, ['SBH'])),
-                'uncertain_columns' => [],
-                'confidence' => 0.99,
-                'warnings' => [],
-            ],
-            [
-                'row_number' => 5,
-                'checked_columns' => ['KUL'],
-                'unchecked_columns' => array_values(array_diff(HolidayPdfGridExtractor::STATE_CODES, ['KUL'])),
-                'uncertain_columns' => [],
-                'confidence' => 0.89,
-                'warnings' => [],
-            ],
-        ],
-    ]));
 
     $user = User::factory()->create(['role' => 'data_admin']);
     $source = HolidaySource::create([
@@ -220,7 +199,7 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
         ->status->toBe('review_required')
         ->total_rows->toBe(2)
         ->valid_rows->toBe(2)
-        ->warning_rows->toBe(1)
+        ->warning_rows->toBe(2)
         ->invalid_rows->toBe(0)
         ->ai_raw_response->toBeArray()
         ->and($batch->refresh()->ai_raw_response['extraction_notes'] ?? null)->toBe('Extracted from table.')
@@ -228,24 +207,16 @@ test('pdf extraction job stores ai rows warnings counts and draft holidays', fun
         ->and(Holiday::query()->where('status', 'draft')->count())->toBe(2)
         ->and(AuditLog::query()->where('action', 'pdf_parse_completed')->exists())->toBeTrue();
 
+    expect(HolidayImportRow::query()->firstOrFail()->warnings)
+        ->toContain('State applicability requires manual review.')
+        ->and(Holiday::query()->firstOrFail()->stateCodes())->toBe([]);
+
     HolidayPdfExtractionAgent::assertPrompted(fn ($prompt): bool => $prompt->attachments->isNotEmpty());
 });
 
-test('pdf extraction ignores ai state codes and uses code grid detection only', function () {
+test('pdf extraction ignores ai state codes and leaves states for manual review', function () {
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
-    Storage::put('sources/hka-2026.grid.json', json_encode([
-        'rows' => [
-            [
-                'row_number' => 46,
-                'checked_columns' => ['KUL', 'LBN'],
-                'unchecked_columns' => array_values(array_diff(HolidayPdfGridExtractor::STATE_CODES, ['KUL', 'LBN', 'SWK'])),
-                'uncertain_columns' => ['SWK'],
-                'confidence' => 0.82,
-                'warnings' => [],
-            ],
-        ],
-    ]));
 
     $user = User::factory()->create(['role' => 'data_admin']);
     $source = HolidaySource::create([
@@ -279,7 +250,7 @@ test('pdf extraction ignores ai state codes and uses code grid detection only', 
                 'day_name' => 'Ahad',
                 'marker' => 'P',
                 'scope' => 'federal',
-                'state_codes' => HolidayPdfGridExtractor::STATE_CODES,
+                'state_codes' => ['KUL', 'LBN', 'PJY', 'JHR', 'KDH', 'KTN', 'MLK', 'NSN', 'PHG', 'PRK', 'PLS', 'PNG', 'SBH', 'SWK', 'SGR', 'TRG'],
                 'is_subject_to_change' => false,
                 'source' => [
                     'page_number' => 6,
@@ -300,22 +271,20 @@ test('pdf extraction ignores ai state codes and uses code grid detection only', 
     $holiday = Holiday::query()->firstOrFail();
 
     expect($row->raw_payload)
-        ->state_codes->toBe(['KUL', 'LBN'])
-        ->checked_columns->toBe(['KUL', 'LBN'])
-        ->unchecked_columns->not->toContain('SWK')
+        ->state_codes->toBe([])
         ->is_subject_to_change->toBeTrue()
-        ->warnings->toContain('Some state columns are uncertain: SWK')
-        ->confidence->toBe(0.82)
+        ->warnings->toContain('State applicability requires manual review.')
+        ->confidence->toBe(0.98)
         ->and($row->normalized_payload)
-        ->state_codes->toBe('KUL,LBN')
+        ->state_codes->toBe('')
         ->is_subject_to_change->toBeTrue()
         ->source_note->toContain('Page 6')
         ->and($holiday)
-        ->state_codes->toBe('KUL,LBN')
+        ->state_codes->toBe('')
         ->is_subject_to_change->toBeTrue();
 });
 
-test('pdf extraction rejects batch when grid evidence is unavailable', function () {
+test('batch review displays manual state checkboxes for pdf draft holidays', function () {
     Storage::fake();
     Storage::put('sources/hka-2026.pdf', 'fake pdf content');
 
@@ -367,10 +336,13 @@ test('pdf extraction rejects batch when grid evidence is unavailable', function 
 
     (new ExtractHolidayPdf($batch->id))->handle(app(HolidayImportService::class));
 
-    expect($batch->refresh())
-        ->status->toBe('rejected')
-        ->failure_reason->toBe('Unable to extract state applicability from the PDF checkmark grid. No holiday rows were imported because state_codes must come from code-owned grid detection.')
-        ->ai_raw_response->grid_extraction_error->toBe('Code-owned checkmark grid extraction did not produce usable state applicability evidence.')
-        ->and(HolidayImportRow::query()->count())->toBe(0)
-        ->and(Holiday::query()->count())->toBe(0);
+    $holiday = Holiday::query()->firstOrFail();
+
+    $this->actingAs($user)
+        ->get(route('admin.batches.show', $batch->refresh()))
+        ->assertOk()
+        ->assertSee('State applicability requires manual review.')
+        ->assertSee('name="state_codes['.$holiday->id.'][]"', false)
+        ->assertSee('value="KUL"', false)
+        ->assertSee('value="SBH"', false);
 });
