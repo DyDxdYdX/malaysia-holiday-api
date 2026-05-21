@@ -1,6 +1,6 @@
 # API Reference - Malaysia Public Holiday API
 
-Base URL: `http://malaysia-holday-api.test/api/v1`  
+Base URL: `http://malaysia-holiday-api.test/api/v1`  
 Response format: `application/json`  
 Version: `v1`
 
@@ -8,7 +8,7 @@ Version: `v1`
 
 Test all endpoints live in the browser — no Postman, no API key:
 
-**[Open API Playground →](http://malaysia-holday-api.test/api/playground)**
+**[Open API Playground →](http://malaysia-holiday-api.test/api/playground)**
 
 ## Authentication
 

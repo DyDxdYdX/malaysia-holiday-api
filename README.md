@@ -92,8 +92,8 @@ Official source reference: [www.kabinet.gov.my/hari-kelepasan-am](https://www.ka
 ### Installation
 
 ```bash
-git clone https://github.com/DyDxdYdX/malaysia-holday-api.git
-cd malaysia-holday-api
+git clone https://github.com/DyDxdYdX/malaysia-holiday-api.git
+cd malaysia-holiday-api
 
 composer install
 npm install
@@ -113,7 +113,7 @@ npm run build
 The app is served automatically by [Laravel Herd](https://herd.laravel.com/) at:
 
 ```
-https://malaysia-holday-api.test
+https://malaysia-holiday-api.test
 ```
 
 ---
