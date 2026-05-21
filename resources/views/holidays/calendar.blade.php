@@ -9,7 +9,7 @@
             @include('partials.head', [
                 'title' => $title,
                 'description' => $subtitle ?? 'Browse published holidays in Malaysia.',
-                'canonical' => route('holidays.calendar'),
+                'canonical' => route('holidays.calendar', array_filter(['year' => $filters['year'] ?? null, 'state_code' => $filters['state_code'] ?? null])),
                 'ogType' => 'website',
             ])
         </head>

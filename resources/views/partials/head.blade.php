@@ -24,9 +24,7 @@
     $socialImage = $ogImage ?? asset('logo.png');
 @endphp
 
-<title>
-    {{ $pageTitle }}
-</title>
+<title>{{ $pageTitle }}</title>
 <meta name="description" content="{{ $pageDescription }}">
 <meta name="robots" content="{{ $pageRobots }}">
 

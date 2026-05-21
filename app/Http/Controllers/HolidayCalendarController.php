@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Holiday;
 use App\Support\HolidayCalendarBuilder;
+use App\Support\MalaysiaStates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
@@ -33,9 +34,29 @@ class HolidayCalendarController extends Controller
             ->with('states')
             ->get();
 
+        $stateName = MalaysiaStates::options()[$stateCode] ?? '';
+
+        if ($stateName !== '') {
+            $title = __(':state Public Holidays :year Calendar', [
+                'state' => $stateName,
+                'year' => $resolvedYear,
+            ]);
+            $subtitle = __('Browse official public holidays, state holidays, and long weekends in :state, Malaysia for :year.', [
+                'state' => $stateName,
+                'year' => $resolvedYear,
+            ]);
+        } else {
+            $title = __('Malaysia Public Holidays :year Calendar', [
+                'year' => $resolvedYear,
+            ]);
+            $subtitle = __('Browse official national public holidays, state-level holidays, and federal holidays in Malaysia for :year.', [
+                'year' => $resolvedYear,
+            ]);
+        }
+
         return view('holidays.calendar', [
-            'title' => __('Holiday Calendar'),
-            'subtitle' => __('Browse published holidays for the selected year.'),
+            'title' => $title,
+            'subtitle' => $subtitle,
             'filters' => [
                 'year' => (string) $resolvedYear,
                 'month' => (string) $resolvedMonth,

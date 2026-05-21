@@ -63,7 +63,7 @@ test('public holiday calendar is accessible and only shows published holidays', 
 
     $this->get(route('holidays.calendar', ['year' => 2026]))
         ->assertOk()
-        ->assertSee('Holiday Calendar')
+        ->assertSee('Public Holidays')
         ->assertSee('Published Day')
         ->assertDontSee('Draft Day');
 });
