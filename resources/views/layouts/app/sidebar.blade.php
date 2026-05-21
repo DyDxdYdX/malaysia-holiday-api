@@ -60,6 +60,7 @@
                 <flux:profile
                     :initials="auth()->user()->initials()"
                     icon-trailing="chevron-down"
+                    avatar:class="bg-accent text-accent-foreground"
                 />
 
                 <flux:menu>
@@ -69,6 +70,7 @@
                                 <flux:avatar
                                     :name="auth()->user()->name"
                                     :initials="auth()->user()->initials()"
+                                    class="bg-accent text-accent-foreground"
                                 />
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
