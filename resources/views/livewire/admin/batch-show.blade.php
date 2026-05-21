@@ -163,7 +163,7 @@
                                         @if ($holiday->status === 'draft' && $batch->status !== 'published')
                                             <flux:dropdown>
                                                 <flux:button size="xs" variant="subtle" icon="pencil-square" class="cursor-pointer ml-1" square />
-                                                <flux:menu class="max-h-64 overflow-y-auto">
+                                                <flux:menu class="max-h-64 overflow-y-auto" keep-open>
                                                     <div class="px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                                         {{ __('Select States') }}
                                                     </div>
