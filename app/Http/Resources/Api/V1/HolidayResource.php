@@ -28,8 +28,6 @@ class HolidayResource extends JsonResource
                 empty($stateFilter),
                 fn () => $this->stateCodes()
             ),
-            'scope' => $this->scope,
-            'type' => $this->type,
             'is_subject_to_change' => $this->is_subject_to_change,
             'source' => $this->when(
                 $request->boolean('include_source') && $this->relationLoaded('source'),
