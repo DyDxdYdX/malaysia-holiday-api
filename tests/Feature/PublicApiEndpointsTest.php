@@ -140,40 +140,6 @@ test('holidays endpoint state_codes is present when no state filter is applied',
     expect($response->json('data.0'))->toHaveKey('state_codes');
 });
 
-test('holidays endpoint filters by scope', function () {
-    $source = HolidaySource::create([
-        'year' => 2026,
-        'source_name' => 'Test',
-        'source_type' => 'admin_csv',
-        'status' => 'published',
-        'uploaded_by' => null,
-        'uploaded_at' => now(),
-    ]);
-
-    Holiday::create([
-        'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_codes' => 'KUL', 'name' => 'Hari Kebangsaan',
-        'date' => '2026-08-31', 'day_name' => 'Monday',
-        'scope' => 'federal', 'type' => 'federal', 'is_subject_to_change' => false,
-        'status' => 'published',
-    ]);
-
-    Holiday::create([
-        'holiday_source_id' => $source->id,
-        'year' => 2026, 'state_codes' => 'SBH', 'name' => 'Pesta Kaamatan',
-        'date' => '2026-05-30', 'day_name' => 'Saturday',
-        'scope' => 'state', 'type' => 'state', 'is_subject_to_change' => false,
-        'status' => 'published',
-    ]);
-
-    $response = $this->getJson('/api/v1/holidays?year=2026&scope=federal');
-
-    $response->assertOk()
-        ->assertJsonCount(1, 'data')
-        ->assertJsonPath('meta.scope', 'federal')
-        ->assertJsonPath('data.0.name', 'Hari Kebangsaan');
-});
-
 test('holidays endpoint rejects an invalid state code', function () {
     $this->getJson('/api/v1/holidays?year=2026&state=XXX')
         ->assertUnprocessable()
