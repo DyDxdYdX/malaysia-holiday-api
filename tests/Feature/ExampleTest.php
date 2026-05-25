@@ -5,5 +5,5 @@ test('returns a successful response', function () {
 
     $response
         ->assertOk()
-        ->assertSee('A high-integrity API for state-level holiday data.');
+        ->assertSee('A free, high-integrity public holiday API for Malaysia');
 });

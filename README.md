@@ -60,7 +60,6 @@ Official source reference: [www.kabinet.gov.my/hari-kelepasan-am](https://www.ka
 - 🔁 **Manual overrides** — add, remove, rename, or replace published holidays with a full audit trail
 - 🔍 **Date check endpoint** — query whether a specific date is a holiday in a given state
 - 📋 **Source traceability** — every holiday is linked to its import source or override record
-- 🔐 **Role-based access** — super admin and data admin roles with separate permissions
 - 🗒️ **Audit logging** — all create, update, publish, and override actions are logged
 
 ---

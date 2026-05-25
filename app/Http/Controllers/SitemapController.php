@@ -77,6 +77,8 @@ class SitemapController extends Controller
         $content = implode(PHP_EOL, [
             'User-agent: *',
             'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /admin/',
             'Sitemap: '.route('sitemap'),
             '',
         ]);

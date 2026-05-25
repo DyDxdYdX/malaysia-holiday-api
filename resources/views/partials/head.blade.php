@@ -5,7 +5,7 @@
     $appName = config('app.name', 'Malaysia Holiday API');
     $pageTitle = filled($title ?? null) ? $title.' - '.$appName : $appName;
     $pageDescription = $description
-        ?? 'Trusted Malaysian public holiday API with state-level coverage, validated data imports, and production-ready endpoints.';
+        ?? 'A free, reliable, and verified public holiday API for Malaysia with state-level coverage and integrations for Python, JavaScript, and cURL.';
     $pageCanonical = $canonical ?? url()->current();
     $pageRobots = $robots
         ?? (request()->routeIs(

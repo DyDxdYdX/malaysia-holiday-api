@@ -2,8 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         @include('partials.head', [
-            'title' => config('app.name', 'Malaysia Holiday API'),
-            'description' => 'Malaysia Holiday API provides reliable federal and state public holiday data with official-source review workflows and versioned REST endpoints.',
+            'title' => 'Malaysia Public Holiday API | Free & Verified Holiday Data',
+            'description' => 'A free, reliable, and verified public holiday API for Malaysia with state-level coverage and easy integrations for Python, JavaScript, and cURL.',
             'canonical' => route('home'),
             'ogType' => 'website',
         ])
@@ -52,13 +52,13 @@
                                 <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-gold opacity-75"></span>
                                 <span class="relative inline-flex size-2 rounded-full bg-brand-gold"></span>
                             </span>
-                            {{ __('Verified Malaysian Holiday Data') }}
+                            {{ __('Free Malaysia Public Holiday API') }}
                         </div>
                         <h1 class="mt-8 text-5xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl xl:text-7xl">
-                            {{ __('The Source of Truth for') }} <span class="text-brand-gold">{{ __('Malaysian') }}</span> {{ __('Holidays.') }}
+                            {{ __('The Free') }} <span class="text-brand-gold">{{ __('Malaysia Public Holiday') }}</span> {{ __('API.') }}
                         </h1>
                         <p class="mt-8 max-w-xl text-lg leading-relaxed text-slate-300">
-                            {{ __('A high-integrity API for state-level holiday data. Powered by official source imports, rigorous admin review, and transparent audit trails.') }}
+                            {{ __('A free, high-integrity public holiday API for Malaysia with federal and state-level coverage. Powered by verified source imports, it is the perfect source of truth for your applications, databases, or Python holidays integration.') }}
                         </p>
                         <div class="mt-12 flex flex-wrap gap-5">
                             <flux:button :href="url('/api/v1/holidays?year=2026')" variant="primary" class="!px-8 !py-4 text-base">{{ __('Try the API') }}</flux:button>
@@ -66,20 +66,26 @@
                         </div>
                     </div>
 
-                    <div class="relative">
+                    <div class="relative" x-data="{ activeTab: 'response' }">
                         <div class="absolute -inset-4 rounded-[2rem] bg-brand-gold/10 blur-2xl"></div>
                         <div class="relative overflow-hidden rounded-2xl border border-white/10 bg-app-code shadow-2xl">
-                            <div class="flex items-center justify-between border-b border-white/5 bg-white/5 px-4 py-3">
+                            <div class="flex items-center justify-between border-b border-white/5 bg-white/5 px-4 py-2">
                                 <div class="flex gap-1.5">
-                                    <div class="size-3 rounded-full bg-red-500/50"></div>
-                                    <div class="size-3 rounded-full bg-amber-500/50"></div>
-                                    <div class="size-3 rounded-full bg-emerald-500/50"></div>
+                                    <button @click="activeTab = 'response'" :class="activeTab === 'response' ? 'bg-white/10 text-brand-gold font-bold' : 'text-slate-400 hover:text-slate-200'" class="rounded px-2.5 py-1 font-mono text-[11px] tracking-wide transition-all uppercase cursor-pointer">
+                                        JSON Response
+                                    </button>
+                                    <button @click="activeTab = 'curl'" :class="activeTab === 'curl' ? 'bg-white/10 text-brand-gold font-bold' : 'text-slate-400 hover:text-slate-200'" class="rounded px-2.5 py-1 font-mono text-[11px] tracking-wide transition-all uppercase cursor-pointer">
+                                        cURL
+                                    </button>
+                                    <button @click="activeTab = 'python'" :class="activeTab === 'python' ? 'bg-white/10 text-brand-gold font-bold' : 'text-slate-400 hover:text-slate-200'" class="rounded px-2.5 py-1 font-mono text-[11px] tracking-wide transition-all uppercase cursor-pointer">
+                                        Python
+                                    </button>
                                 </div>
-                                <div class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">GET /api/v1/holidays</div>
-                                <div class="size-4"></div>
+                                <div class="hidden sm:block text-[10px] font-bold tracking-widest text-slate-500 uppercase">GET /api/v1/holidays</div>
                             </div>
                             <div class="p-6">
-                                <pre class="font-mono text-sm leading-relaxed text-slate-300"><code>{
+                                <div x-show="activeTab === 'response'">
+                                    <pre class="font-mono text-sm leading-relaxed text-slate-300"><code>{
   <span class="text-brand-gold">"year"</span>: 2026,
   <span class="text-brand-gold">"state_code"</span>: "SBH",
   <span class="text-brand-gold">"data"</span>: [
@@ -93,6 +99,24 @@
     }
   ]
 }</code></pre>
+                                </div>
+                                <div x-show="activeTab === 'curl'" style="display: none;">
+                                    <pre class="font-mono text-sm leading-relaxed text-slate-300"><code><span class="text-brand-gold">curl</span> -X GET <span class="text-emerald-400">"{{ url('/api/v1/holidays?year=2026&state_code=SBH') }}"</span></code></pre>
+                                </div>
+                                <div x-show="activeTab === 'python'" style="display: none;">
+                                    <pre class="font-mono text-sm leading-relaxed text-slate-300"><code><span class="text-brand-gold">import</span> requests
+
+<span class="text-slate-500"># Query Malaysia public holidays (python holidays malaysia)</span>
+url = <span class="text-emerald-400">"{{ url('/api/v1/holidays') }}"</span>
+params = {
+    <span class="text-brand-gold">"year"</span>: 2026,
+    <span class="text-brand-gold">"state_code"</span>: <span class="text-emerald-400">"SBH"</span>
+}
+
+response = requests.get(url, params=params)
+holidays = response.json()
+print(holidays)</code></pre>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -124,7 +148,7 @@
 
                     <div class="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                         @foreach ([
-                            ['Official sources', 'archive-box', 'Store PDFs, gazettes, and official state calendars with cryptographic checksums.'],
+                            ['Verified sources', 'archive-box', 'Store PDFs, gazettes, and public state calendars with cryptographic checksums.'],
                             ['Import workflow', 'document-arrow-up', 'Seamless CSV ingestion with automated validation and batch-level review.'],
                             ['Admin review', 'shield-check', 'Expert review interface to confirm or reject holidays before they hit production.'],
                             ['State granularity', 'map', 'Full support for federal, state, and regional holidays with precise geographical scoping.'],
@@ -152,7 +176,7 @@
                                 {{ __('From PDF to API in') }} <span class="italic text-brand-gold">{{ __('minutes') }}</span>.
                             </h2>
                             <p class="mt-6 text-lg leading-relaxed text-slate-300">
-                                {{ __('Our multi-stage pipeline ensures that every single holiday record is backed by an official document and verified by a human administrator.') }}
+                                {{ __('Our multi-stage pipeline ensures that every single holiday record is backed by a verified document and confirmed by a human administrator.') }}
                             </p>
 
                             <div class="mt-12 space-y-8">
@@ -160,7 +184,7 @@
                                     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-brand-gold">1</div>
                                     <div>
                                         <h4 class="text-lg font-bold">{{ __('Source Ingestion') }}</h4>
-                                        <p class="mt-1 text-slate-400">{{ __('Upload official gazettes or state announcements. Each source is tracked and archived.') }}</p>
+                                        <p class="mt-1 text-slate-400">{{ __('Upload gazettes or state announcements. Each source is tracked and archived.') }}</p>
                                     </div>
                                 </div>
                                 <div class="flex gap-6">

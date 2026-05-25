@@ -41,7 +41,7 @@ class HolidayCalendarController extends Controller
                 'state' => $stateName,
                 'year' => $resolvedYear,
             ]);
-            $subtitle = __('Browse official public holidays, state holidays, and long weekends in :state, Malaysia for :year.', [
+            $subtitle = __('Browse public holidays, state holidays, and long weekends in :state, Malaysia for :year.', [
                 'state' => $stateName,
                 'year' => $resolvedYear,
             ]);
@@ -49,7 +49,7 @@ class HolidayCalendarController extends Controller
             $title = __('Malaysia Public Holidays :year Calendar', [
                 'year' => $resolvedYear,
             ]);
-            $subtitle = __('Browse official national public holidays, state-level holidays, and federal holidays in Malaysia for :year.', [
+            $subtitle = __('Browse national public holidays, state-level holidays, and federal holidays in Malaysia for :year.', [
                 'year' => $resolvedYear,
             ]);
         }

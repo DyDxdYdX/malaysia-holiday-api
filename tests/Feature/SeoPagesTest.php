@@ -21,14 +21,14 @@ test('calendar page contains dynamic seo metadata based on year and state filter
     $response = $this->get(route('holidays.calendar'));
     $response->assertOk()
         ->assertSee('<title>Malaysia Public Holidays '.$currentYear.' Calendar - '.config('app.name', 'Malaysia Holiday API').'</title>', false)
-        ->assertSee('<meta name="description" content="Browse official national public holidays, state-level holidays, and federal holidays in Malaysia for '.$currentYear.'.">', false)
+        ->assertSee('<meta name="description" content="Browse national public holidays, state-level holidays, and federal holidays in Malaysia for '.$currentYear.'.">', false)
         ->assertSee('<link rel="canonical" href="'.e(route('holidays.calendar', ['year' => $currentYear])).'">', false);
 
     // 2. With filters (specific year and state)
     $responseWithFilters = $this->get(route('holidays.calendar', ['year' => 2026, 'state_code' => 'SBH']));
     $responseWithFilters->assertOk()
         ->assertSee('<title>Sabah Public Holidays 2026 Calendar - '.config('app.name', 'Malaysia Holiday API').'</title>', false)
-        ->assertSee('<meta name="description" content="Browse official public holidays, state holidays, and long weekends in Sabah, Malaysia for 2026.">', false)
+        ->assertSee('<meta name="description" content="Browse public holidays, state holidays, and long weekends in Sabah, Malaysia for 2026.">', false)
         ->assertSee('<link rel="canonical" href="'.e(route('holidays.calendar', ['year' => 2026, 'state_code' => 'SBH'])).'">', false);
 });
 
@@ -53,5 +53,7 @@ test('robots endpoint references sitemap location', function () {
         ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
         ->assertSee('User-agent: *', false)
         ->assertSee('Allow: /', false)
+        ->assertSee('Disallow: /admin', false)
+        ->assertSee('Disallow: /admin/', false)
         ->assertSee('Sitemap: '.route('sitemap'), false);
 });
