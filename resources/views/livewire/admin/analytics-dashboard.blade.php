@@ -7,7 +7,7 @@
                 <p class="app-label text-brand-red">{{ __('System Telemetry') }}</p>
             </div>
             <h1 class="app-page-title mt-3">{{ __('Application Analytics') }}</h1>
-            <p class="app-page-copy mt-2">{{ __('Real-time insights into web traffic, visitor metrics, and API request performance.') }}</p>
+            <p class="app-page-copy mt-2">{{ __('First-party traffic analytics using daily anonymous visitor identifiers.') }}</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -114,17 +114,18 @@
             </div>
         </div>
 
-        <!-- Unique Visitors -->
+        <!-- Anonymous Visitors -->
         <div class="admin-stat-card group">
             <div class="absolute -right-4 -top-4 text-brand-gold/5 transition-transform group-hover:scale-110 group-hover:text-brand-gold/10">
                 <flux:icon.users class="size-24" />
             </div>
             <div class="relative z-10">
-                <p class="app-label">{{ __('Unique Visitors (IPs)') }}</p>
+                <p class="app-label">{{ __('Daily Anonymous Visitors') }}</p>
                 <div class="mt-4 flex items-end justify-between">
-                    <p class="text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white">{{ number_format($uniqueVisitors) }}</p>
-                    <span class="app-badge app-badge-gold">{{ __('Audience') }}</span>
+                    <p class="text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white">{{ number_format($anonymousVisitors) }}</p>
+                    <span class="app-badge app-badge-gold">{{ __('Estimated') }}</span>
                 </div>
+                <p class="mt-3 text-xs text-app-copy-muted">{{ __('Identifiers rotate daily; weekly and monthly ranges count daily identifiers, not unique people.') }}</p>
             </div>
         </div>
 
@@ -223,7 +224,7 @@
                         <tr>
                             <th>{{ __('Endpoint') }}</th>
                             <th class="text-right">{{ __('Hits') }}</th>
-                            <th class="text-right">{{ __('Unique IPs') }}</th>
+                            <th class="text-right">{{ __('Daily IDs') }}</th>
                             <th class="text-right">{{ __('Avg Latency') }}</th>
                         </tr>
                     </thead>
@@ -239,7 +240,7 @@
                                     </div>
                                 </td>
                                 <td class="text-right font-mono font-bold">{{ number_format($endpoint->count) }}</td>
-                                <td class="text-right font-mono text-app-copy-muted">{{ number_format($endpoint->unique_ips) }}</td>
+                                <td class="text-right font-mono text-app-copy-muted">{{ number_format($endpoint->anonymous_visitors) }}</td>
                                 <td class="text-right font-mono text-app-copy-muted">{{ round($endpoint->avg_duration) }}ms</td>
                             </tr>
                         @empty
@@ -269,7 +270,7 @@
                         <tr>
                             <th>{{ __('Page Path') }}</th>
                             <th class="text-right">{{ __('Hits') }}</th>
-                            <th class="text-right">{{ __('Unique IPs') }}</th>
+                            <th class="text-right">{{ __('Daily IDs') }}</th>
                             <th class="text-right">{{ __('Avg Latency') }}</th>
                         </tr>
                     </thead>
@@ -282,7 +283,7 @@
                                     </span>
                                 </td>
                                 <td class="text-right font-mono font-bold">{{ number_format($page->count) }}</td>
-                                <td class="text-right font-mono text-app-copy-muted">{{ number_format($page->unique_ips) }}</td>
+                                <td class="text-right font-mono text-app-copy-muted">{{ number_format($page->anonymous_visitors) }}</td>
                                 <td class="text-right font-mono text-app-copy-muted">{{ round($page->avg_duration) }}ms</td>
                             </tr>
                         @empty
@@ -301,8 +302,8 @@
         <section class="app-section lg:col-span-2">
             <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-brand-navy dark:text-white">{{ __('Top API Users / Visitors') }}</h2>
-                    <p class="app-page-copy mt-1 text-xs">{{ __('Most active IP addresses and client browsers.') }}</p>
+                    <h2 class="text-lg font-bold text-brand-navy dark:text-white">{{ __('Top Anonymous Visitors') }}</h2>
+                    <p class="app-page-copy mt-1 text-xs">{{ __('Most active daily anonymous visitor identifiers and client browsers.') }}</p>
                 </div>
             </div>
 
@@ -310,7 +311,7 @@
                 <table class="app-table">
                     <thead>
                         <tr>
-                            <th>{{ __('IP Address') }}</th>
+                            <th>{{ __('Anonymous Visitor') }}</th>
                             <th class="text-right">{{ __('Requests') }}</th>
                             <th>{{ __('User Agent') }}</th>
                             <th class="text-right">{{ __('Last Active') }}</th>
@@ -322,7 +323,7 @@
                                 <td>
                                     <div class="flex items-center gap-2">
                                         <flux:icon.computer-desktop class="size-4 text-app-copy-muted" />
-                                        <span class="font-mono font-bold text-brand-red">{{ $consumer->ip_address }}</span>
+                                        <span class="font-mono font-bold text-brand-red">{{ __('Visitor :id', ['id' => substr($consumer->visitor_hash, 0, 8)]) }}</span>
                                     </div>
                                 </td>
                                 <td class="text-right font-mono font-bold">{{ number_format($consumer->count) }}</td>
@@ -359,7 +360,7 @@
                 <flux:input 
                     type="search" 
                     wire:model.live.debounce.300ms="search" 
-                    placeholder="{{ __('Search IP or path...') }}" 
+                    placeholder="{{ __('Search path...') }}" 
                     icon="magnifying-glass"
                     size="sm"
                 />
@@ -371,7 +372,7 @@
                 <thead>
                     <tr>
                         <th>{{ __('Time') }}</th>
-                        <th>{{ __('IP Address') }}</th>
+                        <th>{{ __('Anonymous Visitor') }}</th>
                         <th>{{ __('Route Type') }}</th>
                         <th>{{ __('Request details') }}</th>
                         <th class="text-center">{{ __('Status') }}</th>
@@ -386,7 +387,11 @@
                                 <span class="text-[9px] block">{{ $log->created_at->format('Y-M-d') }}</span>
                             </td>
                             <td>
-                                <span class="font-mono font-semibold">{{ $log->ip_address }}</span>
+                                @if ($log->visitor_hash !== null)
+                                    <span class="font-mono font-semibold">{{ __('Visitor :id', ['id' => substr($log->visitor_hash, 0, 8)]) }}</span>
+                                @else
+                                    <span class="text-app-copy-muted text-xs">{{ __('Legacy record') }}</span>
+                                @endif
                             </td>
                             <td>
                                 <span @class([

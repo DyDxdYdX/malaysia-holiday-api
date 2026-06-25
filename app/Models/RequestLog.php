@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'ip_address',
+    'visitor_hash',
+    'network_prefix',
     'method',
     'path',
     'full_url',
@@ -16,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'duration_ms',
     'user_id',
     'route_type',
+    'expires_at',
 ])]
 class RequestLog extends Model
 {
@@ -23,6 +26,18 @@ class RequestLog extends Model
      * Request logs are append-only — no updated_at.
      */
     public const UPDATED_AT = null;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+        ];
+    }
 
     /**
      * Get the user who made the request.

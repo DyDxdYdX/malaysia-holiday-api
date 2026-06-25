@@ -70,7 +70,10 @@ class AnalyticsDashboard extends Component
             });
 
         $totalRequests = (clone $statsQuery)->count();
-        $uniqueVisitors = (clone $statsQuery)->distinct()->count('ip_address');
+        $anonymousVisitors = (clone $statsQuery)
+            ->whereNotNull('visitor_hash')
+            ->distinct()
+            ->count('visitor_hash');
 
         $apiRequests = (clone $statsQuery)
             ->where('route_type', 'api')
@@ -142,7 +145,7 @@ class AnalyticsDashboard extends Component
         $topApiEndpoints = RequestLog::query()
             ->where('route_type', 'api')
             ->where('created_at', '>=', $startDate)
-            ->selectRaw('path, method, count(*) as count, count(distinct ip_address) as unique_ips, avg(duration_ms) as avg_duration')
+            ->selectRaw('path, method, count(*) as count, count(distinct visitor_hash) as anonymous_visitors, avg(duration_ms) as avg_duration')
             ->groupBy('path', 'method')
             ->orderByDesc('count')
             ->limit(5)
@@ -152,17 +155,18 @@ class AnalyticsDashboard extends Component
         $topWebPages = RequestLog::query()
             ->where('route_type', 'web')
             ->where('created_at', '>=', $startDate)
-            ->selectRaw('path, count(*) as count, count(distinct ip_address) as unique_ips, avg(duration_ms) as avg_duration')
+            ->selectRaw('path, count(*) as count, count(distinct visitor_hash) as anonymous_visitors, avg(duration_ms) as avg_duration')
             ->groupBy('path')
             ->orderByDesc('count')
             ->limit(5)
             ->get();
 
-        // 5. Top Consumers (by IP)
+        // 5. Top Consumers (by daily anonymous visitor identifier)
         $topConsumers = RequestLog::query()
             ->where('created_at', '>=', $startDate)
-            ->selectRaw('ip_address, count(*) as count, max(created_at) as last_active, max(user_agent) as user_agent')
-            ->groupBy('ip_address')
+            ->whereNotNull('visitor_hash')
+            ->selectRaw('visitor_hash, count(*) as count, max(created_at) as last_active, max(user_agent) as user_agent')
+            ->groupBy('visitor_hash')
             ->orderByDesc('count')
             ->limit(5)
             ->get();
@@ -171,8 +175,7 @@ class AnalyticsDashboard extends Component
         $recentLogs = RequestLog::query()
             ->when($this->search, function ($query): void {
                 $query->where(function ($sub): void {
-                    $sub->where('ip_address', 'like', '%'.$this->search.'%')
-                        ->orWhere('path', 'like', '%'.$this->search.'%');
+                    $sub->where('path', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->routeType !== 'all', function ($query): void {
@@ -183,7 +186,7 @@ class AnalyticsDashboard extends Component
 
         return view('livewire.admin.analytics-dashboard', [
             'totalRequests' => $totalRequests,
-            'uniqueVisitors' => $uniqueVisitors,
+            'anonymousVisitors' => $anonymousVisitors,
             'apiRequests' => $apiRequests,
             'avgResponseTime' => (int) round($avgResponseTime),
             'chartData' => $chartData,

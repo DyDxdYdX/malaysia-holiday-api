@@ -8,6 +8,15 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    config([
+        'analytics.enabled' => true,
+        'analytics.hash_secret' => 'testing-analytics-secret',
+        'analytics.store_raw_ip' => false,
+        'analytics.store_network_prefix' => false,
+    ]);
+});
+
 test('web requests are tracked and logged as web route type', function () {
     expect(RequestLog::count())->toBe(0);
 
@@ -21,6 +30,9 @@ test('web requests are tracked and logged as web route type', function () {
     expect($log->path)->toBe('/');
     expect($log->method)->toBe('GET');
     expect($log->status_code)->toBe(200);
+    expect($log->ip_address)->toBeNull();
+    expect($log->visitor_hash)->toHaveLength(64);
+    expect($log->expires_at)->not->toBeNull();
 });
 
 test('api requests are tracked and logged as api route type', function () {
@@ -65,10 +77,10 @@ test('admins can view the analytics dashboard and interact with it', function ()
     $admin = User::factory()->create(['role' => 'admin']);
 
     RequestLog::create([
-        'ip_address' => '127.0.0.1',
+        'visitor_hash' => str_repeat('a', 64),
         'method' => 'GET',
         'path' => '/',
-        'full_url' => 'http://localhost/',
+        'full_url' => '/',
         'status_code' => 200,
         'user_agent' => 'Symfony',
         'duration_ms' => 50,
@@ -76,10 +88,10 @@ test('admins can view the analytics dashboard and interact with it', function ()
     ]);
 
     RequestLog::create([
-        'ip_address' => '192.168.1.1',
+        'visitor_hash' => str_repeat('b', 64),
         'method' => 'GET',
         'path' => '/api/v1/states',
-        'full_url' => 'http://localhost/api/v1/states',
+        'full_url' => '/api/v1/states',
         'status_code' => 200,
         'user_agent' => 'Guzzle',
         'duration_ms' => 120,
@@ -93,13 +105,13 @@ test('admins can view the analytics dashboard and interact with it', function ()
     Livewire::actingAs($admin)
         ->test(AnalyticsDashboard::class)
         ->assertSee('Application Analytics')
-        ->assertSee('127.0.0.1')
-        ->assertSee('192.168.1.1')
+        ->assertSee('Visitor aaaaaaaa')
+        ->assertSee('Visitor bbbbbbbb')
         ->assertSee('/api/v1/states')
         ->set('timeframe', 'today')
         ->assertSet('timeframe', 'today')
         ->set('routeType', 'api')
         ->assertSet('routeType', 'api')
-        ->set('search', '192.168')
-        ->assertSee('192.168.1.1');
+        ->set('search', '/api/v1/states')
+        ->assertSee('/api/v1/states');
 });
