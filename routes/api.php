@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\V1\HolidayController;
 use App\Http\Controllers\Api\V1\StateController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->name('api.v1.')->group(function () {
+Route::prefix('v1')->name('api.v1.')->middleware('throttle:public-api')->group(function () {
     // GET /api/v1/states
     Route::get('states', [StateController::class, 'index'])->name('states.index');
 

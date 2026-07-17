@@ -112,7 +112,7 @@ return Application::configure(basePath: dirname(__DIR__))
                             : ($throwable->getMessage() !== '' ? $throwable->getMessage() : 'HTTP error occurred.'),
                         'details' => null,
                     ],
-                ], $throwable->getStatusCode());
+                ], $throwable->getStatusCode(), $throwable->getHeaders());
             }
 
             return response()->json([
