@@ -17,22 +17,12 @@ beforeEach(function () {
     ]);
 });
 
-test('web requests are tracked and logged as web route type', function () {
+test('web requests are not tracked', function () {
     expect(RequestLog::count())->toBe(0);
 
-    $this->get('/')
-        ->assertStatus(200);
+    $this->get('/')->assertSuccessful();
 
-    expect(RequestLog::count())->toBe(1);
-
-    $log = RequestLog::first();
-    expect($log->route_type)->toBe('web');
-    expect($log->path)->toBe('/');
-    expect($log->method)->toBe('GET');
-    expect($log->status_code)->toBe(200);
-    expect($log->ip_address)->toBeNull();
-    expect($log->visitor_hash)->toHaveLength(64);
-    expect($log->expires_at)->not->toBeNull();
+    expect(RequestLog::count())->toBe(0);
 });
 
 test('api requests are tracked and logged as api route type', function () {
@@ -47,17 +37,30 @@ test('api requests are tracked and logged as api route type', function () {
     expect($log->status_code)->toBe(200);
 });
 
-test('admin requests are tracked with logged-in user id', function () {
+test('api not found requests are tracked', function () {
+    $this->getJson('/api/v1/does-not-exist')
+        ->assertNotFound();
+
+    expect(RequestLog::count())->toBe(1);
+    expect(RequestLog::first()->route_type)->toBe('api');
+    expect(RequestLog::first()->status_code)->toBe(404);
+});
+
+test('non-api pages and non-200 api responses are not tracked', function () {
+    $this->get('/api/docs')->assertSuccessful();
+    $this->getJson('/api/v1/holidays?year=not-a-year')->assertUnprocessable();
+
+    expect(RequestLog::count())->toBe(0);
+});
+
+test('admin requests are not tracked', function () {
     $admin = User::factory()->create(['role' => 'admin']);
 
     $this->actingAs($admin)
         ->get('/admin/sources')
         ->assertStatus(200);
 
-    $log = RequestLog::where('route_type', 'admin')->first();
-    expect($log)->not->toBeNull();
-    expect($log->path)->toBe('/admin/sources');
-    expect($log->user_id)->toBe($admin->id);
+    expect(RequestLog::count())->toBe(0);
 });
 
 test('excluded paths and assets are not tracked', function () {

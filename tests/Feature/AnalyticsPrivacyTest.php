@@ -21,7 +21,7 @@ beforeEach(function () {
 });
 
 test('new analytics rows do not store raw ip by default and preserve only allowlisted query parameters', function () {
-    $this->get('/api/docs?utm_source=docs&utm_medium=web&token=secret&foo=bar')
+    $this->get('/api/v1/states?utm_source=docs&utm_medium=web&token=secret&foo=bar')
         ->assertSuccessful();
 
     $log = RequestLog::query()->firstOrFail();
@@ -29,8 +29,8 @@ test('new analytics rows do not store raw ip by default and preserve only allowl
     expect($log->ip_address)->toBeNull()
         ->and($log->visitor_hash)->toHaveLength(64)
         ->and($log->network_prefix)->toBeNull()
-        ->and($log->path)->toBe('/api/docs')
-        ->and($log->full_url)->toBe('/api/docs?utm_source=docs&utm_medium=web')
+        ->and($log->path)->toBe('/api/v1/states')
+        ->and($log->full_url)->toBe('/api/v1/states?utm_source=docs&utm_medium=web')
         ->and($log->expires_at)->not->toBeNull();
 });
 
@@ -48,7 +48,7 @@ test('missing analytics secret skips logging without breaking the response', fun
     config(['analytics.hash_secret' => '']);
     Log::spy();
 
-    $this->get('/')
+    $this->get('/api/v1/states')
         ->assertSuccessful();
 
     expect(RequestLog::query()->count())->toBe(0);
@@ -66,7 +66,7 @@ test('spoofed forwarded headers are ignored when no trusted proxy is configured'
     expect(RequestLog::query()->firstOrFail()->visitor_hash)->toBe($expectedHash);
 });
 
-test('analytics dashboard livewire polling is not tracked while other livewire requests are not broadly excluded', function () {
+test('livewire requests are not tracked', function () {
     $this->post('/livewire/update', [
         'components' => [
             [
@@ -89,7 +89,7 @@ test('analytics dashboard livewire polling is not tracked while other livewire r
         ],
     ]);
 
-    expect(RequestLog::query()->count())->toBe(1);
+    expect(RequestLog::query()->count())->toBe(0);
 });
 
 test('analytics prune deletes expired request logs and keeps non expired rows in chunks', function () {

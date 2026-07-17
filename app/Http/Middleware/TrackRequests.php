@@ -40,6 +40,10 @@ class TrackRequests
                 return;
             }
 
+            if (! $this->shouldTrackResponse($request, $response)) {
+                return;
+            }
+
             $visitorIdentifier = app(VisitorIdentifier::class);
             $visitorHash = $visitorIdentifier->hash($request->ip());
 
@@ -50,13 +54,6 @@ class TrackRequests
             $urlSanitizer = app(UrlSanitizer::class);
             $startTime = $request->attributes->get('start_time');
             $durationMs = $startTime ? (int) round((microtime(true) - $startTime) * 1000) : null;
-
-            $routeType = 'web';
-            if ($request->is('api/*')) {
-                $routeType = 'api';
-            } elseif ($request->is('admin/*')) {
-                $routeType = 'admin';
-            }
 
             RequestLog::create([
                 'ip_address' => config('analytics.store_raw_ip', false) ? $request->ip() : null,
@@ -69,7 +66,7 @@ class TrackRequests
                 'user_agent' => $request->userAgent(),
                 'duration_ms' => $durationMs,
                 'user_id' => $request->user()?->id,
-                'route_type' => $routeType,
+                'route_type' => 'api',
                 'expires_at' => Carbon::now()->addDays(max(1, (int) config('analytics.retention_days', 90))),
             ]);
         } catch (\Throwable $e) {
@@ -95,6 +92,21 @@ class TrackRequests
         }
 
         return false;
+    }
+
+    private function shouldTrackResponse(Request $request, Response $response): bool
+    {
+        if (! in_array($response->getStatusCode(), [Response::HTTP_OK, Response::HTTP_NOT_FOUND], true)) {
+            return false;
+        }
+
+        if ($response->getStatusCode() === Response::HTTP_NOT_FOUND) {
+            return $request->is('api') || $request->is('api/*');
+        }
+
+        $route = $request->route();
+
+        return $route !== null && in_array('api', $route->middleware(), true);
     }
 
     private function isAnalyticsDashboardLivewireRequest(Request $request): bool
