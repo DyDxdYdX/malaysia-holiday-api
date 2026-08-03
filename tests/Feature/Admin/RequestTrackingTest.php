@@ -118,3 +118,59 @@ test('admins can view the analytics dashboard and interact with it', function ()
         ->set('search', '/api/v1/states')
         ->assertSee('/api/v1/states');
 });
+
+test('admins can view all-time analytics and apply a custom time range', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $oldLog = RequestLog::create([
+        'visitor_hash' => str_repeat('c', 64),
+        'method' => 'GET',
+        'path' => '/old-request',
+        'full_url' => '/old-request',
+        'status_code' => 200,
+        'user_agent' => 'Pest',
+        'duration_ms' => 80,
+        'route_type' => 'web',
+    ]);
+    $oldLog->forceFill(['created_at' => '2025-01-15 12:00:00'])->save();
+
+    $recentLog = RequestLog::create([
+        'visitor_hash' => str_repeat('d', 64),
+        'method' => 'GET',
+        'path' => '/recent-request',
+        'full_url' => '/recent-request',
+        'status_code' => 200,
+        'user_agent' => 'Pest',
+        'duration_ms' => 100,
+        'route_type' => 'web',
+    ]);
+    $recentLog->forceFill(['created_at' => '2026-07-15 12:00:00'])->save();
+
+    Livewire::actingAs($admin)
+        ->test(AnalyticsDashboard::class)
+        ->assertSee('All Time')
+        ->assertSee('Time Range')
+        ->set('timeframe', 'all')
+        ->assertViewHas('totalRequests', 2)
+        ->call('openCustomRange')
+        ->assertSet('isCustomRangeOpen', true)
+        ->set('customStartDate', '2026-07-01')
+        ->set('customEndDate', '2026-07-31')
+        ->call('applyCustomRange')
+        ->assertHasNoErrors()
+        ->assertSet('timeframe', 'custom')
+        ->assertSet('isCustomRangeOpen', false)
+        ->assertViewHas('totalRequests', 1);
+});
+
+test('custom analytics time range requires the start date to precede the end date', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    Livewire::actingAs($admin)
+        ->test(AnalyticsDashboard::class)
+        ->set('customStartDate', '2026-08-02')
+        ->set('customEndDate', '2026-08-01')
+        ->call('applyCustomRange')
+        ->assertHasErrors(['customStartDate', 'customEndDate'])
+        ->assertSet('timeframe', '7days');
+});

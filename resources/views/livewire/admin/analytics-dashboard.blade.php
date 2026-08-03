@@ -16,6 +16,7 @@
                 <button 
                     type="button" 
                     wire:click="$set('timeframe', 'today')"
+                    aria-pressed="{{ $timeframe === 'today' ? 'true' : 'false' }}"
                     @class([
                         'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer',
                         'bg-brand-red text-white shadow-sm' => $timeframe === 'today',
@@ -27,6 +28,7 @@
                 <button 
                     type="button" 
                     wire:click="$set('timeframe', '7days')"
+                    aria-pressed="{{ $timeframe === '7days' ? 'true' : 'false' }}"
                     @class([
                         'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer',
                         'bg-brand-red text-white shadow-sm' => $timeframe === '7days',
@@ -38,6 +40,7 @@
                 <button 
                     type="button" 
                     wire:click="$set('timeframe', '30days')"
+                    aria-pressed="{{ $timeframe === '30days' ? 'true' : 'false' }}"
                     @class([
                         'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer',
                         'bg-brand-red text-white shadow-sm' => $timeframe === '30days',
@@ -45,6 +48,30 @@
                     ])
                 >
                     {{ __('30 Days') }}
+                </button>
+                <button
+                    type="button"
+                    wire:click="$set('timeframe', 'all')"
+                    aria-pressed="{{ $timeframe === 'all' ? 'true' : 'false' }}"
+                    @class([
+                        'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer',
+                        'bg-brand-red text-white shadow-sm' => $timeframe === 'all',
+                        'text-app-copy-muted hover:text-app-copy' => $timeframe !== 'all'
+                    ])
+                >
+                    {{ __('All Time') }}
+                </button>
+                <button
+                    type="button"
+                    wire:click="openCustomRange"
+                    aria-expanded="{{ $isCustomRangeOpen ? 'true' : 'false' }}"
+                    @class([
+                        'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer',
+                        'bg-brand-red text-white shadow-sm' => $timeframe === 'custom',
+                        'text-app-copy-muted hover:text-app-copy' => $timeframe !== 'custom'
+                    ])
+                >
+                    {{ __('Time Range') }}
                 </button>
             </div>
 
@@ -97,6 +124,19 @@
             </div>
         </div>
     </div>
+
+    @if ($isCustomRangeOpen)
+        <form wire:submit="applyCustomRange" class="app-section flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div class="grid flex-1 gap-4 sm:grid-cols-2">
+                <flux:input wire:model="customStartDate" type="date" :label="__('From')" max="{{ now()->toDateString() }}" />
+                <flux:input wire:model="customEndDate" type="date" :label="__('To')" max="{{ now()->toDateString() }}" />
+            </div>
+            <div class="flex gap-2">
+                <flux:button type="submit" variant="primary">{{ __('Apply Range') }}</flux:button>
+                <flux:button type="button" wire:click="$set('isCustomRangeOpen', false)">{{ __('Cancel') }}</flux:button>
+            </div>
+        </form>
+    @endif
 
     <!-- Core Statistics Cards -->
     <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
