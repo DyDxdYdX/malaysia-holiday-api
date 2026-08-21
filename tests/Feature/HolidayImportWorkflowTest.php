@@ -870,3 +870,136 @@ test('batch review grid follows the jpm pdf state column order', function () {
             'Terengganu',
         ]);
 });
+
+test('livewire batch show can add a missing holiday to the current batch', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 1,
+        'imported_by' => $user->id,
+        'completed_at' => now(),
+    ]);
+    draftHoliday($batch, ['name' => 'Tahun Baharu', 'date' => '2026-01-01']);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->call('openAddHolidayModal')
+        ->assertSet('showAddHolidayModal', true)
+        ->set('newHolidayName', 'Hari Malaysia')
+        ->set('newHolidayDate', '2026-09-16')
+        ->set('newHolidayScope', 'federal')
+        ->set('newHolidayType', 'federal')
+        ->set('newHolidayStateCodes', ['KUL', 'JHR'])
+        ->call('addMissingHoliday')
+        ->assertHasNoErrors()
+        ->assertSet('showAddHolidayModal', false)
+        ->assertSee('Hari Malaysia');
+
+    $holiday = Holiday::query()->where('name', 'Hari Malaysia')->firstOrFail();
+
+    expect($holiday)
+        ->holiday_import_batch_id->toBe($batch->id)
+        ->holiday_source_id->toBe($source->id)
+        ->status->toBe('draft')
+        ->year->toBe(2026)
+        ->and($holiday->stateCodes())->toBe(['JHR', 'KUL'])
+        ->and($batch->fresh())
+        ->total_rows->toBe(2)
+        ->valid_rows->toBe(2)
+        ->warning_rows->toBe(2)
+        ->and(HolidayImportRow::query()->where('holiday_import_batch_id', $batch->id)->count())->toBe(1);
+});
+
+test('livewire batch show rejects a missing holiday that already exists', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 1,
+        'imported_by' => $user->id,
+        'completed_at' => now(),
+    ]);
+    draftHoliday($batch, ['name' => 'Tahun Baharu', 'date' => '2026-01-01']);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->set('newHolidayName', 'Tahun Baharu')
+        ->set('newHolidayDate', '2026-01-01')
+        ->set('newHolidayScope', 'federal')
+        ->set('newHolidayType', 'federal')
+        ->call('addMissingHoliday')
+        ->assertHasErrors(['newHolidayName']);
+
+    expect(Holiday::query()->where('name', 'Tahun Baharu')->count())->toBe(1)
+        ->and($batch->fresh()->total_rows)->toBe(1);
+});
+
+test('livewire batch show does not add a holiday to a published batch', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'published',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+        'completed_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->set('newHolidayName', 'Hari Malaysia')
+        ->set('newHolidayDate', '2026-09-16')
+        ->set('newHolidayScope', 'federal')
+        ->set('newHolidayType', 'federal')
+        ->call('addMissingHoliday')
+        ->assertOk();
+
+    expect(Holiday::query()->where('name', 'Hari Malaysia')->exists())->toBeFalse();
+});
+
+test('livewire batch show requires the missing holiday date to match the batch year', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 0,
+        'valid_rows' => 0,
+        'invalid_rows' => 0,
+        'warning_rows' => 0,
+        'imported_by' => $user->id,
+        'completed_at' => now(),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->set('newHolidayName', 'Hari Malaysia')
+        ->set('newHolidayDate', '2027-09-16')
+        ->set('newHolidayScope', 'federal')
+        ->set('newHolidayType', 'federal')
+        ->call('addMissingHoliday')
+        ->assertHasErrors(['newHolidayDate']);
+
+    expect(Holiday::query()->where('name', 'Hari Malaysia')->exists())->toBeFalse();
+});

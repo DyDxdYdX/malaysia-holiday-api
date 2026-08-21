@@ -143,16 +143,28 @@
                 <div class="flex flex-col gap-4 border-b border-app-border px-4 py-3">
                     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <p class="app-label">{{ __('Holiday approvals') }}</p>
-                        @if ($hasDraftHolidays && $batch->status !== 'published')
-                            <flux:button
-                                wire:click="approveAll"
-                                variant="primary"
-                                icon="check"
-                                class="cursor-pointer"
-                            >
-                                {{ __('Approve All Drafts') }}
-                            </flux:button>
-                        @endif
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if ($batch->status !== 'published' && ! $isPdfExtractionPending)
+                                <flux:button
+                                    wire:click="openAddHolidayModal"
+                                    variant="filled"
+                                    icon="plus"
+                                    class="cursor-pointer"
+                                >
+                                    {{ __('Add missing holiday') }}
+                                </flux:button>
+                            @endif
+                            @if ($hasDraftHolidays && $batch->status !== 'published')
+                                <flux:button
+                                    wire:click="approveAll"
+                                    variant="primary"
+                                    icon="check"
+                                    class="cursor-pointer"
+                                >
+                                    {{ __('Approve All Drafts') }}
+                                </flux:button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -539,5 +551,85 @@
                 </flux:button>
             </div>
         </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showAddHolidayModal" class="max-w-3xl">
+        <form wire:submit="addMissingHoliday" class="space-y-5">
+            <div>
+                <flux:heading size="lg">{{ __('Add missing holiday') }}</flux:heading>
+                <flux:subheading>
+                    {{ __('Add a holiday the PDF extraction missed. It will join this batch as a draft for :year.', ['year' => $batch->year]) }}
+                </flux:subheading>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <flux:input wire:model="newHolidayName" :label="__('Name')" required />
+                    @error('newHolidayName')
+                        <p class="mt-1 text-sm text-brand-red">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <flux:input
+                        wire:model="newHolidayDate"
+                        type="date"
+                        :label="__('Date')"
+                        min="{{ $batch->year }}-01-01"
+                        max="{{ $batch->year }}-12-31"
+                        required
+                    />
+                    @error('newHolidayDate')
+                        <p class="mt-1 text-sm text-brand-red">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <flux:select wire:model="newHolidayScope" :label="__('Scope')" required>
+                    @foreach (['federal', 'state', 'federal_and_state', 'custom'] as $scope)
+                        <flux:select.option value="{{ $scope }}">{{ str_replace('_', ' ', $scope) }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model="newHolidayType" :label="__('Type')" required>
+                    @foreach (['federal', 'state', 'replacement', 'additional', 'custom'] as $type)
+                        <flux:select.option value="{{ $type }}">{{ $type }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                <div class="md:col-span-2">
+                    <flux:checkbox wire:model="newHolidayIsSubjectToChange" :label="__('Subject to change')" />
+                </div>
+
+                <div class="md:col-span-2">
+                    <flux:textarea wire:model="newHolidaySourceNote" :label="__('Source note')" :placeholder="__('Optional. Defaults to a manual-addition note.')" rows="2" />
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-app-outline p-3">
+                <p class="mb-3 text-xs font-semibold tracking-wide text-app-copy-muted uppercase">{{ __('States (optional — same order as the JPM PDF)') }}</p>
+                <div class="flex min-w-max gap-1">
+                    @foreach ($pdfColumns as $code => $label)
+                        <label class="flex w-8 cursor-pointer flex-col items-center gap-1.5" title="{{ $code }} · {{ $stateOptions[$code] }}">
+                            <span class="state-grid-heading">{{ $label }}</span>
+                            <flux:checkbox
+                                wire:model="newHolidayStateCodes"
+                                value="{{ $code }}"
+                                class="cursor-pointer"
+                            />
+                            <span class="text-[9px] font-bold tracking-wider text-brand-navy dark:text-slate-300">{{ $code }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button type="button" variant="filled" class="cursor-pointer">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" icon="plus" class="cursor-pointer">
+                    {{ __('Add holiday') }}
+                </flux:button>
+            </div>
+        </form>
     </flux:modal>
 </div>

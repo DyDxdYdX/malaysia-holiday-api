@@ -6,6 +6,7 @@ use App\Models\Holiday;
 use App\Models\HolidayImportBatch;
 use App\Support\AuditLogger;
 use App\Support\MalaysiaStates;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -38,6 +39,25 @@ class BatchShow extends Component
      * @var list<int>
      */
     public array $stateTargetIds = [];
+
+    public bool $showAddHolidayModal = false;
+
+    public string $newHolidayName = '';
+
+    public string $newHolidayDate = '';
+
+    public string $newHolidayScope = 'federal';
+
+    public string $newHolidayType = 'federal';
+
+    public bool $newHolidayIsSubjectToChange = false;
+
+    public string $newHolidaySourceNote = '';
+
+    /**
+     * @var list<string>
+     */
+    public array $newHolidayStateCodes = [];
 
     public function mount(HolidayImportBatch $batch): void
     {
@@ -119,6 +139,152 @@ class BatchShow extends Component
         }
 
         $this->persistHolidayStates($holiday, []);
+    }
+
+    public function openAddHolidayModal(): void
+    {
+        if ($this->batch->status === 'published' || $this->isPdfExtractionPending()) {
+            return;
+        }
+
+        $this->resetErrorBag();
+        $this->reset(
+            'newHolidayName',
+            'newHolidayDate',
+            'newHolidayIsSubjectToChange',
+            'newHolidaySourceNote',
+            'newHolidayStateCodes',
+        );
+        $this->newHolidayScope = 'federal';
+        $this->newHolidayType = 'federal';
+        $this->showAddHolidayModal = true;
+    }
+
+    public function addMissingHoliday(AuditLogger $auditLogger): void
+    {
+        if ($this->batch->status === 'published' || $this->isPdfExtractionPending()) {
+            return;
+        }
+
+        $validated = $this->validate([
+            'newHolidayName' => ['required', 'string', 'max:255'],
+            'newHolidayDate' => ['required', 'date'],
+            'newHolidayScope' => ['required', Rule::in(['federal', 'state', 'federal_and_state', 'custom'])],
+            'newHolidayType' => ['required', Rule::in(['federal', 'state', 'replacement', 'additional', 'custom'])],
+            'newHolidayIsSubjectToChange' => ['boolean'],
+            'newHolidaySourceNote' => ['nullable', 'string', 'max:5000'],
+            'newHolidayStateCodes' => ['array'],
+            'newHolidayStateCodes.*' => ['string', Rule::in(MalaysiaStates::codes())],
+        ]);
+
+        $date = Carbon::parse($validated['newHolidayDate']);
+
+        if ($date->year !== (int) $this->batch->year) {
+            $this->addError('newHolidayDate', __('Date must be in :year.', ['year' => $this->batch->year]));
+
+            return;
+        }
+
+        $name = trim($validated['newHolidayName']);
+
+        $alreadyExists = Holiday::query()
+            ->where('year', $this->batch->year)
+            ->whereDate('date', $date->toDateString())
+            ->where('name', $name)
+            ->exists();
+
+        if ($alreadyExists) {
+            $this->addError('newHolidayName', __('A holiday with this date and name already exists.'));
+
+            return;
+        }
+
+        $stateCodes = collect($validated['newHolidayStateCodes'] ?? [])
+            ->map(fn (mixed $stateCode): string => strtoupper(trim((string) $stateCode)))
+            ->filter(fn (string $stateCode): bool => $stateCode !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        $sourceNote = trim((string) ($validated['newHolidaySourceNote'] ?? ''));
+
+        if ($sourceNote === '') {
+            $sourceNote = __('Manually added; missing from PDF extraction.');
+        }
+
+        $holiday = Holiday::query()->create([
+            'holiday_source_id' => $this->batch->holiday_source_id,
+            'holiday_import_batch_id' => $this->batch->id,
+            'year' => $this->batch->year,
+            'name' => $name,
+            'date' => $date->toDateString(),
+            'day_name' => $date->format('l'),
+            'scope' => $validated['newHolidayScope'],
+            'type' => $validated['newHolidayType'],
+            'is_subject_to_change' => $this->newHolidayIsSubjectToChange,
+            'status' => 'draft',
+            'source_note' => $sourceNote,
+        ]);
+        $holiday->syncStateCodes($stateCodes);
+
+        $warnings = [__('Manually added; missing from PDF extraction.')];
+
+        if ($stateCodes === []) {
+            $warnings[] = __('State applicability requires manual review.');
+        }
+
+        if ($this->newHolidayIsSubjectToChange) {
+            $warnings[] = __('Holiday is marked as subject to change.');
+        }
+
+        $this->batch->importRows()->create([
+            'row_number' => ((int) $this->batch->importRows()->max('row_number')) + 1,
+            'raw_payload' => [
+                'name' => $name,
+                'date' => $date->toDateString(),
+                'scope' => $validated['newHolidayScope'],
+                'type' => $validated['newHolidayType'],
+            ],
+            'normalized_payload' => [
+                'year' => $this->batch->year,
+                'name' => $name,
+                'date' => $date->toDateString(),
+                'scope' => $validated['newHolidayScope'],
+                'type' => $validated['newHolidayType'],
+                'state_codes' => implode(',', $stateCodes),
+                'is_subject_to_change' => $this->newHolidayIsSubjectToChange,
+                'source_note' => $sourceNote,
+            ],
+            'status' => 'warning',
+            'errors' => [],
+            'warnings' => $warnings,
+            'confidence' => null,
+        ]);
+
+        $this->batch->update([
+            'total_rows' => $this->batch->total_rows + 1,
+            'valid_rows' => $this->batch->valid_rows + 1,
+            'warning_rows' => $this->batch->warning_rows + 1,
+        ]);
+
+        $auditLogger->logFromRequest(
+            request: request(),
+            action: 'holiday_created',
+            entityType: 'holiday',
+            entityId: $holiday->id,
+            newValues: $auditLogger->modelSnapshot($holiday),
+        );
+
+        $this->showAddHolidayModal = false;
+        $this->reset(
+            'newHolidayName',
+            'newHolidayDate',
+            'newHolidayIsSubjectToChange',
+            'newHolidaySourceNote',
+            'newHolidayStateCodes',
+        );
+        $this->loadBatchRelations();
+        session()->flash('status', __("Holiday ':name' added to this batch.", ['name' => $holiday->name]));
     }
 
     public function openApplyStatesModal(?int $holidayId = null): void
@@ -503,10 +669,7 @@ class BatchShow extends Component
 
     public function render()
     {
-        $isPdfExtractionPending = $this->batch->import_method === 'pdf_ai'
-            && $this->batch->status === 'draft'
-            && $this->batch->completed_at === null
-            && $this->batch->failed_at === null;
+        $isPdfExtractionPending = $this->isPdfExtractionPending();
 
         $filteredHolidays = $this->filteredHolidays();
         $needsReviewCount = $this->batch->holidays
@@ -532,6 +695,14 @@ class BatchShow extends Component
             'allVisibleSelected' => $selectableIds !== [] && $selectedVisibleCount === count($selectableIds),
             'selectedCount' => count($selectedIds),
         ]);
+    }
+
+    private function isPdfExtractionPending(): bool
+    {
+        return $this->batch->import_method === 'pdf_ai'
+            && $this->batch->status === 'draft'
+            && $this->batch->completed_at === null
+            && $this->batch->failed_at === null;
     }
 
     /**
