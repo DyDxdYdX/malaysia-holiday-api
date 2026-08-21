@@ -150,6 +150,49 @@ select:focus[data-flux-control] {
         @apply px-4 py-2.5;
     }
 
+    .state-grid-table {
+        @apply min-w-max;
+    }
+
+    .state-grid-table thead th {
+        @apply sticky top-0 z-10 bg-app-surface-card;
+    }
+
+    .state-grid-table .state-grid-sticky {
+        @apply sticky z-20 bg-app-surface-card;
+    }
+
+    .state-grid-table .state-grid-col {
+        @apply w-8 min-w-8 px-0 py-1.5 text-center align-bottom;
+    }
+
+    .state-grid-table td.state-grid-col {
+        @apply px-0.5 py-1.5 align-middle;
+    }
+
+    .state-grid-heading {
+        writing-mode: vertical-rl;
+        @apply mx-auto rotate-180 text-[10px] font-bold tracking-wider text-app-copy-muted uppercase;
+        height: 8.5rem;
+    }
+
+    .state-grid-cell {
+        @apply mx-auto flex size-7 items-center justify-center rounded-sm border border-app-outline bg-white text-xs font-bold text-brand-navy transition-colors dark:bg-slate-950 dark:text-white;
+    }
+
+    .state-grid-cell-on {
+        @apply border-brand-navy bg-brand-navy text-white dark:border-white dark:bg-white dark:text-brand-navy;
+    }
+
+    .state-grid-cell-button {
+        @apply cursor-pointer hover:border-brand-red hover:bg-brand-red/10;
+    }
+
+    .state-grid-cell-button:hover.state-grid-cell-on,
+    .state-grid-cell-button.state-grid-cell-on:hover {
+        @apply border-brand-red bg-brand-red text-white;
+    }
+
     .app-badge {
         @apply inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase;
     }

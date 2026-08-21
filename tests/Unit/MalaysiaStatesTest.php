@@ -2,6 +2,29 @@
 
 use App\Support\MalaysiaStates;
 
+test('it exposes the jpm pdf state column order', function () {
+    expect(MalaysiaStates::pdfCodes())->toBe([
+        'KUL',
+        'LBN',
+        'PJY',
+        'JHR',
+        'KDH',
+        'KTN',
+        'MLK',
+        'NSN',
+        'PHG',
+        'PRK',
+        'PLS',
+        'PNG',
+        'SBH',
+        'SWK',
+        'SGR',
+        'TRG',
+    ])
+        ->and(MalaysiaStates::pdfColumns()['NSN'])->toBe('N. Sembilan')
+        ->and(MalaysiaStates::pdfColumns()['PNG'])->toBe('P. Pinang');
+});
+
 test('it returns every malaysian state code', function () {
     expect(MalaysiaStates::codes())
         ->toHaveCount(16)

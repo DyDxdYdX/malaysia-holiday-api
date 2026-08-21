@@ -831,3 +831,42 @@ test('livewire batch show can filter holidays that still need states', function 
         ->assertSee('Needs Review Holiday')
         ->assertDontSee('Ready Holiday');
 });
+
+test('batch review grid follows the jpm pdf state column order', function () {
+    $user = adminUser();
+    $source = holidaySource(['uploaded_by' => $user->id]);
+    $batch = HolidayImportBatch::query()->create([
+        'holiday_source_id' => $source->id,
+        'year' => 2026,
+        'import_method' => 'pdf_ai',
+        'status' => 'review_required',
+        'total_rows' => 1,
+        'valid_rows' => 1,
+        'invalid_rows' => 0,
+        'warning_rows' => 1,
+        'imported_by' => $user->id,
+    ]);
+    draftHoliday($batch, ['name' => 'Tahun Baharu', 'date' => '2026-01-01']);
+
+    Livewire::actingAs($user)
+        ->test(BatchShow::class, ['batch' => $batch])
+        ->assertSee('Columns match the JPM PDF, left to right.')
+        ->assertSeeInOrder([
+            'W.P. K. Lumpur',
+            'W.P. Labuan',
+            'W.P. Putrajaya',
+            'Johor',
+            'Kedah',
+            'Kelantan',
+            'Melaka',
+            'N. Sembilan',
+            'Pahang',
+            'Perak',
+            'Perlis',
+            'P. Pinang',
+            'Sabah',
+            'Sarawak',
+            'Selangor',
+            'Terengganu',
+        ]);
+});

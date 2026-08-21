@@ -10,6 +10,7 @@ use App\Models\HolidayImportRow;
 use App\Models\HolidaySource;
 use App\Models\User;
 use App\Services\Holidays\HolidayImportService;
+use App\Support\MalaysiaStates;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -346,6 +347,7 @@ test('batch review displays manual state checkboxes for pdf draft holidays', fun
         ->assertSee('State applicability requires manual review.');
 
     Livewire::test(BatchShow::class, ['batch' => $batch])
+        ->assertSeeInOrder(array_values(MalaysiaStates::pdfColumns()))
         ->assertSee('KUL')
         ->assertSee('SBH');
 });

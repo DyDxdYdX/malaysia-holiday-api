@@ -96,8 +96,7 @@ class BatchShow extends Component
             $states[] = $stateCode;
         }
 
-        $holiday->syncStateCodes($states);
-        $this->loadBatchRelations();
+        $this->persistHolidayStates($holiday, $states);
     }
 
     public function selectAllStates(int $holidayId): void
@@ -108,8 +107,7 @@ class BatchShow extends Component
             return;
         }
 
-        $holiday->syncStateCodes(MalaysiaStates::codes());
-        $this->loadBatchRelations();
+        $this->persistHolidayStates($holiday, MalaysiaStates::codes());
     }
 
     public function clearStates(int $holidayId): void
@@ -120,8 +118,7 @@ class BatchShow extends Component
             return;
         }
 
-        $holiday->syncStateCodes([]);
-        $this->loadBatchRelations();
+        $this->persistHolidayStates($holiday, []);
     }
 
     public function openApplyStatesModal(?int $holidayId = null): void
@@ -525,6 +522,7 @@ class BatchShow extends Component
         return view('livewire.admin.batch-show', [
             'isPdfExtractionPending' => $isPdfExtractionPending,
             'stateOptions' => MalaysiaStates::options(),
+            'pdfColumns' => MalaysiaStates::pdfColumns(),
             'statePresets' => MalaysiaStates::presets(),
             'filteredHolidays' => $filteredHolidays,
             'needsReviewCount' => $needsReviewCount,
@@ -640,6 +638,15 @@ class BatchShow extends Component
         return $this->holidaysForIds($ids)
             ->where('status', 'draft')
             ->values();
+    }
+
+    /**
+     * @param  list<string>  $states
+     */
+    private function persistHolidayStates(Holiday $holiday, array $states): void
+    {
+        $holiday->syncStateCodes($states);
+        $holiday->setRelation('states', $holiday->states()->get());
     }
 
     private function flashApprovalResult(int $approvedCount, int $skippedCount): void

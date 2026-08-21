@@ -113,7 +113,7 @@
                     <p class="app-label text-brand-gold">{{ __('Needs attention') }}</p>
                     <p class="mt-2 font-semibold text-brand-navy dark:text-white">{{ __('State applicability requires manual review.') }}</p>
                     <p class="app-page-copy mt-1">
-                        {{ __(':count holiday(s) still need state assignment. Select rows and apply a preset, or set federal drafts to all states in one step.', ['count' => $needsReviewCount]) }}
+                        {{ __(':count holiday(s) still need state assignment. Tick the same state columns as the JPM PDF, or apply a preset to selected rows.', ['count' => $needsReviewCount]) }}
                     </p>
                     <div class="mt-4 flex flex-wrap items-center gap-2">
                         <flux:button
@@ -283,11 +283,11 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="app-table app-table-compact">
+                    <table class="app-table app-table-compact state-grid-table">
                         <thead>
                             <tr>
                                 @if ($batch->status !== 'published')
-                                    <th class="w-10">
+                                    <th class="state-grid-sticky left-0 w-10">
                                         <flux:checkbox
                                             :checked="$allVisibleSelected"
                                             wire:click="toggleSelectAll"
@@ -296,10 +296,16 @@
                                         />
                                     </th>
                                 @endif
-                                <th>{{ __('Date') }}</th>
-                                <th>{{ __('Name') }}</th>
-                                <th>{{ __('Scope') }}</th>
-                                <th>{{ __('States') }}</th>
+                                <th class="state-grid-sticky {{ $batch->status !== 'published' ? 'left-10' : 'left-0' }} min-w-52">
+                                    <span>{{ __('Holiday') }}</span>
+                                    <p class="mt-1 text-[9px] font-medium tracking-normal text-app-copy-muted normal-case">{{ __('Columns match the JPM PDF, left to right.') }}</p>
+                                </th>
+                                @foreach ($pdfColumns as $code => $label)
+                                    <th class="state-grid-col" title="{{ $code }} · {{ $stateOptions[$code] }}">
+                                        <span class="state-grid-heading">{{ $label }}</span>
+                                        <span class="mt-1 block text-[9px] font-bold tracking-wider text-brand-navy dark:text-slate-300">{{ $code }}</span>
+                                    </th>
+                                @endforeach
                                 <th>{{ __('Status') }}</th>
                                 <th></th>
                             </tr>
@@ -308,12 +314,12 @@
                             @forelse ($filteredHolidays as $holiday)
                                 @php
                                     $stateCodes = $holiday->stateCodes();
-                                    $isAllStates = \App\Support\MalaysiaStates::isAll($stateCodes);
                                     $isSelectable = $holiday->status !== 'published' && $batch->status !== 'published';
+                                    $canEditStates = $holiday->status === 'draft' && $batch->status !== 'published';
                                 @endphp
                                 <tr wire:key="holiday-row-{{ $holiday->id }}" class="{{ in_array($holiday->id, $selectedIds, true) ? 'bg-brand-red/5' : '' }}">
                                     @if ($batch->status !== 'published')
-                                        <td>
+                                        <td class="state-grid-sticky left-0 w-10">
                                             @if ($isSelectable)
                                                 <flux:checkbox
                                                     wire:model.live="selectedHolidayIds"
@@ -323,49 +329,47 @@
                                             @endif
                                         </td>
                                     @endif
-                                    <td class="font-mono text-xs whitespace-nowrap">{{ $holiday->date->toDateString() }}</td>
-                                    <td class="max-w-64 font-medium text-brand-navy dark:text-white">
-                                        {{ $holiday->name }}
-                                        @if ($holiday->is_subject_to_change)
-                                            <span class="app-badge app-badge-gold mt-1">{{ __('Subject to change') }}</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="app-badge app-badge-navy">{{ $holiday->scope }}</span>
-                                    </td>
-                                    <td class="min-w-48">
-                                        <div class="flex items-center gap-1.5">
-                                            <div class="flex flex-wrap items-center gap-1">
-                                                @if ($stateCodes === [])
-                                                    <span class="app-badge app-badge-gold">{{ __('Needs review') }}</span>
-                                                @elseif ($isAllStates)
-                                                    <span class="app-badge app-badge-navy font-semibold">{{ __('All states') }}</span>
-                                                @else
-                                                    @foreach (array_slice($stateCodes, 0, 8) as $stateCode)
-                                                        <span class="app-badge app-badge-navy">{{ $stateCode }}</span>
-                                                    @endforeach
-                                                    @if (count($stateCodes) > 8)
-                                                        <span class="app-badge">+{{ count($stateCodes) - 8 }}</span>
-                                                    @endif
-                                                @endif
-                                            </div>
-
-                                            @if ($holiday->status === 'draft' && $batch->status !== 'published')
-                                                <flux:button
-                                                    size="xs"
-                                                    variant="subtle"
-                                                    icon="pencil-square"
-                                                    class="ml-0.5 cursor-pointer"
-                                                    square
-                                                    title="{{ __('Set states') }}"
-                                                    wire:click="openApplyStatesModal({{ $holiday->id }})"
-                                                />
+                                    <td class="state-grid-sticky {{ $batch->status !== 'published' ? 'left-10' : 'left-0' }} min-w-52">
+                                        <p class="font-mono text-xs text-app-copy-muted">{{ $holiday->date->toDateString() }}</p>
+                                        <p class="font-medium text-brand-navy dark:text-white">{{ $holiday->name }}</p>
+                                        <div class="mt-1 flex flex-wrap items-center gap-1">
+                                            <span class="app-badge app-badge-navy">{{ $holiday->scope }}</span>
+                                            @if ($holiday->is_subject_to_change)
+                                                <span class="app-badge app-badge-gold">{{ __('Subject to change') }}</span>
+                                            @endif
+                                            @if ($stateCodes === [])
+                                                <span class="app-badge app-badge-gold">{{ __('Needs review') }}</span>
                                             @endif
                                         </div>
                                         @error("holiday-{$holiday->id}")
                                             <p class="mt-1 text-sm text-brand-red">{{ $message }}</p>
                                         @enderror
                                     </td>
+                                    @foreach ($pdfColumns as $code => $label)
+                                        @php
+                                            $isOn = in_array($code, $stateCodes, true);
+                                        @endphp
+                                        <td class="state-grid-col" wire:key="holiday-{{ $holiday->id }}-state-{{ $code }}">
+                                            @if ($canEditStates)
+                                                <button
+                                                    type="button"
+                                                    wire:click="toggleState({{ $holiday->id }}, '{{ $code }}')"
+                                                    wire:loading.class="opacity-50"
+                                                    wire:target="toggleState({{ $holiday->id }}, '{{ $code }}')"
+                                                    class="state-grid-cell state-grid-cell-button {{ $isOn ? 'state-grid-cell-on' : '' }}"
+                                                    title="{{ $isOn ? __('Remove :state', ['state' => $label]) : __('Add :state', ['state' => $label]) }}"
+                                                    aria-pressed="{{ $isOn ? 'true' : 'false' }}"
+                                                    aria-label="{{ __(':state for :name', ['state' => $label, 'name' => $holiday->name]) }}"
+                                                >
+                                                    {{ $isOn ? '✓' : '' }}
+                                                </button>
+                                            @else
+                                                <div class="state-grid-cell {{ $isOn ? 'state-grid-cell-on' : '' }}" title="{{ $label }}">
+                                                    {{ $isOn ? '✓' : '' }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                    @endforeach
                                     <td>
                                         <span class="app-badge {{ $holiday->status === 'published' ? 'app-badge-gold' : ($holiday->status === 'confirmed' ? 'app-badge-navy' : ($holiday->status === 'cancelled' ? '' : 'app-badge-red')) }}">
                                             {{ $holiday->status }}
@@ -419,7 +423,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $batch->status !== 'published' ? 7 : 6 }}" class="py-8 text-center text-app-copy-muted">
+                                    <td colspan="{{ ($batch->status !== 'published' ? 4 : 3) + count($pdfColumns) }}" class="py-8 text-center text-app-copy-muted">
                                         {{ __('No holidays match this filter.') }}
                                     </td>
                                 </tr>
@@ -505,17 +509,21 @@
                 </flux:button>
             </div>
 
-            <div class="grid gap-2 sm:grid-cols-2">
-                @foreach ($stateOptions as $code => $name)
-                    <flux:field variant="inline">
-                        <flux:checkbox
-                            wire:model="bulkStateCodes"
-                            value="{{ $code }}"
-                            class="cursor-pointer"
-                        />
-                        <flux:label>{{ $code }} · {{ $name }}</flux:label>
-                    </flux:field>
-                @endforeach
+            <div class="overflow-x-auto rounded-lg border border-app-outline p-3">
+                <p class="mb-3 text-xs font-semibold tracking-wide text-app-copy-muted uppercase">{{ __('Same column order as the JPM PDF') }}</p>
+                <div class="flex min-w-max gap-1">
+                    @foreach ($pdfColumns as $code => $label)
+                        <label class="flex w-8 cursor-pointer flex-col items-center gap-1.5" title="{{ $code }} · {{ $stateOptions[$code] }}">
+                            <span class="state-grid-heading">{{ $label }}</span>
+                            <flux:checkbox
+                                wire:model="bulkStateCodes"
+                                value="{{ $code }}"
+                                class="cursor-pointer"
+                            />
+                            <span class="text-[9px] font-bold tracking-wider text-brand-navy dark:text-slate-300">{{ $code }}</span>
+                        </label>
+                    @endforeach
+                </div>
             </div>
 
             @error('bulkStateCodes')

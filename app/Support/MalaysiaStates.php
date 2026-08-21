@@ -38,6 +38,41 @@ class MalaysiaStates
     }
 
     /**
+     * JPM public-holiday PDF state-grid column order, left to right.
+     *
+     * @return array<string, string>
+     */
+    public static function pdfColumns(): array
+    {
+        return [
+            'KUL' => 'W.P. K. Lumpur',
+            'LBN' => 'W.P. Labuan',
+            'PJY' => 'W.P. Putrajaya',
+            'JHR' => 'Johor',
+            'KDH' => 'Kedah',
+            'KTN' => 'Kelantan',
+            'MLK' => 'Melaka',
+            'NSN' => 'N. Sembilan',
+            'PHG' => 'Pahang',
+            'PRK' => 'Perak',
+            'PLS' => 'Perlis',
+            'PNG' => 'P. Pinang',
+            'SBH' => 'Sabah',
+            'SWK' => 'Sarawak',
+            'SGR' => 'Selangor',
+            'TRG' => 'Terengganu',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function pdfCodes(): array
+    {
+        return array_keys(self::pdfColumns());
+    }
+
+    /**
      * @return array<string, array{label: string, codes: list<string>}>
      */
     public static function presets(): array
