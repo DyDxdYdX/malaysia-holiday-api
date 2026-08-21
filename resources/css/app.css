@@ -177,20 +177,28 @@ select:focus[data-flux-control] {
     }
 
     .state-grid-cell {
-        @apply mx-auto flex size-7 items-center justify-center rounded-sm border border-app-outline bg-white text-xs font-bold text-brand-navy transition-colors dark:bg-slate-950 dark:text-white;
+        @apply mx-auto flex size-7 items-center justify-center rounded-sm border border-slate-400 bg-slate-200 text-sm font-bold transition-colors dark:border-slate-600 dark:bg-slate-800;
     }
 
     .state-grid-cell-on {
-        @apply border-brand-navy bg-brand-navy text-white dark:border-white dark:bg-white dark:text-brand-navy;
+        @apply border-slate-500 bg-white dark:bg-white;
+    }
+
+    .state-grid-cell-P {
+        @apply text-red-600;
+    }
+
+    .state-grid-cell-N {
+        @apply text-blue-700;
     }
 
     .state-grid-cell-button {
-        @apply cursor-pointer hover:border-brand-red hover:bg-brand-red/10;
+        @apply cursor-pointer hover:border-brand-red;
     }
 
     .state-grid-cell-button:hover.state-grid-cell-on,
     .state-grid-cell-button.state-grid-cell-on:hover {
-        @apply border-brand-red bg-brand-red text-white;
+        @apply border-brand-red;
     }
 
     .app-badge {

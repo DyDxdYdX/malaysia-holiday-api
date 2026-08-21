@@ -65,6 +65,33 @@ class MalaysiaStates
     }
 
     /**
+     * Official JPM schedule header labels for PDF comparison exports.
+     *
+     * @return array<string, string>
+     */
+    public static function scheduleHeaders(): array
+    {
+        return [
+            'KUL' => 'W.P. KUALA LUMPUR',
+            'LBN' => 'W.P. LABUAN',
+            'PJY' => 'W.P. PUTRAJAYA',
+            'JHR' => 'JOHOR',
+            'KDH' => 'KEDAH',
+            'KTN' => 'KELANTAN',
+            'MLK' => 'MELAKA',
+            'NSN' => 'N. SEMBILAN',
+            'PHG' => 'PAHANG',
+            'PRK' => 'PERAK',
+            'PLS' => 'PERLIS',
+            'PNG' => 'P. PINANG',
+            'SBH' => 'SABAH',
+            'SWK' => 'SARAWAK',
+            'SGR' => 'SELANGOR',
+            'TRG' => 'TERENGGANU',
+        ];
+    }
+
+    /**
      * @return list<string>
      */
     public static function pdfCodes(): array

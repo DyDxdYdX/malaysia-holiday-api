@@ -851,6 +851,9 @@ test('batch review grid follows the jpm pdf state column order', function () {
     Livewire::actingAs($user)
         ->test(BatchShow::class, ['batch' => $batch])
         ->assertSee('Columns match the JPM PDF, left to right.')
+        ->assertSee('1 Januari')
+        ->assertSee('Khamis')
+        ->assertSee('(N)')
         ->assertSeeInOrder([
             'W.P. K. Lumpur',
             'W.P. Labuan',

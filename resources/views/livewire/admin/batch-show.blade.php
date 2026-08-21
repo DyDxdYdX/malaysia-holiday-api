@@ -27,6 +27,15 @@
         @endphp
 
         <div class="flex items-center gap-3">
+            <flux:button
+                :href="route('admin.batches.export-pdf', $batch)"
+                target="_blank"
+                icon="arrow-down-tray"
+                variant="filled"
+                class="cursor-pointer"
+            >
+                {{ __('Export PDF') }}
+            </flux:button>
             @if ($batch->status !== 'published')
                 <flux:button
                     wire:click="publish"
@@ -308,7 +317,7 @@
                                         />
                                     </th>
                                 @endif
-                                <th class="state-grid-sticky {{ $batch->status !== 'published' ? 'left-10' : 'left-0' }} min-w-52">
+                                <th class="state-grid-sticky {{ $batch->status !== 'published' ? 'left-10' : 'left-0' }} min-w-56">
                                     <span>{{ __('Holiday') }}</span>
                                     <p class="mt-1 text-[9px] font-medium tracking-normal text-app-copy-muted normal-case">{{ __('Columns match the JPM PDF, left to right.') }}</p>
                                 </th>
@@ -328,6 +337,7 @@
                                     $stateCodes = $holiday->stateCodes();
                                     $isSelectable = $holiday->status !== 'published' && $batch->status !== 'published';
                                     $canEditStates = $holiday->status === 'draft' && $batch->status !== 'published';
+                                    $marker = \App\Support\MalayCalendar::marker($holiday->scope);
                                 @endphp
                                 <tr wire:key="holiday-row-{{ $holiday->id }}" class="{{ in_array($holiday->id, $selectedIds, true) ? 'bg-brand-red/5' : '' }}">
                                     @if ($batch->status !== 'published')
@@ -341,10 +351,16 @@
                                             @endif
                                         </td>
                                     @endif
-                                    <td class="state-grid-sticky {{ $batch->status !== 'published' ? 'left-10' : 'left-0' }} min-w-52">
-                                        <p class="font-mono text-xs text-app-copy-muted">{{ $holiday->date->toDateString() }}</p>
-                                        <p class="font-medium text-brand-navy dark:text-white">{{ $holiday->name }}</p>
+                                    <td class="state-grid-sticky {{ $batch->status !== 'published' ? 'left-10' : 'left-0' }} min-w-56">
+                                        <p class="font-medium text-brand-navy dark:text-white">
+                                            {{ $holiday->name }}@if ($holiday->is_subject_to_change)*@endif
+                                        </p>
+                                        <p class="mt-0.5 text-sm text-brand-navy dark:text-slate-100">
+                                            <span class="font-semibold">{{ \App\Support\MalayCalendar::dateLabel($holiday->date) }}</span>
+                                            <span class="text-app-copy-muted"> · {{ \App\Support\MalayCalendar::dayName($holiday->date) }}</span>
+                                        </p>
                                         <div class="mt-1 flex flex-wrap items-center gap-1">
+                                            <span class="app-badge {{ $marker === 'P' ? 'app-badge-red' : 'app-badge-navy' }}">({{ $marker }})</span>
                                             <span class="app-badge app-badge-navy">{{ $holiday->scope }}</span>
                                             @if ($holiday->is_subject_to_change)
                                                 <span class="app-badge app-badge-gold">{{ __('Subject to change') }}</span>
@@ -368,7 +384,7 @@
                                                     wire:click="toggleState({{ $holiday->id }}, '{{ $code }}')"
                                                     wire:loading.class="opacity-50"
                                                     wire:target="toggleState({{ $holiday->id }}, '{{ $code }}')"
-                                                    class="state-grid-cell state-grid-cell-button {{ $isOn ? 'state-grid-cell-on' : '' }}"
+                                                    class="state-grid-cell state-grid-cell-button {{ $isOn ? 'state-grid-cell-on state-grid-cell-'.$marker : '' }}"
                                                     title="{{ $isOn ? __('Remove :state', ['state' => $label]) : __('Add :state', ['state' => $label]) }}"
                                                     aria-pressed="{{ $isOn ? 'true' : 'false' }}"
                                                     aria-label="{{ __(':state for :name', ['state' => $label, 'name' => $holiday->name]) }}"
@@ -376,7 +392,7 @@
                                                     {{ $isOn ? '✓' : '' }}
                                                 </button>
                                             @else
-                                                <div class="state-grid-cell {{ $isOn ? 'state-grid-cell-on' : '' }}" title="{{ $label }}">
+                                                <div class="state-grid-cell {{ $isOn ? 'state-grid-cell-on state-grid-cell-'.$marker : '' }}" title="{{ $label }}">
                                                     {{ $isOn ? '✓' : '' }}
                                                 </div>
                                             @endif

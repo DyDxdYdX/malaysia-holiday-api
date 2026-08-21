@@ -22,7 +22,9 @@ test('it exposes the jpm pdf state column order', function () {
         'TRG',
     ])
         ->and(MalaysiaStates::pdfColumns()['NSN'])->toBe('N. Sembilan')
-        ->and(MalaysiaStates::pdfColumns()['PNG'])->toBe('P. Pinang');
+        ->and(MalaysiaStates::pdfColumns()['PNG'])->toBe('P. Pinang')
+        ->and(MalaysiaStates::scheduleHeaders()['KUL'])->toBe('W.P. KUALA LUMPUR')
+        ->and(array_keys(MalaysiaStates::scheduleHeaders()))->toBe(MalaysiaStates::pdfCodes());
 });
 
 test('it returns every malaysian state code', function () {

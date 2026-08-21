@@ -43,6 +43,20 @@ class HolidayImportBatchController extends Controller
         return $response;
     }
 
+    public function exportPdf(HolidayImportBatch $batch): View
+    {
+        return view('admin.batches.schedule-pdf', [
+            'batch' => $batch,
+            'holidays' => $batch->holidays()
+                ->where('status', '!=', 'cancelled')
+                ->orderBy('date')
+                ->orderBy('name')
+                ->with('states')
+                ->get(),
+            'scheduleHeaders' => MalaysiaStates::scheduleHeaders(),
+        ]);
+    }
+
     public function publish(Request $request, HolidayImportBatch $batch, AuditLogger $auditLogger): RedirectResponse
     {
         abort_if($batch->invalid_rows > 0, 422, 'Batch still has unresolved invalid rows.');
