@@ -45,7 +45,9 @@ If analytics is enabled but `ANALYTICS_HASH_SECRET` is missing, analytics for th
 
 `ANALYTICS_RETENTION_DAYS` controls `request_logs.expires_at` for new records. The `expires_at` value is fixed when each record is created. Changing `ANALYTICS_RETENTION_DAYS` later does not recalculate existing rows.
 
-Run `php artisan analytics:prune` to delete expired request logs. The command is scheduled daily in `routes/console.php`, but production must run Laravel's scheduler:
+Completed UTC days are rolled up into `analytics_daily_route_stats`, `analytics_daily_path_stats`, and `analytics_daily_visitor_stats`. The admin dashboard reads those summary tables for historical ranges and queries `request_logs` only for today. Run `php artisan analytics:rollup` once after deploy to backfill, then keep it on the daily schedule. Use `--limit=0` for an unbounded backfill from SSH; the scheduled run defaults to 30 days per execution so shared-hosting time limits are not exceeded.
+
+Run `php artisan analytics:prune` to delete expired request logs and daily summary rows older than `ANALYTICS_RETENTION_DAYS`. The commands are scheduled daily in `routes/console.php`, but production must run Laravel's scheduler:
 
 ```shell
 * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1

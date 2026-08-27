@@ -31,6 +31,20 @@ class PruneAnalytics extends Command
             ? "Request logs that would be deleted: {$requestLogCount}"
             : "Request logs deleted: {$deletedRequestLogs}");
 
+        $rollupCutoff = now()->subDays(max(1, (int) config('analytics.retention_days', 90)))->toDateString();
+        $deletedRollupRows = 0;
+
+        foreach (['analytics_daily_route_stats', 'analytics_daily_path_stats', 'analytics_daily_visitor_stats'] as $table) {
+            $expiredRollup = DB::table($table)->where('stat_date', '<', $rollupCutoff);
+            $deletedRollupRows += $dryRun
+                ? (clone $expiredRollup)->count()
+                : $this->deleteInChunks($table, $expiredRollup, $chunkSize);
+        }
+
+        $this->info($dryRun
+            ? "Daily analytics stats that would be deleted: {$deletedRollupRows}"
+            : "Daily analytics stats deleted: {$deletedRollupRows}");
+
         if (! config('analytics.audit_log_pruning_enabled', false)) {
             $this->info('Audit log pruning is disabled.');
 

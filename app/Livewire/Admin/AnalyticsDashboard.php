@@ -3,10 +3,10 @@
 namespace App\Livewire\Admin;
 
 use App\Models\RequestLog;
+use App\Services\Analytics\AnalyticsDashboardMetrics;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -97,92 +97,14 @@ class AnalyticsDashboard extends Component
     /**
      * Render the component with calculated statistics and logs.
      */
-    public function render(): View
+    public function render(AnalyticsDashboardMetrics $metrics): View
     {
         [$startDate, $endDate] = $this->selectedPeriod();
+        $snapshot = $metrics->snapshot($this->timeframe, $this->routeType, $startDate, $endDate);
 
-        // 1. Get Core Statistics
-        $statsQuery = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
-            ->when($this->routeType !== 'all', function ($query): void {
-                $query->where('route_type', $this->routeType);
-            });
-
-        $totalRequests = (clone $statsQuery)->count();
-        $anonymousVisitors = (clone $statsQuery)
-            ->whereNotNull('visitor_hash')
-            ->distinct()
-            ->count('visitor_hash');
-
-        $apiRequests = (clone $statsQuery)
-            ->where('route_type', 'api')
-            ->count();
-
-        $avgResponseTime = (clone $statsQuery)
-            ->whereNotNull('duration_ms')
-            ->avg('duration_ms') ?? 0;
-
-        // 2. Generate Chart Data
-        $driver = DB::connection()->getDriverName();
-        if ($this->timeframe === 'today') {
-            $chartQuery = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
-                ->when($this->routeType !== 'all', function ($query): void {
-                    $query->where('route_type', $this->routeType);
-                });
-
-            if ($driver === 'sqlite') {
-                $logData = $chartQuery
-                    ->selectRaw("cast(strftime('%H', created_at) as integer) as hour_num, COUNT(*) as count")
-                    ->groupBy('hour_num')
-                    ->pluck('count', 'hour_num');
-            } else {
-                $logData = $chartQuery
-                    ->selectRaw('HOUR(created_at) as hour_num, COUNT(*) as count')
-                    ->groupBy('hour_num')
-                    ->pluck('count', 'hour_num');
-            }
-
-            $chartData = [];
-            for ($i = 0; $i < 24; $i++) {
-                $label = sprintf('%02d:00', $i);
-                $chartData[$label] = $logData->get($i) ?? 0;
-            }
-        } else {
-            $chartData = $this->chartDataForPeriod($driver, $startDate, $endDate);
-        }
-
-        // 3. Top API Endpoints
-        $topApiEndpoints = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
-            ->where('route_type', 'api')
-            ->selectRaw('path, method, count(*) as count, count(distinct visitor_hash) as anonymous_visitors, avg(duration_ms) as avg_duration')
-            ->groupBy('path', 'method')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get();
-
-        // 4. Top Web Pages
-        $topWebPages = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
-            ->where('route_type', 'web')
-            ->selectRaw('path, count(*) as count, count(distinct visitor_hash) as anonymous_visitors, avg(duration_ms) as avg_duration')
-            ->groupBy('path')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get();
-
-        // 5. Top Consumers (by daily anonymous visitor identifier)
-        $topConsumers = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
-            ->whereNotNull('visitor_hash')
-            ->selectRaw('visitor_hash, count(*) as count, max(created_at) as last_active, max(user_agent) as user_agent')
-            ->groupBy('visitor_hash')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get();
-
-        // 6. Recent Logs Stream (with search & routeType filters)
         $recentLogs = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
             ->when($this->search, function ($query): void {
-                $query->where(function ($sub): void {
-                    $sub->where('path', 'like', '%'.$this->search.'%');
-                });
+                $query->where('path', 'like', '%'.$this->search.'%');
             })
             ->when($this->routeType !== 'all', function ($query): void {
                 $query->where('route_type', $this->routeType);
@@ -191,14 +113,7 @@ class AnalyticsDashboard extends Component
             ->paginate(15);
 
         return view('livewire.admin.analytics-dashboard', [
-            'totalRequests' => $totalRequests,
-            'anonymousVisitors' => $anonymousVisitors,
-            'apiRequests' => $apiRequests,
-            'avgResponseTime' => (int) round($avgResponseTime),
-            'chartData' => $chartData,
-            'topApiEndpoints' => $topApiEndpoints,
-            'topWebPages' => $topWebPages,
-            'topConsumers' => $topConsumers,
+            ...$snapshot,
             'recentLogs' => $recentLogs,
         ])->layout('layouts.app');
     }
@@ -225,43 +140,5 @@ class AnalyticsDashboard extends Component
         return $query
             ->when($startDate, fn (Builder $query, CarbonInterface $date): Builder => $query->where('created_at', '>=', $date))
             ->when($endDate, fn (Builder $query, CarbonInterface $date): Builder => $query->where('created_at', '<=', $date));
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function chartDataForPeriod(string $driver, ?CarbonInterface $startDate, ?CarbonInterface $endDate): array
-    {
-        $chartQuery = $this->forSelectedPeriod(RequestLog::query(), $startDate, $endDate)
-            ->when($this->routeType !== 'all', function (Builder $query): void {
-                $query->where('route_type', $this->routeType);
-            });
-
-        $firstLogTimestamp = $startDate ? null : $chartQuery->clone()->min('created_at');
-        $lastLogTimestamp = $endDate ? null : $chartQuery->clone()->max('created_at');
-        $firstLogDate = $startDate ?? ($firstLogTimestamp ? Carbon::parse($firstLogTimestamp) : now());
-        $lastLogDate = $endDate ?? ($lastLogTimestamp ? Carbon::parse($lastLogTimestamp) : now());
-        $groupByMonth = $firstLogDate->diffInDays($lastLogDate) > 31;
-        $dateExpression = $groupByMonth
-            ? ($driver === 'sqlite' ? "strftime('%Y-%m', created_at)" : "DATE_FORMAT(created_at, '%Y-%m')")
-            : ($driver === 'sqlite' ? "strftime('%Y-%m-%d', created_at)" : 'DATE(created_at)');
-
-        $logData = $chartQuery
-            ->selectRaw("{$dateExpression} as period, COUNT(*) as count")
-            ->groupBy('period')
-            ->pluck('count', 'period');
-
-        $chartData = [];
-        $cursor = $groupByMonth ? $firstLogDate->copy()->startOfMonth() : $firstLogDate->copy()->startOfDay();
-        $finalDate = $groupByMonth ? $lastLogDate->copy()->startOfMonth() : $lastLogDate->copy()->startOfDay();
-
-        while ($cursor->lte($finalDate)) {
-            $key = $cursor->format($groupByMonth ? 'Y-m' : 'Y-m-d');
-            $label = $cursor->format($groupByMonth ? 'M Y' : 'M d');
-            $chartData[$label] = (int) ($logData->get($key) ?? 0);
-            $cursor = $groupByMonth ? $cursor->addMonth() : $cursor->addDay();
-        }
-
-        return $chartData;
     }
 }

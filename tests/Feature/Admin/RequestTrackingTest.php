@@ -146,6 +146,12 @@ test('admins can view all-time analytics and apply a custom time range', functio
     ]);
     $recentLog->forceFill(['created_at' => '2026-07-15 12:00:00'])->save();
 
+    $this->artisan('analytics:rollup', [
+        '--from' => '2025-01-15',
+        '--to' => '2026-07-15',
+        '--limit' => 0,
+    ])->assertSuccessful();
+
     Livewire::actingAs($admin)
         ->test(AnalyticsDashboard::class)
         ->assertSee('All Time')

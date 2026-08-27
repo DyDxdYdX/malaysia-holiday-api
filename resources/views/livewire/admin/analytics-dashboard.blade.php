@@ -1,4 +1,4 @@
-<div class="admin-page" wire:poll.30s>
+<div class="admin-page">
     <!-- Header -->
     <div class="admin-header">
         <div>
@@ -387,12 +387,12 @@
         </section>
     </div>
 
-    <!-- Live Request Stream log -->
+    <!-- Request Stream log -->
     <section class="app-section">
         <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h2 class="text-xl font-extrabold tracking-tight text-brand-navy dark:text-white">{{ __('Live Request Stream') }}</h2>
-                <p class="app-page-copy mt-1 text-xs">{{ __('Real-time log of incoming requests passing through the app.') }}</p>
+                <h2 class="text-xl font-extrabold tracking-tight text-brand-navy dark:text-white">{{ __('Request Stream') }}</h2>
+                <p class="app-page-copy mt-1 text-xs">{{ __('Recent requests in the selected period.') }}</p>
             </div>
             
             <div class="max-w-xs w-full">
