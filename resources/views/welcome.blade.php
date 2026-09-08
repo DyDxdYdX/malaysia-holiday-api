@@ -29,7 +29,6 @@
                     @auth
                         <flux:button :href="route('dashboard')" variant="primary" wire:navigate>{{ __('Go to Dashboard') }}</flux:button>
                     @else
-                        <flux:button :href="route('login')" variant="ghost" class="hidden sm:inline-flex" wire:navigate>{{ __('Log in') }}</flux:button>
                         <flux:button :href="route('api.docs')" variant="primary">{{ __('API Docs') }}</flux:button>
                     @endauth
                 </div>
