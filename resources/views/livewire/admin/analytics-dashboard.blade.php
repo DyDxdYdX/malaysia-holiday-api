@@ -10,7 +10,35 @@
             <p class="app-page-copy mt-2">{{ __('First-party traffic analytics using daily anonymous visitor identifiers.') }}</p>
         </div>
 
+        @php
+            $posterData = [
+                'name' => config('app.name', 'Malaysia Holiday API'),
+                'period' => match ($timeframe) {
+                    'today' => __('Today'),
+                    '30days' => __('Last 30 days'),
+                    'all' => __('All time'),
+                    'custom' => $appliedStartDate.' – '.$appliedEndDate,
+                    default => __('Last 7 days'),
+                },
+                'route' => match ($routeType) {
+                    'web' => __('Web traffic'),
+                    'api' => __('API traffic'),
+                    'admin' => __('Console traffic'),
+                    default => __('All traffic'),
+                },
+                'requests' => $totalRequests,
+                'visitors' => $anonymousVisitors,
+                'apiRequests' => $apiRequests,
+                'latency' => $avgResponseTime,
+                'chart' => $chartData,
+            ];
+        @endphp
+
         <div class="flex flex-wrap items-center gap-3">
+            <div data-analytics-poster='@json($posterData)'>
+                <flux:button type="button" icon="arrow-down-tray">{{ __('Download poster') }}</flux:button>
+            </div>
+
             <!-- Timeframe Filter -->
             <div class="flex rounded-lg border border-app-outline bg-app-surface-low/30 p-1">
                 <button 

@@ -108,6 +108,9 @@ test('admins can view the analytics dashboard and interact with it', function ()
     Livewire::actingAs($admin)
         ->test(AnalyticsDashboard::class)
         ->assertSee('Application Analytics')
+        ->assertSee('Download poster')
+        ->assertSee('data-analytics-poster', false)
+        ->assertSee('"requests":2', false)
         ->assertSee('Visitor aaaaaaaa')
         ->assertSee('Visitor bbbbbbbb')
         ->assertSee('/api/v1/states')
@@ -115,6 +118,8 @@ test('admins can view the analytics dashboard and interact with it', function ()
         ->assertSet('timeframe', 'today')
         ->set('routeType', 'api')
         ->assertSet('routeType', 'api')
+        ->assertSee('"requests":1', false)
+        ->assertSee('"route":"API traffic"', false)
         ->set('search', '/api/v1/states')
         ->assertSee('/api/v1/states');
 });
@@ -166,6 +171,7 @@ test('admins can view all-time analytics and apply a custom time range', functio
         ->assertHasNoErrors()
         ->assertSet('timeframe', 'custom')
         ->assertSet('isCustomRangeOpen', false)
+        ->assertSee('"period":"2026-07-01', false)
         ->assertViewHas('totalRequests', 1);
 });
 
