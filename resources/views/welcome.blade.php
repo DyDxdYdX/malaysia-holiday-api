@@ -401,7 +401,8 @@ print(holidays)</code></pre>
                 <p class="text-sm text-app-copy-muted">
                     &copy; {{ date('Y') }} {{ config('app.name', 'Malaysia Holiday API') }}. {{ __('All rights reserved.') }}
                 </p>
-                <div class="flex gap-6 text-sm font-semibold text-app-copy-muted">
+                <div class="flex flex-wrap justify-center gap-6 text-sm font-semibold text-app-copy-muted">
+                    <a href="https://forms.gle/WnNu5rCFkHi9JiNbA" target="_blank" rel="noopener noreferrer" class="hover:text-brand-red">{{ __('Using the API? Tell us') }}</a>
                     <a href="https://dydxsoft.my" target="_blank" rel="noopener noreferrer" class="hover:text-brand-red">{{ __('DyDxSoft') }}</a>
                     <a href="https://github.com/DyDxdYdX" target="_blank" rel="noopener noreferrer" class="hover:text-brand-red">{{ __('GitHub') }}</a>
                 </div>

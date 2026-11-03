@@ -14,5 +14,14 @@ test('api docs page returns successful response with key sections', function () 
         ->assertSee('include_source')
         ->assertSee('Pesta Kaamatan')
         ->assertSee('No API key')
+        ->assertSee('https://forms.gle/WnNu5rCFkHi9JiNbA')
+        ->assertSee('The form is optional.')
         ->assertDontSee('X-API-Key');
+});
+
+test('home page links to the API user form', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('https://forms.gle/WnNu5rCFkHi9JiNbA')
+        ->assertSee('Using the API? Tell us');
 });

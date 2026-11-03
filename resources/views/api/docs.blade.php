@@ -86,6 +86,17 @@
                         <p class="mt-2 text-sm leading-relaxed text-app-copy-muted">Supports all 13 states and 3 federal territories.</p>
                     </div>
                 </div>
+                <div class="app-container mt-6">
+                    <div class="app-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 class="font-bold text-brand-navy dark:text-white">Using this API?</h2>
+                            <p class="mt-1 text-sm text-app-copy-muted">Tell us about your project so we can understand who uses the API. The form is optional.</p>
+                        </div>
+                        <a href="https://forms.gle/WnNu5rCFkHi9JiNbA" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center justify-center rounded-lg bg-brand-red px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-red/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red">
+                            Tell us about your project
+                        </a>
+                    </div>
+                </div>
             </section>
 
             <section id="endpoints" class="border-y border-app-outline bg-app-surface-low py-12">
